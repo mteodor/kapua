@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.account.client.toolbar;
 
+import com.extjs.gxt.ui.client.event.Events;
 import com.google.gwt.user.client.Element;
 import org.eclipse.kapua.app.console.module.account.shared.model.GwtAccount;
 import org.eclipse.kapua.app.console.module.account.shared.model.permission.AccountSessionPermission;
@@ -34,7 +35,9 @@ public class AccountGridToolbar extends EntityCRUDToolbar<GwtAccount> {
 
     @Override
     protected KapuaDialog getAddDialog() {
-        return new AccountAddDialog(currentSession);
+        AccountAddDialog dialog = new AccountAddDialog(currentSession);
+        dialog.addListener(Events.Hide, getHideDialogListener());
+        return dialog;
     }
 
     @Override
@@ -43,6 +46,7 @@ public class AccountGridToolbar extends EntityCRUDToolbar<GwtAccount> {
         AccountEditDialog dialog = null;
         if (selectedAccount != null) {
             dialog = new AccountEditDialog(currentSession, selectedAccount);
+            dialog.addListener(Events.Hide, getHideDialogListener());
         }
         return dialog;
     }

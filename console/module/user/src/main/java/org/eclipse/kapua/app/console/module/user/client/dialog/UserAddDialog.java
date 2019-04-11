@@ -68,12 +68,13 @@ public class UserAddDialog extends EntityAddEditDialog {
     protected NumberField optlock;
 
     private String specificAccountId;
+    private Boolean passwordIsShown = false;
 
     private GwtUserServiceAsync gwtUserService = GWT.create(GwtUserService.class);
 
     public UserAddDialog(GwtSession currentSession) {
         super(currentSession);
-        DialogUtils.resizeDialog(this, 400, 440);
+        DialogUtils.resizeDialog(this, 400, 470);
     }
 
     public UserAddDialog(GwtSession currentSession, String specificAccountId) {
@@ -132,32 +133,34 @@ public class UserAddDialog extends EntityAddEditDialog {
         username.setToolTip(USER_MSGS.dialogAddFieldNameTooltip());
         infoFieldSet.add(username, subFieldsetFormData);
 
+        password = new KapuaTextField<String>();
+        password.setAllowBlank(false);
+        password.setName("password");
+        password.setFieldLabel("* " + USER_MSGS.dialogAddFieldPassword());
+        password.setValidator(new PasswordFieldValidator(password));
+        password.setToolTip(USER_MSGS.dialogAddTooltipPassword());
+        password.setPassword(true);
+        password.setMaxLength(255);
+
+        confirmPassword = new KapuaTextField<String>();
+        confirmPassword.setAllowBlank(false);
+        confirmPassword.setName("confirmPassword");
+        confirmPassword.setFieldLabel("* " + USER_MSGS.dialogAddFieldConfirmPassword());
+        confirmPassword.setValidator(new ConfirmPasswordFieldValidator(confirmPassword, password));
+        confirmPassword.setToolTip(USER_MSGS.dialogAddTooltipPassword());
+        confirmPassword.setPassword(true);
+        confirmPassword.setMaxLength(255);
+
+        passwordTooltip = new LabelField();
+        passwordTooltip.setValue(USER_MSGS.dialogAddTooltipPassword());
+        passwordTooltip.setStyleAttribute("margin-top", "-5px");
+        passwordTooltip.setStyleAttribute("color", "gray");
+        passwordTooltip.setStyleAttribute("font-size", "10px");
+
         if (currentSession.hasPermission(CredentialSessionPermission.write())) {
-            password = new KapuaTextField<String>();
-            password.setAllowBlank(false);
-            password.setName("password");
-            password.setFieldLabel("* " + USER_MSGS.dialogAddFieldPassword());
-            password.setValidator(new PasswordFieldValidator(password));
-            password.setToolTip(USER_MSGS.dialogAddTooltipPassword());
-            password.setPassword(true);
-            password.setMaxLength(255);
+            passwordIsShown = true;
             infoFieldSet.add(password, subFieldsetFormData);
-
-            confirmPassword = new KapuaTextField<String>();
-            confirmPassword.setAllowBlank(false);
-            confirmPassword.setName("confirmPassword");
-            confirmPassword.setFieldLabel("* " + USER_MSGS.dialogAddFieldConfirmPassword());
-            confirmPassword.setValidator(new ConfirmPasswordFieldValidator(confirmPassword, password));
-            confirmPassword.setToolTip(USER_MSGS.dialogAddTooltipPassword());
-            confirmPassword.setPassword(true);
-            confirmPassword.setMaxLength(255);
             infoFieldSet.add(confirmPassword, subFieldsetFormData);
-
-            passwordTooltip = new LabelField();
-            passwordTooltip.setValue(USER_MSGS.dialogAddTooltipPassword());
-            passwordTooltip.setStyleAttribute("margin-top", "-5px");
-            passwordTooltip.setStyleAttribute("color", "gray");
-            passwordTooltip.setStyleAttribute("font-size", "10px");
             infoFieldSet.add(passwordTooltip);
         }
         displayName = new KapuaTextField<String>();
@@ -230,11 +233,11 @@ public class UserAddDialog extends EntityAddEditDialog {
     }
 
     public void validateUser() {
-        if (username.getValue() == null || (password.getValue() == null && password.isVisible()) || (confirmPassword.getValue() == null && confirmPassword.isVisible())) {
+        if (username.getValue() == null || (passwordIsShown && password.getValue() == null) || (passwordIsShown && confirmPassword.getValue() == null)) {
             ConsoleInfo.display("Error", CMSGS.allFieldsRequired());
-        } else if (!password.isValid()) {
+        } else if (passwordIsShown && !password.isValid()) {
             ConsoleInfo.display("Error", password.getErrorMessage());
-        } else if ((password.isVisible() && confirmPassword.isVisible()) && !password.getValue().equals(confirmPassword.getValue())) {
+        } else if (passwordIsShown && !password.getValue().equals(confirmPassword.getValue())) {
             ConsoleInfo.display("Error", confirmPassword.getErrorMessage());
         } else if (!email.isValid()) {
             ConsoleInfo.display("Error", email.getErrorMessage());
@@ -270,7 +273,7 @@ public class UserAddDialog extends EntityAddEditDialog {
         gwtUserService.create(xsrfToken, gwtUserCreator, new AsyncCallback<GwtUser>() {
 
             @Override
-            public void onSuccess(GwtUser arg0) {
+            public void onSuccess(GwtUser gwtUser) {
                 exitStatus = true;
                 exitMessage = USER_MSGS.dialogAddConfirmation();
                 hide();
@@ -279,22 +282,24 @@ public class UserAddDialog extends EntityAddEditDialog {
             @Override
             public void onFailure(Throwable cause) {
                 exitStatus = false;
-                FailureHandler.handleFormException(formPanel, cause);
                 status.hide();
                 formPanel.getButtonBar().enable();
                 unmask();
                 submitButton.enable();
                 cancelButton.enable();
-                if (cause instanceof GwtKapuaException) {
-                    GwtKapuaException gwtCause = (GwtKapuaException) cause;
-                    switch (gwtCause.getCode()) {
-                    case DUPLICATE_NAME:
-                    case ENTITY_ALREADY_EXIST_IN_ANOTHER_ACCOUNT:
-                        username.markInvalid(gwtCause.getMessage());
-                        break;
-                    default:
-                        break;
+                if (!isPermissionErrorMessage(cause)) {
+                    if (cause instanceof GwtKapuaException) {
+                        GwtKapuaException gwtCause = (GwtKapuaException) cause;
+                        switch (gwtCause.getCode()) {
+                        case DUPLICATE_NAME:
+                        case ENTITY_ALREADY_EXIST_IN_ANOTHER_ACCOUNT:
+                            username.markInvalid(gwtCause.getMessage());
+                            break;
+                        default:
+                            break;
+                        }
                     }
+                    FailureHandler.handleFormException(formPanel, cause);
                 }
             }
         });

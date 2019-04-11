@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -17,9 +17,12 @@ import com.extjs.gxt.ui.client.store.ListStore;
 import com.extjs.gxt.ui.client.widget.grid.ColumnData;
 import com.extjs.gxt.ui.client.widget.grid.Grid;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import java.util.Date;
+
 import org.eclipse.kapua.app.console.module.api.client.ui.tab.EntityDescriptionTabItem;
+import org.eclipse.kapua.app.console.module.api.client.util.DateUtils;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtGroupedNVPair;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.user.shared.model.GwtUser;
@@ -29,6 +32,7 @@ import org.eclipse.kapua.app.console.module.user.shared.service.GwtUserServiceAs
 public class UserTabDescription extends EntityDescriptionTabItem<GwtUser> {
 
     private static final GwtUserServiceAsync GWT_USER_SERVICE = GWT.create(GwtUserService.class);
+    private static final String USER = "user";
 
     public UserTabDescription(GwtSession currentSession) {
         super(currentSession);
@@ -47,8 +51,8 @@ public class UserTabDescription extends EntityDescriptionTabItem<GwtUser> {
     }
 
     @Override
-    protected void onRender(Element parent, int index) {
-        super.onRender(parent, index);
+    protected String getGroupViewText() {
+        return MSGS.tabDescriptionNoItemSelected(USER);
     }
 
     @Override
@@ -57,6 +61,9 @@ public class UserTabDescription extends EntityDescriptionTabItem<GwtUser> {
         Object value = model.getValue();
         if (model.getName().equals("expirationDate") && model.getValue().equals("N/A")) {
             return MSGS.never();
+        } else if (value != null && value instanceof Date){
+            Date dateValue = (Date) value;
+            return DateUtils.formatDateTime(dateValue);
         } else {
             return value;
         }

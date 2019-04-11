@@ -158,9 +158,10 @@ public class JobTargetAddDialog extends EntityAddEditDialog {
                         status.hide();
 
                         exitStatus = false;
-                        exitMessage = JOB_MSGS.dialogGetTargetError(caught.getLocalizedMessage());
-
-                        hide();
+                        if (!isPermissionErrorMessage(caught)) {
+                            exitMessage = JOB_MSGS.dialogGetTargetError(caught.getLocalizedMessage());
+                            hide();
+                        }
                     }
 
                     @Override
@@ -189,9 +190,10 @@ public class JobTargetAddDialog extends EntityAddEditDialog {
                     status.hide();
 
                     exitStatus = false;
-                    exitMessage = JOB_MSGS.dialogGetTargetError(caught.getLocalizedMessage());
-
-                    hide();
+                    if (!isPermissionErrorMessage(caught)) {
+                        exitMessage = JOB_MSGS.dialogGetTargetError(caught.getLocalizedMessage());
+                        hide();
+                    }
                 }
 
                 @Override
@@ -215,8 +217,10 @@ public class JobTargetAddDialog extends EntityAddEditDialog {
             public void onFailure(Throwable caught) {
 
                 exitStatus = false;
-                exitMessage = JOB_MSGS.dialogGetTargetError(caught.getLocalizedMessage());
-                hide();
+                if (!isPermissionErrorMessage(caught)) {
+                    exitMessage = JOB_MSGS.dialogGetTargetError(caught.getLocalizedMessage());
+                    hide();
+                }
             }
 
             @Override
@@ -270,9 +274,9 @@ public class JobTargetAddDialog extends EntityAddEditDialog {
                 status.hide();
 
                 exitStatus = false;
-                exitMessage = JOB_MSGS.dialogAddTargetError(cause.getLocalizedMessage());
-
-                hide();
+                if (!isPermissionErrorMessage(cause)) {
+                    exitMessage = JOB_MSGS.dialogAddTargetError(cause.getLocalizedMessage());
+                }
             }
         });
 

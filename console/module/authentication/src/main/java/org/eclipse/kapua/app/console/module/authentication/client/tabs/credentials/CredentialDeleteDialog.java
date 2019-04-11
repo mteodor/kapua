@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -36,9 +36,9 @@ public class CredentialDeleteDialog extends EntityDeleteDialog {
     @Override
     public String getHeaderMessage() {
         if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.API_KEY) {
-            return MSGS.dialogDeleteHeaderAPI(selectedCredential.getId());
+            return MSGS.dialogDeleteHeaderAPI();
         } else if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.PASSWORD) {
-            return MSGS.dialogDeleteHeaderPassword(selectedCredential.getId());
+            return MSGS.dialogDeleteHeaderPassword();
         } else {
             return "";
         }
@@ -76,12 +76,13 @@ public class CredentialDeleteDialog extends EntityDeleteDialog {
             public void onFailure(Throwable cause) {
                 exitStatus = false;
 
-                if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.API_KEY) {
-                    exitMessage = MSGS.dialogDeleteErrorAPI(cause.getLocalizedMessage());
-                } else if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.PASSWORD) {
-                    exitMessage = MSGS.dialogDeleteErrorPassword(cause.getLocalizedMessage());
+                if (!isPermissionErrorMessage(cause)) {
+                    if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.API_KEY) {
+                        exitMessage = MSGS.dialogDeleteErrorAPI(cause.getLocalizedMessage());
+                    } else if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.PASSWORD) {
+                        exitMessage = MSGS.dialogDeleteErrorPassword(cause.getLocalizedMessage());
+                    }
                 }
-
                 hide();
             }
         });

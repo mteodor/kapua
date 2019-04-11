@@ -58,7 +58,7 @@ public class DeviceGridToolbar extends EntityCRUDToolbar<GwtDevice> {
         addExtraButton(export);
         super.onRender(target, index);
         getAddEntityButton().setEnabled(currentSession.hasPermission(DeviceSessionPermission.write()));
-        getEditEntityButton().setEnabled(currentSession.hasPermission(DeviceSessionPermission.write()));
+        getEditEntityButton().disable();
     }
 
     @Override
@@ -131,9 +131,13 @@ public class DeviceGridToolbar extends EntityCRUDToolbar<GwtDevice> {
                     .append(URL.encodeQueryString(query.getPredicates().getGroupId()));
         }
 
-        if (query.getPredicates().getTagIds().get(0) != null) {
-            sbUrl.append("&tag=")
-                    .append(URL.encodeQueryString(query.getPredicates().getTagIds().get(0)));
+        if (query.getPredicates().getTagIds() != null && !query.getPredicates().getTagIds().isEmpty()) {
+            for (String tagId : query.getPredicates().getTagIds()) {
+                if (tagId != null && !tagId.isEmpty()) {
+                    sbUrl.append("&tag=")
+                            .append(URL.encodeQueryString(tagId));
+                }
+            }
         }
 
         Window.open(sbUrl.toString(), "_blank", "location=no");

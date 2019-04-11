@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -17,10 +17,12 @@ import com.extjs.gxt.ui.client.data.RpcProxy;
 import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
 import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.ui.grid.CreatedByNameCellRenderer;
 import org.eclipse.kapua.app.console.module.api.client.ui.grid.EntityGrid;
 import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractEntityView;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolbarMessages;
 import org.eclipse.kapua.app.console.module.api.shared.model.query.GwtQuery;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.authorization.client.messages.ConsoleGroupMessages;
@@ -37,10 +39,10 @@ public class GroupGrid extends EntityGrid<GwtGroup> {
 
     private static final GwtGroupServiceAsync GWT_GROUP_SERVICE = GWT.create(GwtGroupService.class);
     private static final ConsoleGroupMessages MSGS = GWT.create(ConsoleGroupMessages.class);
-    private static final ConsoleMessages CMSGS = GWT.create(ConsoleMessages.class);
-
+    private static final ConsoleMessages C_MSGS = GWT.create(ConsoleMessages.class);
     private GwtGroupQuery query;
     private GroupToolbarGrid toolbar;
+    private static final String ACCESS_GROUP = "access group";
 
     protected GroupGrid(AbstractEntityView<GwtGroup> entityView, GwtSession currentSession) {
         super(entityView, currentSession);
@@ -86,6 +88,9 @@ public class GroupGrid extends EntityGrid<GwtGroup> {
         columnConfig = new ColumnConfig("groupName", MSGS.gridGroupColumnHeaderGroupName(), 200);
         columnConfigs.add(columnConfig);
 
+        columnConfig = new ColumnConfig("description", MSGS.gridGroupColumnHeaderDescription(), 200);
+        columnConfigs.add(columnConfig);
+
         columnConfig = new ColumnConfig("createdOnFormatted", MSGS.gridGroupColumnHeaderCreatedOn(), 200);
         columnConfigs.add(columnConfig);
 
@@ -116,4 +121,24 @@ public class GroupGrid extends EntityGrid<GwtGroup> {
         return toolbar;
     }
 
+    @Override
+    public String getEmptyGridText() {
+        return C_MSGS.gridNoResultFound(ACCESS_GROUP);
+    }
+
+    @Override
+    protected KapuaPagingToolbarMessages getKapuaPagingToolbarMessages() {
+        return new KapuaPagingToolbarMessages() {
+
+            @Override
+            public String pagingToolbarShowingPost() {
+                return C_MSGS.specificPagingToolbarShowingPost(ACCESS_GROUP);
+            }
+
+            @Override
+            public String pagingToolbarNoResult() {
+                return C_MSGS.specificPagingToolbarNoResult(ACCESS_GROUP);
+            }
+        };
+    }
 }

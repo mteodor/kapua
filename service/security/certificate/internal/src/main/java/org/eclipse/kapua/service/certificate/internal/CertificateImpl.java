@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,7 +11,8 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.certificate.internal;
 
-import org.eclipse.kapua.commons.model.AbstractKapuaUpdatableEntity;
+import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.commons.model.AbstractKapuaNamedEntity;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.certificate.Certificate;
 import org.eclipse.kapua.service.certificate.CertificateStatus;
@@ -22,7 +23,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CertificateImpl extends AbstractKapuaUpdatableEntity implements Certificate {
+/**
+ * {@link Certificate} implementation
+ *
+ * @since 1.0.0
+ */
+public class CertificateImpl extends AbstractKapuaNamedEntity implements Certificate {
 
     private String certificate;
     private String privateKey;
@@ -34,13 +40,8 @@ public class CertificateImpl extends AbstractKapuaUpdatableEntity implements Cer
         super(scopeId);
     }
 
-    @Override
-    public String getName() {
-        throw new UnsupportedOperationException();
-    }
 
-    @Override
-    public void setName(String name) {
+    public CertificateImpl(Certificate certificate) throws KapuaException {
         throw new UnsupportedOperationException();
     }
 

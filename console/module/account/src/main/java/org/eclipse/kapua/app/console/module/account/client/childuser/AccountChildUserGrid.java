@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -22,7 +22,10 @@ import com.extjs.gxt.ui.client.widget.grid.ColumnData;
 import com.extjs.gxt.ui.client.widget.grid.Grid;
 import com.extjs.gxt.ui.client.widget.grid.GridCellRenderer;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import org.eclipse.kapua.app.console.module.account.client.messages.ConsoleAccountMessages;
 import org.eclipse.kapua.app.console.module.account.shared.model.GwtAccount;
 import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
@@ -31,6 +34,7 @@ import org.eclipse.kapua.app.console.module.api.client.ui.color.Color;
 import org.eclipse.kapua.app.console.module.api.client.ui.grid.CreatedByNameCellRenderer;
 import org.eclipse.kapua.app.console.module.api.client.ui.grid.EntityGrid;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.EntityCRUDToolbar;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolbarMessages;
 import org.eclipse.kapua.app.console.module.api.shared.model.query.GwtQuery;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.user.client.messages.ConsoleUserMessages;
@@ -46,6 +50,8 @@ public class AccountChildUserGrid extends EntityGrid<GwtUser> {
 
     private static final ConsoleUserMessages MSGS = GWT.create(ConsoleUserMessages.class);
     private static final ConsoleMessages CMSGS = GWT.create(ConsoleMessages.class);
+    private static final ConsoleAccountMessages ACCOUNT_MSGS = GWT.create(ConsoleAccountMessages.class);
+    private static final String CHILD_USER = "child user";
 
     private static final GwtUserServiceAsync GWT_USER_SERVICE = GWT.create(GwtUserService.class);
 
@@ -97,18 +103,18 @@ public class AccountChildUserGrid extends EntityGrid<GwtUser> {
                 KapuaIcon icon;
                 if (gwtUser.getStatusEnum() != null) {
                     switch (gwtUser.getStatusEnum()) {
-                    case DISABLED:
-                        icon = new KapuaIcon(IconSet.USER);
-                        icon.setColor(Color.RED);
-                        break;
-                    case ENABLED:
-                        icon = new KapuaIcon(IconSet.USER);
-                        icon.setColor(Color.GREEN);
-                        break;
-                    default:
-                        icon = new KapuaIcon(IconSet.USER);
-                        icon.setColor(Color.GREY);
-                        break;
+                        case DISABLED:
+                            icon = new KapuaIcon(IconSet.USER);
+                            icon.setColor(Color.RED);
+                            break;
+                        case ENABLED:
+                            icon = new KapuaIcon(IconSet.USER);
+                            icon.setColor(Color.GREEN);
+                            break;
+                        default:
+                            icon = new KapuaIcon(IconSet.USER);
+                            icon.setColor(Color.GREY);
+                            break;
                     }
                 } else {
                     icon = new KapuaIcon(IconSet.USER);
@@ -144,8 +150,7 @@ public class AccountChildUserGrid extends EntityGrid<GwtUser> {
         GridCellRenderer<GwtUser> setExpirationDate = new GridCellRenderer<GwtUser>() {
 
             @Override
-            public Object render(GwtUser gwtUser, String property, ColumnData config, int rowIndex, int colIndex,
-                    ListStore<GwtUser> store, Grid<GwtUser> grid) {
+            public Object render(GwtUser gwtUser, String property, ColumnData config, int rowIndex, int colIndex, ListStore<GwtUser> store, Grid<GwtUser> grid) {
                 if (gwtUser.getExpirationDateFormatted() != null) {
                     return gwtUser.getExpirationDateFormatted();
                 } else {
@@ -190,4 +195,29 @@ public class AccountChildUserGrid extends EntityGrid<GwtUser> {
         return toolbar;
     }
 
+    @Override
+    protected void onRender(Element target, int index) {
+        super.onRender(target, index);
+    }
+
+    @Override
+    public String getEmptyGridText() {
+        return CMSGS.gridNoResultFound(CHILD_USER);
+    }
+
+    @Override
+    protected KapuaPagingToolbarMessages getKapuaPagingToolbarMessages() {
+        return new KapuaPagingToolbarMessages() {
+
+            @Override
+            public String pagingToolbarShowingPost() {
+                return CMSGS.specificPagingToolbarShowingPost(CHILD_USER);
+            }
+
+            @Override
+            public String pagingToolbarNoResult() {
+                return CMSGS.specificPagingToolbarNoResult(CHILD_USER);
+            }
+        };
+    }
 }

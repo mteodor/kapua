@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -241,6 +241,9 @@ public class DeviceAssetsPanel extends LayoutContainer {
                 field.setEnabled(currentSession.hasPermission(DeviceManagementSessionPermission.write()));
                 actionFieldSet.add(field, formData);
             }
+            if (asset.getDescription() != null) {
+                actionFieldSet.addText(asset.getDescription());
+            }
         }
 
         if (!UserAgentUtils.isIE()) {
@@ -282,6 +285,7 @@ public class DeviceAssetsPanel extends LayoutContainer {
         field.setValue((String) channel.getValue());
         field.setAllowBlank(true);
         field.setFieldLabel(channel.getName() + " (" + channel.getType() + " - " + channel.getMode() + ")");
+        field.setLabelStyle("word-break:break-all");
         field.addPlugin(dirtyPlugin);
 
         if (channel.getValue() != null) {
@@ -296,6 +300,7 @@ public class DeviceAssetsPanel extends LayoutContainer {
         field.setName(channel.getName());
         field.setAllowBlank(true);
         field.setFieldLabel(channel.getName() + " (" + channel.getType() + " - " + channel.getMode() + ")");
+        field.setLabelStyle("word-break:break-all");
         field.addPlugin(dirtyPlugin);
         field.setMaxValue(MAX_SAFE_INTEGER);
 
@@ -350,6 +355,7 @@ public class DeviceAssetsPanel extends LayoutContainer {
         radioGroup.setName(channel.getName());
         radioGroup.setItemId(channel.getName());
         radioGroup.setFieldLabel(channel.getName() + " (" + channel.getType() + " - " + channel.getMode() + ")");
+        radioGroup.setLabelStyle("word-break:break-all");
         radioGroup.add(radioTrue);
         radioGroup.add(radioFalse);
 

@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.device.client.device.assets;
 
+import org.eclipse.kapua.app.console.module.api.client.ui.dialog.KapuaMessageBox;
 import com.extjs.gxt.ui.client.Style.LayoutRegion;
 import com.extjs.gxt.ui.client.Style.Scroll;
 import com.extjs.gxt.ui.client.data.BaseTreeLoader;
@@ -43,6 +44,8 @@ import com.extjs.gxt.ui.client.widget.treepanel.TreePanelSelectionModel;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
 import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.ui.button.DiscardButton;
 import org.eclipse.kapua.app.console.module.api.client.ui.button.RefreshButton;
@@ -396,9 +399,9 @@ public class DeviceAssetsValues extends LayoutContainer {
 
         // ask for confirmation
         String assetName = assetValuesPanel.getAsset().getName();
-        String message = DEVICE_MSGS.deviceAssetConfirmation(assetName);
+        String message = DEVICE_MSGS.deviceAssetConfirmation();
 
-        MessageBox.confirm(MSGS.confirm(),
+        KapuaMessageBox.confirm(MSGS.confirm(),
                 message,
                 new Listener<MessageBoxEvent>() {
 
@@ -440,6 +443,7 @@ public class DeviceAssetsValues extends LayoutContainer {
                                                 public void onFailure(Throwable caught) {
                                                     FailureHandler.handle(caught);
                                                     dirty = true;
+                                                    refresh();
                                                 }
 
                                                 @Override
@@ -460,7 +464,7 @@ public class DeviceAssetsValues extends LayoutContainer {
     public void reset() {
         final GwtDeviceAsset asset = (GwtDeviceAsset) tree.getSelectionModel().getSelectedItem();
         if (assetValuesPanel != null && asset != null) {
-            MessageBox.confirm(MSGS.confirm(),
+            KapuaMessageBox.confirm(MSGS.confirm(),
                     DEVICE_MSGS.deviceConfigDirty(),
                     new Listener<MessageBoxEvent>() {
 
@@ -514,14 +518,16 @@ public class DeviceAssetsValues extends LayoutContainer {
 
         @Override
         public void loaderLoadException(LoadEvent le) {
-
-            if (le.exception != null) {
+            if (le.exception != null && le.exception instanceof GwtKapuaException) {
+                FailureHandler.handle(le.exception);
+            } else {
                 ConsoleInfo.display(MSGS.popupError(), DEVICE_MSGS.assetNoAssetsErrorMessage());
             }
 
             List<ModelData> assets = new ArrayList<ModelData>();
             GwtDeviceAsset asset = new GwtDeviceAsset();
             asset.setName(DEVICE_MSGS.assetNoAssets());
+            asset.setDescription(DEVICE_MSGS.noAsset());
             assets.add(asset);
             treeStore.removeAll();
             treeStore.add(assets, false);

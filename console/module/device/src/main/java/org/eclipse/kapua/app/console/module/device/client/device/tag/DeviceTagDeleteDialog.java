@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -44,7 +44,7 @@ public class DeviceTagDeleteDialog extends EntityDeleteDialog {
 
     @Override
     public String getInfoMessage() {
-        return MSGS.dialogDeviceTagDeleteInfo(selectedTag.getTagName(), selectedDevice.getClientId());
+        return MSGS.dialogDeviceTagDeleteInfo();
     }
 
     @Override
@@ -61,7 +61,9 @@ public class DeviceTagDeleteDialog extends EntityDeleteDialog {
             @Override
             public void onFailure(Throwable cause) {
                 exitStatus = false;
-                exitMessage = MSGS.dialogDeviceTagDeleteError(cause.getLocalizedMessage());
+                if (!isPermissionErrorMessage(cause)) {
+                    exitMessage = MSGS.dialogDeviceTagDeleteError(cause.getLocalizedMessage());
+                }
                 hide();
             }
         });

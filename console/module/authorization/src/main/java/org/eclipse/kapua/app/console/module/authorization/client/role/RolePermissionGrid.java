@@ -27,13 +27,13 @@ import org.eclipse.kapua.app.console.module.api.client.ui.grid.CreatedByNameCell
 import org.eclipse.kapua.app.console.module.api.client.ui.grid.EntityGrid;
 import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractEntityView;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.EntityCRUDToolbar;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolbarMessages;
 import org.eclipse.kapua.app.console.module.api.shared.model.query.GwtQuery;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.authorization.client.messages.ConsoleRoleMessages;
 import org.eclipse.kapua.app.console.module.authorization.shared.model.GwtRole;
 import org.eclipse.kapua.app.console.module.authorization.shared.model.GwtRolePermission;
-import org.eclipse.kapua.app.console.module.authorization.shared.model.permission.AccessInfoSessionPermission;
-import org.eclipse.kapua.app.console.module.authorization.shared.model.permission.DomainSessionPermission;
+import org.eclipse.kapua.app.console.module.authorization.shared.model.permission.GroupSessionPermission;
 import org.eclipse.kapua.app.console.module.authorization.shared.model.permission.RoleSessionPermission;
 import org.eclipse.kapua.app.console.module.authorization.shared.service.GwtRoleService;
 import org.eclipse.kapua.app.console.module.authorization.shared.service.GwtRoleServiceAsync;
@@ -47,6 +47,7 @@ public class RolePermissionGrid extends EntityGrid<GwtRolePermission> {
     private static final ConsoleMessages COMMONS_MSGS = GWT.create(ConsoleMessages.class);
 
     private static final GwtRoleServiceAsync GWT_ROLE_SERVICE = GWT.create(GwtRoleService.class);
+    private static final String PERMISSION = "permission";
 
     RolePermissionToolbar rolePermissionToolBar;
     private GwtRole selectedRole;
@@ -64,6 +65,27 @@ public class RolePermissionGrid extends EntityGrid<GwtRolePermission> {
         }
 
         return rolePermissionToolBar;
+    }
+
+    @Override
+    public String getEmptyGridText() {
+        return COMMONS_MSGS.gridNoResultAvailable(PERMISSION);
+    }
+
+    @Override
+    protected KapuaPagingToolbarMessages getKapuaPagingToolbarMessages() {
+        return new KapuaPagingToolbarMessages() {
+
+            @Override
+            public String pagingToolbarShowingPost() {
+                return COMMONS_MSGS.specificPagingToolbarShowingPost(PERMISSION);
+            }
+
+            @Override
+            public String pagingToolbarNoResult() {
+                return COMMONS_MSGS.specificPagingToolbarNoResult(PERMISSION);
+            }
+        };
     }
 
     @Override
@@ -102,9 +124,11 @@ public class RolePermissionGrid extends EntityGrid<GwtRolePermission> {
         columnConfig.setSortable(false);
         columnConfigs.add(columnConfig);
 
-        columnConfig = new ColumnConfig("groupName", ROLE_MSGS.gridRolePermissionColumnHeaderTargetGroup(), 100);
-        columnConfig.setSortable(false);
-        columnConfigs.add(columnConfig);
+        if (currentSession.hasPermission(GroupSessionPermission.read())) {
+            columnConfig = new ColumnConfig("groupName", ROLE_MSGS.gridRolePermissionColumnHeaderTargetGroup(), 100);
+            columnConfig.setSortable(false);
+            columnConfigs.add(columnConfig);
+        }
 
         columnConfig = new ColumnConfig("forwardable", ROLE_MSGS.gridRolePermissionColumnHeaderForwardable(), 200);
         columnConfig.setRenderer(new GridCellRenderer<GwtRolePermission>() {
@@ -139,14 +163,12 @@ public class RolePermissionGrid extends EntityGrid<GwtRolePermission> {
     protected void selectionChangedEvent(GwtRolePermission selectedItem) {
         super.selectionChangedEvent(selectedItem);
         rolePermissionToolBar.getAddEntityButton().setEnabled(selectedRole != null 
-                && currentSession.hasPermission(AccessInfoSessionPermission.read())
-                && currentSession.hasPermission(AccessInfoSessionPermission.write())
-                && currentSession.hasPermission(DomainSessionPermission.read())
                 && currentSession.hasPermission(RoleSessionPermission.write()));
         if (selectedItem == null) {
             rolePermissionToolBar.getDeleteEntityButton().disable();
         } else {
-            rolePermissionToolBar.getDeleteEntityButton().setEnabled(currentSession.hasPermission(AccessInfoSessionPermission.delete()));;
+            rolePermissionToolBar.getDeleteEntityButton()
+                    .setEnabled(currentSession.hasPermission(RoleSessionPermission.delete()));
         }
     }
 

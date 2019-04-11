@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -22,9 +22,13 @@ import com.extjs.gxt.ui.client.data.PagingLoadConfig;
 import com.extjs.gxt.ui.client.data.PagingLoadResult;
 import com.extjs.gxt.ui.client.data.RpcProxy;
 import com.extjs.gxt.ui.client.event.ButtonEvent;
+import com.extjs.gxt.ui.client.event.IconButtonEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
 import com.extjs.gxt.ui.client.store.ListStore;
 import com.extjs.gxt.ui.client.widget.ContentPanel;
+import com.extjs.gxt.ui.client.widget.HorizontalPanel;
+import com.extjs.gxt.ui.client.widget.Text;
+import com.extjs.gxt.ui.client.widget.button.ToolButton;
 import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
 import com.extjs.gxt.ui.client.widget.grid.ColumnData;
 import com.extjs.gxt.ui.client.widget.grid.ColumnModel;
@@ -37,6 +41,10 @@ import com.extjs.gxt.ui.client.widget.toolbar.SeparatorToolItem;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.extjs.gxt.ui.client.widget.treegrid.TreeGridCellRenderer;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.MouseOutEvent;
+import com.google.gwt.event.dom.client.MouseOutHandler;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.http.client.URL;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
@@ -50,6 +58,7 @@ import org.eclipse.kapua.app.console.module.api.client.ui.tab.KapuaTabItem;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.DateRangeSelector;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.DateRangeSelectorListener;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolBar;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolbarMessages;
 import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.client.util.KapuaLoadListener;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
@@ -68,6 +77,7 @@ public class DeviceTabHistory extends KapuaTabItem<GwtDevice> {
     private static final ConsoleDeviceMessages DEVICES_MSGS = GWT.create(ConsoleDeviceMessages.class);
 
     private final GwtDeviceServiceAsync gwtDeviceService = GWT.create(GwtDeviceService.class);
+    private static final String EVENT = "event";
 
     private static final int DEVICE_PAGE_SIZE = 250;
 
@@ -192,17 +202,48 @@ public class DeviceTabHistory extends KapuaTabItem<GwtDevice> {
         TreeGridCellRenderer<GwtDeviceEvent> eventMessageRenderer = new TreeGridCellRenderer<GwtDeviceEvent>() {
 
             @Override
-            public Object render(GwtDeviceEvent model, String property, ColumnData config, int rowIndex, int colIndex, ListStore<GwtDeviceEvent> store, Grid<GwtDeviceEvent> grid) {
-                StringBuilder message = new StringBuilder("");
+            public Object render(final GwtDeviceEvent model, String property, ColumnData config, int rowIndex, int colIndex, ListStore<GwtDeviceEvent> store, Grid<GwtDeviceEvent> grid) {
+                final HorizontalPanel horizontalPanel = new HorizontalPanel();
+                final Text cellText = new Text();
+                cellText.setStyleName("x-grid3-cell");
+                cellText.setText(model.getUnescapedEventMessage());
 
-                if (model.getEventMessage() != null) {
-                    message.append("<label title='")
-                            .append(model.getUnescapedEventMessage())
-                            .append("'>")
-                            .append(model.getUnescapedEventMessage())
-                            .append("</label>");
-                }
-                return message.toString();
+                // Search button
+                final ToolButton searchButton = new ToolButton("x-tool-search", new SelectionListener<IconButtonEvent>() {
+
+                    @Override
+                    public void componentSelected(IconButtonEvent ce) {
+                        final EventMessageDetailsDialog dialog = new EventMessageDetailsDialog(model.getReceivedOnFormatted(), model.getEventType(), model.getUnescapedEventMessage());
+                        dialog.show();
+                    }
+                });
+
+                searchButton.setStyleAttribute("margin-right", "5px");
+                searchButton.setToolTip(MSGS.showDetails());
+                horizontalPanel.add(searchButton);
+                horizontalPanel.add(cellText);
+                searchButton.hide();
+
+                // Show search button on mouse over
+                horizontalPanel.addDomHandler(new MouseOverHandler() {
+
+                    @Override
+                    public void onMouseOver(MouseOverEvent arg0) {
+                        if (model.getUnescapedEventMessage() != null && !model.getUnescapedEventMessage().isEmpty()) {
+                            searchButton.show();
+                        }
+                    }
+                }, MouseOverEvent.getType());
+
+                // Hide search button on mouse out
+                horizontalPanel.addDomHandler(new MouseOutHandler() {
+
+                    @Override
+                    public void onMouseOut(MouseOutEvent arg0) {
+                        searchButton.hide();
+                    }
+                }, MouseOutEvent.getType());
+                return horizontalPanel;
             }
         };
 
@@ -258,14 +299,30 @@ public class DeviceTabHistory extends KapuaTabItem<GwtDevice> {
         grid.disableTextSelection(false);
         grid.getView().setAutoFill(true);
         grid.getView().setForceFit(true);
-        grid.getView().setEmptyText(DEVICES_MSGS.deviceHistoryTableNoHistory());
+        grid.getView().setEmptyText(MSGS.gridNoResultReceived(EVENT));
 
         pagingToolBar = new KapuaPagingToolBar(DEVICE_PAGE_SIZE);
+        pagingToolBar.setKapuaPagingToolbarMessages(getKapuaPagingToolbarMessages());
         pagingToolBar.bind(loader);
 
         GridSelectionModel<GwtDeviceEvent> selectionModel = new GridSelectionModel<GwtDeviceEvent>();
         selectionModel.setSelectionMode(SelectionMode.SINGLE);
         grid.setSelectionModel(selectionModel);
+    }
+
+    protected KapuaPagingToolbarMessages getKapuaPagingToolbarMessages() {
+        return new KapuaPagingToolbarMessages() {
+
+            @Override
+            public String pagingToolbarShowingPost() {
+                return MSGS.specificPagingToolbarShowingPost(EVENT);
+            }
+
+            @Override
+            public String pagingToolbarNoResult() {
+                return MSGS.specificPagingToolbarNoResult(EVENT);
+            }
+        };
     }
 
     // --------------------------------------------------------------------------------------

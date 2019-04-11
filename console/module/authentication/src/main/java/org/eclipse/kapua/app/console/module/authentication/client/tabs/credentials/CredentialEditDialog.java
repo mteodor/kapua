@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -17,8 +17,11 @@ import com.extjs.gxt.ui.client.event.Listener;
 import com.extjs.gxt.ui.client.widget.Label;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
 import org.eclipse.kapua.app.console.module.api.client.util.DateUtils;
 import org.eclipse.kapua.app.console.module.api.client.util.DialogUtils;
+import org.eclipse.kapua.app.console.module.api.client.util.KapuaSafeHtmlUtils;
 import org.eclipse.kapua.app.console.module.api.client.util.validator.ConfirmPasswordUpdateFieldValidator;
 import org.eclipse.kapua.app.console.module.api.client.util.validator.PasswordUpdateFieldValidator;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
@@ -56,9 +59,9 @@ public class CredentialEditDialog extends CredentialAddDialog {
                 status.hide();
 
                 exitStatus = false;
-                exitMessage = MSGS.dialogEditError(caught.getLocalizedMessage());
-
-                hide();
+                if (!isPermissionErrorMessage(caught)) {
+                    exitMessage = MSGS.dialogEditError(caught.getLocalizedMessage());
+                }
             }
 
             @Override
@@ -124,12 +127,40 @@ public class CredentialEditDialog extends CredentialAddDialog {
     }
 
     @Override
+    public void validateUserCredential() {
+        if (password.getValue() != null && confirmPassword.getValue() == null) {
+            ConsoleInfo.display(CMSGS.popupError(), MSGS.credentialConfirmPasswordRequired());
+        } else if (!password.isValid()) {
+            ConsoleInfo.display(CMSGS.popupError(), password.getErrorMessage());
+        } else if (password.getValue() != null && !password.getValue().equals(confirmPassword.getValue())) {
+            ConsoleInfo.display(CMSGS.popupError(), confirmPassword.getErrorMessage());
+        } else if (!expirationDate.isValid()) {
+            ConsoleInfo.display(CMSGS.popupError(), KapuaSafeHtmlUtils.htmlUnescape(expirationDate.getErrorMessage()));
+        }
+    }
+
+    @Override
+    protected void preSubmit() {
+        super.preSubmit();
+    }
+
+    @Override
     public String getHeaderMessage() {
+        if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.API_KEY) {
+            return MSGS.dialogEditApiKeyHeader(selectedCredential.getUsername());
+        } else if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.PASSWORD) {
+            return MSGS.dialogEditPasswordHeader(selectedCredential.getUsername());
+        }
         return MSGS.dialogEditHeader(selectedCredential.getUsername());
     }
 
     @Override
     public String getInfoMessage() {
+        if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.API_KEY) {
+            return MSGS.dialogEditApiKeyInfo();
+        } else if (selectedCredential.getCredentialTypeEnum() == GwtCredentialType.PASSWORD) {
+            return MSGS.dialogEditPasswordInfo();
+        }
         return MSGS.dialogEditInfo();
     }
 }

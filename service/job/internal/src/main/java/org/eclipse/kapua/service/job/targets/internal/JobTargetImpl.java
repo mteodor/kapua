@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -10,6 +10,12 @@
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.job.targets.internal;
+
+import org.eclipse.kapua.commons.model.AbstractKapuaUpdatableEntity;
+import org.eclipse.kapua.commons.model.id.KapuaEid;
+import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.service.job.targets.JobTarget;
+import org.eclipse.kapua.service.job.targets.JobTargetStatus;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
@@ -22,12 +28,11 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.eclipse.kapua.commons.model.AbstractKapuaUpdatableEntity;
-import org.eclipse.kapua.commons.model.id.KapuaEid;
-import org.eclipse.kapua.model.id.KapuaId;
-import org.eclipse.kapua.service.job.targets.JobTarget;
-import org.eclipse.kapua.service.job.targets.JobTargetStatus;
-
+/**
+ * {@link JobTarget} implementation.
+ *
+ * @since 1.0.0
+ */
 @Entity(name = "JobTarget")
 @Table(name = "job_job_target")
 public class JobTargetImpl extends AbstractKapuaUpdatableEntity implements JobTarget {
@@ -54,14 +59,45 @@ public class JobTargetImpl extends AbstractKapuaUpdatableEntity implements JobTa
     @Column(name = "status", nullable = false, updatable = true)
     private JobTargetStatus status;
 
+    @Basic
+    @Column(name = "status_message", nullable = true, updatable = true)
+    private String statusMessage;
+
     @Transient
     private Exception e;
 
+    /**
+     * Constructor.
+     *
+     * @since 1.0.0
+     */
     public JobTargetImpl() {
     }
 
+    /**
+     * Constructor.
+     *
+     * @param scopeId The scope {@link KapuaId} to set into the {@link JobTarget}
+     * @since 1.0.0
+     */
     public JobTargetImpl(KapuaId scopeId) {
         super(scopeId);
+    }
+
+    /**
+     * Clone constructor.
+     *
+     * @param jobTarget The {@link JobTarget} to clone.
+     * @since 1.1.0
+     */
+    public JobTargetImpl(JobTarget jobTarget) {
+        super(jobTarget);
+
+        setJobId(jobTarget.getJobId());
+        setJobTargetId(jobTarget.getJobTargetId());
+        setStepIndex(jobTarget.getStepIndex());
+        setStatus(jobTarget.getStatus());
+        setException(jobTarget.getException());
     }
 
     @Override
@@ -102,6 +138,16 @@ public class JobTargetImpl extends AbstractKapuaUpdatableEntity implements JobTa
     @Override
     public void setStatus(JobTargetStatus status) {
         this.status = status;
+    }
+
+    @Override
+    public String getStatusMessage() {
+        return statusMessage;
+    }
+
+    @Override
+    public void setStatusMessage(String statusMessage) {
+        this.statusMessage = statusMessage;
     }
 
     @Override

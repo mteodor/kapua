@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -17,9 +17,12 @@ import com.extjs.gxt.ui.client.data.RpcProxy;
 import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.ui.grid.EntityGrid;
 import org.eclipse.kapua.app.console.module.api.client.ui.grid.ModifiedByNameCellRenderer;
 import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractEntityView;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolbarMessages;
 import org.eclipse.kapua.app.console.module.api.shared.model.query.GwtQuery;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.authorization.client.messages.ConsoleRoleMessages;
@@ -35,11 +38,13 @@ import java.util.List;
 public class RoleGrid extends EntityGrid<GwtRole> {
 
     private static final ConsoleRoleMessages ROLE_MSGS = GWT.create(ConsoleRoleMessages.class);
+    private static final ConsoleMessages MSGS = GWT.create(ConsoleMessages.class);
 
     private static final GwtRoleServiceAsync GWT_ROLE_SERVICE = GWT.create(GwtRoleService.class);
 
     private GwtRoleQuery query;
     private RoleToolbarGrid toolbar;
+    private static final String ROLE = "role";
 
     public RoleGrid(AbstractEntityView<GwtRole> entityView, GwtSession currentSession) {
         super(entityView, currentSession);
@@ -88,6 +93,9 @@ public class RoleGrid extends EntityGrid<GwtRole> {
         ColumnConfig columnConfig = new ColumnConfig("name", ROLE_MSGS.gridRoleColumnHeaderName(), 400);
         columnConfigs.add(columnConfig);
 
+        columnConfig = new ColumnConfig("description", ROLE_MSGS.gridRoleColumnHeaderDescription(), 400);
+        columnConfigs.add(columnConfig);
+
         columnConfig = new ColumnConfig("modifiedOnFormatted", ROLE_MSGS.gridRoleColumnHeaderModifiedOn(), 200);
         columnConfigs.add(columnConfig);
 
@@ -108,4 +116,24 @@ public class RoleGrid extends EntityGrid<GwtRole> {
         this.query = (GwtRoleQuery) filterQuery;
     }
 
+    @Override
+    public String getEmptyGridText() {
+        return MSGS.gridNoResultFound(ROLE);
+    }
+
+    @Override
+    protected KapuaPagingToolbarMessages getKapuaPagingToolbarMessages() {
+        return new KapuaPagingToolbarMessages() {
+
+            @Override
+            public String pagingToolbarShowingPost() {
+                return MSGS.specificPagingToolbarShowingPost(ROLE);
+            }
+
+            @Override
+            public String pagingToolbarNoResult() {
+                return MSGS.specificPagingToolbarNoResult(ROLE);
+            }
+        };
+    }
 }

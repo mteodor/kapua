@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -14,6 +14,7 @@ package org.eclipse.kapua.app.console.module.data.client;
 import com.extjs.gxt.ui.client.Style.Scroll;
 import com.extjs.gxt.ui.client.Style.SortDir;
 import com.extjs.gxt.ui.client.data.BasePagingLoader;
+import com.extjs.gxt.ui.client.data.LoadEvent;
 import com.extjs.gxt.ui.client.data.PagingLoadConfig;
 import com.extjs.gxt.ui.client.data.PagingLoadResult;
 import com.extjs.gxt.ui.client.data.RpcProxy;
@@ -21,8 +22,10 @@ import com.extjs.gxt.ui.client.event.ButtonEvent;
 import com.extjs.gxt.ui.client.event.ComponentEvent;
 import com.extjs.gxt.ui.client.event.Events;
 import com.extjs.gxt.ui.client.event.Listener;
+import com.extjs.gxt.ui.client.event.LoadListener;
 import com.extjs.gxt.ui.client.event.SelectionChangedListener;
 import com.extjs.gxt.ui.client.event.SelectionListener;
+import com.extjs.gxt.ui.client.util.KeyNav;
 import com.extjs.gxt.ui.client.widget.ContentPanel;
 import com.extjs.gxt.ui.client.widget.LayoutContainer;
 import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
@@ -31,6 +34,7 @@ import com.extjs.gxt.ui.client.widget.grid.Grid;
 import com.extjs.gxt.ui.client.widget.layout.FitLayout;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
@@ -63,6 +67,7 @@ public class DeviceTable extends LayoutContainer {
     private List<SelectionChangedListener<GwtDatastoreDevice>> listeners = new ArrayList<SelectionChangedListener<GwtDatastoreDevice>>();
     private KapuaPagingToolBar pagingToolBar;
     private KapuaTextField<String> filterField;
+    private Button refreshButton;
 
     public DeviceTable(GwtSession currentSession) {
         this.currentSession = currentSession;
@@ -90,7 +95,7 @@ public class DeviceTable extends LayoutContainer {
     private void initDeviceTable() {
         initDeviceGrid();
 
-        Button refreshButton = new Button(DATA_MSGS.refresh(), new KapuaIcon(IconSet.REFRESH), new SelectionListener<ButtonEvent>() {
+        refreshButton = new Button(DATA_MSGS.searchButton(), new KapuaIcon(IconSet.FILTER), new SelectionListener<ButtonEvent>() {
 
             @Override
             public void componentSelected(ButtonEvent ce) {
@@ -110,6 +115,13 @@ public class DeviceTable extends LayoutContainer {
         filterField = new KapuaTextField<String>();
         filterField.setMaxLength(255);
         filterField.setEmptyText(DATA_MSGS.deviceInfoTableFilter());
+        KeyNav<ComponentEvent> keyNav = new KeyNav<ComponentEvent>(filterField) {
+            public void onKeyPress(ComponentEvent ce) {
+                if (ce.getKeyCode() == KeyCodes.KEY_ENTER ) {
+                    refresh();
+                }
+            }
+        };
 
         ToolBar tb = new ToolBar();
         tb.add(filterField);
@@ -141,6 +153,7 @@ public class DeviceTable extends LayoutContainer {
         };
 
         loader = new BasePagingLoader<PagingLoadResult<GwtDatastoreDevice>>(proxy);
+        loader.addLoadListener(new DeviceTableLoadListener());
         loader.setRemoteSort(true);
         loader.setSortDir(SortDir.ASC);
         loader.setSortField("friendlyDevice");
@@ -212,4 +225,29 @@ public class DeviceTable extends LayoutContainer {
         });
     }
 
+    private class DeviceTableLoadListener extends LoadListener {
+        @Override
+        public void loaderBeforeLoad(LoadEvent le) {
+            if (refreshButton != null) {
+                refreshButton.disable();
+            }
+        }
+
+        @Override
+        public void loaderLoad(LoadEvent le) {
+            if (refreshButton != null) {
+                refreshButton.enable();
+            }
+        }
+
+        @Override
+        public void loaderLoadException(LoadEvent le) {
+            if (refreshButton != null) {
+                refreshButton.enable();
+            }
+            if (le.exception != null) {
+                FailureHandler.handle(le.exception);
+            }
+        }
+    }
 }

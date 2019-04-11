@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,6 +11,7 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.account.internal;
 
+import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.model.AbstractKapuaNamedEntity;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.account.Account;
@@ -68,7 +69,7 @@ public class AccountImpl extends AbstractKapuaNamedEntity implements Account {
     private OrganizationImpl organization;
 
     @Basic
-    @Column(name = "parent_account_path", nullable = false)
+    @Column(name = "parent_account_path", nullable = false, updatable = true)
     private String parentAccountPath;
 
     @OneToMany(fetch = FetchType.LAZY)
@@ -77,7 +78,7 @@ public class AccountImpl extends AbstractKapuaNamedEntity implements Account {
     private List<AccountImpl> childAccounts;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "expiration_date")
+    @Column(name = "expiration_date", nullable = false, updatable = true)
     protected Date expirationDate;
 
     /**
@@ -88,13 +89,15 @@ public class AccountImpl extends AbstractKapuaNamedEntity implements Account {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param scopeId
+     * @since 1.0.0
      */
     public AccountImpl(KapuaId scopeId) {
         super(scopeId);
-        this.parentAccountPath = "";
+
+        setParentAccountPath("");
     }
 
     /**
@@ -102,10 +105,27 @@ public class AccountImpl extends AbstractKapuaNamedEntity implements Account {
      *
      * @param scopeId
      * @param name
+     * @since 1.0.0
      */
     public AccountImpl(KapuaId scopeId, String name) {
         super(scopeId, name);
-        this.parentAccountPath = "";
+
+        setParentAccountPath("");
+    }
+
+    /**
+     * Clone constructor.
+     *
+     * @throws KapuaException
+     * @since 1.1.0
+     */
+    public AccountImpl(Account account) throws KapuaException {
+        super(account);
+
+        setOrganization(new OrganizationImpl(account.getOrganization()));
+        setParentAccountPath(account.getParentAccountPath());
+        setChildAccounts(account.getChildAccounts());
+        setExpirationDate(account.getExpirationDate());
     }
 
     @Override
@@ -130,9 +150,21 @@ public class AccountImpl extends AbstractKapuaNamedEntity implements Account {
 
     @Override
     public List<Account> getChildAccounts() {
-        List<Account> list = new ArrayList<>();
-        list.addAll(childAccounts);
-        return list;
+        if (childAccounts == null) {
+            childAccounts = new ArrayList<>();
+        }
+
+        return new ArrayList<>(childAccounts);
+    }
+
+    private void setChildAccounts(List<Account> childAccounts) throws KapuaException {
+        List<AccountImpl> accounts = new ArrayList<>();
+
+        for (Account a : childAccounts) {
+            accounts.add(new AccountImpl(a));
+        }
+
+        this.childAccounts = accounts;
     }
 
     @Override

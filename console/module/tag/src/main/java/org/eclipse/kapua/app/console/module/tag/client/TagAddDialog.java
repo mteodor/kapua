@@ -39,6 +39,7 @@ public class TagAddDialog extends EntityAddEditDialog {
     private static final GwtTagServiceAsync GWT_TAG_SERVICE = GWT.create(GwtTagService.class);
 
     protected KapuaTextField<String> tagNameField;
+    protected KapuaTextField<String> tagDescriptionField;
 
     public TagAddDialog(GwtSession currentSession) {
         super(currentSession);
@@ -55,6 +56,14 @@ public class TagAddDialog extends EntityAddEditDialog {
         tagNameField.setValidator(new TextFieldValidator(tagNameField, FieldType.NAME));
         tagNameField.setMaxLength(255);
         tagFormPanel.add(tagNameField);
+
+        tagDescriptionField = new KapuaTextField<String>();
+        tagDescriptionField.setAllowBlank(true);
+        tagDescriptionField.setFieldLabel(MSGS.dialogAddFieldTagDescription());
+        tagDescriptionField.setToolTip(MSGS.dialogAddFieldTagDescriptionTooltip());
+        tagDescriptionField.setName("description");
+        tagDescriptionField.setMaxLength(255);
+        tagFormPanel.add(tagDescriptionField);
         bodyPanel.add(tagFormPanel);
     }
 
@@ -75,10 +84,11 @@ public class TagAddDialog extends EntityAddEditDialog {
         GwtTagCreator gwtTagCreator = new GwtTagCreator();
         gwtTagCreator.setScopeId(currentSession.getSelectedAccountId());
         gwtTagCreator.setName(tagNameField.getValue());
+        gwtTagCreator.setDescription(tagDescriptionField.getValue());
         GWT_TAG_SERVICE.create(gwtTagCreator, new AsyncCallback<GwtTag>() {
 
             @Override
-            public void onSuccess(GwtTag arg0) {
+            public void onSuccess(GwtTag gwtTag) {
                 exitStatus = true;
                 exitMessage = MSGS.dialogAddConfirmation();
                 hide();
@@ -86,16 +96,19 @@ public class TagAddDialog extends EntityAddEditDialog {
 
             @Override
             public void onFailure(Throwable cause) {
-                FailureHandler.handleFormException(formPanel, cause);
+                exitStatus = false;
                 status.hide();
                 formPanel.getButtonBar().enable();
                 unmask();
                 submitButton.enable();
                 cancelButton.enable();
-                if (cause instanceof GwtKapuaException) {
-                    GwtKapuaException gwtCause = (GwtKapuaException) cause;
-                    if (gwtCause.getCode().equals(GwtKapuaErrorCode.DUPLICATE_NAME)) {
-                        tagNameField.markInvalid(gwtCause.getMessage());
+                if (!isPermissionErrorMessage(cause)) {
+                    if (cause instanceof GwtKapuaException) {
+                        GwtKapuaException gwtCause = (GwtKapuaException) cause;
+                        if (gwtCause.getCode().equals(GwtKapuaErrorCode.DUPLICATE_NAME)) {
+                            tagNameField.markInvalid(gwtCause.getMessage());
+                        }
+                        FailureHandler.handleFormException(formPanel, cause);
                     }
                 }
             }

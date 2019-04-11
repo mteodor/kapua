@@ -39,11 +39,12 @@ public class RoleAddDialog extends EntityAddEditDialog {
     private static final GwtRoleServiceAsync GWT_ROLE_SERVICE = GWT.create(GwtRoleService.class);
 
     protected KapuaTextField<String> roleNameField;
+    protected KapuaTextField<String> roleDescriptionField;
 
     public RoleAddDialog(GwtSession currentSession) {
         super(currentSession);
 
-        DialogUtils.resizeDialog(this, 400, 150);
+        DialogUtils.resizeDialog(this, 400, 200);
     }
 
     public void validateRoles() {
@@ -64,11 +65,12 @@ public class RoleAddDialog extends EntityAddEditDialog {
 
         gwtRoleCreator.setScopeId(currentSession.getSelectedAccountId());
         gwtRoleCreator.setName(roleNameField.getValue());
+        gwtRoleCreator.setDescription(roleDescriptionField.getValue());
 
         GWT_ROLE_SERVICE.create(xsrfToken, gwtRoleCreator, new AsyncCallback<GwtRole>() {
 
             @Override
-            public void onSuccess(GwtRole arg0) {
+            public void onSuccess(GwtRole gwtRole) {
                 exitStatus = true;
                 exitMessage = MSGS.dialogAddConfirmation();
                 hide();
@@ -76,17 +78,20 @@ public class RoleAddDialog extends EntityAddEditDialog {
 
             @Override
             public void onFailure(Throwable cause) {
-                FailureHandler.handleFormException(formPanel, cause);
+                exitStatus = false;
                 status.hide();
                 formPanel.getButtonBar().enable();
                 unmask();
                 submitButton.enable();
                 cancelButton.enable();
-                if (cause instanceof GwtKapuaException) {
-                    GwtKapuaException gwtCause = (GwtKapuaException) cause;
-                    if (gwtCause.getCode().equals(GwtKapuaErrorCode.DUPLICATE_NAME)) {
-                        roleNameField.markInvalid(gwtCause.getMessage());
+                if (!isPermissionErrorMessage(cause)) {
+                    if (cause instanceof GwtKapuaException) {
+                        GwtKapuaException gwtCause = (GwtKapuaException) cause;
+                        if (gwtCause.getCode().equals(GwtKapuaErrorCode.DUPLICATE_NAME)) {
+                            roleNameField.markInvalid(gwtCause.getMessage());
+                        }
                     }
+                    FailureHandler.handleFormException(formPanel, cause);
                 }
             }
         });
@@ -117,6 +122,14 @@ public class RoleAddDialog extends EntityAddEditDialog {
         roleNameField.setValidator(new TextFieldValidator(roleNameField, FieldType.NAME));
         roleNameField.setToolTip(MSGS.dialogAddFieldNameTooltip());
         roleFormPanel.add(roleNameField);
+
+        roleDescriptionField = new KapuaTextField<String>();
+        roleDescriptionField.setAllowBlank(true);
+        roleDescriptionField.setMaxLength(255);
+        roleDescriptionField.setName("description");
+        roleDescriptionField.setFieldLabel(MSGS.dialogAddFieldDescription());
+        roleNameField.setToolTip(MSGS.dialogAddFieldDescriptionTooltip());
+        roleFormPanel.add(roleDescriptionField);
 
         bodyPanel.add(roleFormPanel);
     }

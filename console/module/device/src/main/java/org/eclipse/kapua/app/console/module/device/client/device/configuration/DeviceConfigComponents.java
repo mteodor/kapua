@@ -11,6 +11,8 @@
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.device.client.device.configuration;
 
+import org.eclipse.kapua.app.console.module.api.client.ui.dialog.KapuaMessageBox;
+
 import com.extjs.gxt.ui.client.Style.LayoutRegion;
 import com.extjs.gxt.ui.client.Style.Scroll;
 import com.extjs.gxt.ui.client.data.BaseTreeLoader;
@@ -44,6 +46,9 @@ import com.google.gwt.dom.client.StyleInjector;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import org.eclipse.kapua.app.console.module.api.client.GwtKapuaErrorCode;
+import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
 import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
@@ -437,7 +442,7 @@ public class DeviceConfigComponents extends LayoutContainer {
         }
         if (configComponent != null) {
 
-            devConfPanel = new DeviceConfigPanel(configComponent);
+            devConfPanel = new DeviceConfigPanel(configComponent, gwtSession);
             devConfPanel.addListener(Events.Change, new Listener<BaseEvent>() {
 
                 @Override
@@ -462,7 +467,7 @@ public class DeviceConfigComponents extends LayoutContainer {
 
         // ask for confirmation
         String componentName = devConfPanel.getConfiguration().getComponentName();
-        String message = DEVICE_MSGS.deviceConfigConfirmation(componentName);
+        String message = DEVICE_MSGS.deviceConfigConfirmation();
         final boolean isCloudUpdate = "CloudService".equals(componentName);
         if (isCloudUpdate) {
             message = DEVICE_MSGS.deviceCloudConfigConfirmation(componentName);
@@ -470,7 +475,7 @@ public class DeviceConfigComponents extends LayoutContainer {
 
         final DeviceConfigPanel finalDevConfPanel = devConfPanel;
 
-        MessageBox.confirm(MSGS.confirm(),
+        KapuaMessageBox.confirm(MSGS.confirm(),
                 message,
                 new Listener<MessageBoxEvent>() {
 
@@ -507,7 +512,12 @@ public class DeviceConfigComponents extends LayoutContainer {
 
                                                 @Override
                                                 public void onFailure(Throwable caught) {
-                                                    ConsoleInfo.display(MSGS.popupError(), DEVICE_MSGS.deviceConnectionError());
+                                                    if ((caught instanceof GwtKapuaException) && GwtKapuaErrorCode.SUBJECT_UNAUTHORIZED
+                                                            .equals(((GwtKapuaException) caught).getCode())) {
+                                                        ConsoleInfo.display(MSGS.popupError(), caught.getLocalizedMessage());
+                                                    } else if (!selectedDevice.isOnline()) {
+                                                        ConsoleInfo.display(MSGS.popupError(), DEVICE_MSGS.deviceConnectionError());
+                                                    }
                                                     dirty = true;
                                                     refresh();
                                                 }
@@ -534,7 +544,7 @@ public class DeviceConfigComponents extends LayoutContainer {
     public void reset() {
         final GwtConfigComponent comp = (GwtConfigComponent) tree.getSelectionModel().getSelectedItem();
         if (devConfPanel != null && comp != null) {
-            MessageBox.confirm(MSGS.confirm(),
+            KapuaMessageBox.confirm(MSGS.confirm(),
                     DEVICE_MSGS.deviceConfigDirty(),
                     new Listener<MessageBoxEvent>() {
 
@@ -628,9 +638,11 @@ public class DeviceConfigComponents extends LayoutContainer {
         @Override
         public void loaderLoadException(LoadEvent le) {
 
-            if (le.exception != null) {
-                ConsoleInfo.display(MSGS.popupError(), DEVICE_MSGS.deviceConnectionError());
-            }
+                if(le.exception != null && le.exception instanceof GwtKapuaException) {
+                    FailureHandler.handle(le.exception);
+                } else {
+                    ConsoleInfo.display(MSGS.popupError(), DEVICE_MSGS.deviceConnectionError());
+                }
 
             List<ModelData> comps = new ArrayList<ModelData>();
             GwtConfigComponent comp = new GwtConfigComponent();

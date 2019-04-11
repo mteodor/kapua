@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,27 +11,42 @@
  *******************************************************************************/
 package org.eclipse.kapua.message.device.lifecycle;
 
-import org.eclipse.kapua.message.KapuaPayload;
-
 /**
- * Kapua data message payload object definition.
- * 
- * @since 1.0
+ * {@link KapuaDisconnectPayload} definition.
  *
+ * @since 1.0.0
  */
-public interface KapuaDisconnectPayload extends KapuaPayload {
+public interface KapuaDisconnectPayload extends KapuaLifecyclePayload {
 
     /**
-     * Get the device uptime
-     * 
-     * @return
+     * Gets the device uptime.
+     *
+     * @return The device uptime.
+     * @since 1.0.0
      */
-    public String getUptime();
+    String getUptime();
 
     /**
-     * Set the device uptime
-     * 
-     * @return
+     * Sets the device uptime.
+     *
+     * @param uptime The device uptime.
+     * @since 1.1.0
      */
-    public String getDisplayName();
+    void setUptime(String uptime);
+
+    /**
+     * Gets the device display name.
+     *
+     * @return The device display name.
+     * @since 1.0.0
+     */
+    String getDisplayName();
+
+    /**
+     * Sets the device display name.
+     *
+     * @param displayName The device display name
+     * @since 1.1.0
+     */
+    void setDisplayName(String displayName);
 }

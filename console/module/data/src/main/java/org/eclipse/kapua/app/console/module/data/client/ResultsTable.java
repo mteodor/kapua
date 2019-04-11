@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -41,12 +41,14 @@ import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
+import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
 import org.eclipse.kapua.app.console.module.api.client.ui.button.Button;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.DateRangeSelector;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.DateRangeSelectorListener;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolBar;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolbarMessages;
 import org.eclipse.kapua.app.console.module.api.client.util.SwappableListStore;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.data.client.messages.ConsoleDataMessages;
@@ -64,8 +66,10 @@ import java.util.List;
 public class ResultsTable extends LayoutContainer {
 
     private static final ConsoleDataMessages MSGS = GWT.create(ConsoleDataMessages.class);
+    private static final ConsoleMessages C_MSGS = GWT.create(ConsoleMessages.class);
     private static GwtDataServiceAsync dataService = GWT.create(GwtDataService.class);
     private static final int RESULTSTABLE_PAGE_SIZE = 250;
+    private static final String RESULT = "result";
 
     GwtSession currentSession;
     private ContentPanel tableContainer;
@@ -106,7 +110,6 @@ public class ResultsTable extends LayoutContainer {
         initResultsTable();
         add(tableContainer);
 
-        loader.load();
         queryButton.disable();
         dateRangeSelector.disable();
     }
@@ -175,6 +178,7 @@ public class ResultsTable extends LayoutContainer {
                 if (queryButton != null) {
                     queryButton.disable();
                 }
+                pagingToolBar.enable();
             }
         });
         loader.addListener(Loader.Load, new Listener<BaseEvent>() {
@@ -184,6 +188,7 @@ public class ResultsTable extends LayoutContainer {
                 if (queryButton != null && !metrics.isEmpty()) {
                     queryButton.enable();
                 }
+                pagingToolBar.enable();
             }
         });
         loader.addListener(Loader.LoadException, new Listener<BaseEvent>() {
@@ -193,6 +198,7 @@ public class ResultsTable extends LayoutContainer {
                 if (queryButton != null) {
                     queryButton.enable();
                 }
+                pagingToolBar.enable();
             }
         });
 
@@ -209,7 +215,7 @@ public class ResultsTable extends LayoutContainer {
         resultsGrid.setStripeRows(true);
         resultsGrid.getView().setAutoFill(true);
         resultsGrid.getView().setForceFit(true);
-        resultsGrid.getView().setEmptyText(MSGS.resultsTableEmptyText());
+        resultsGrid.getView().setEmptyText(C_MSGS.specificPagingToolbarNoResult(RESULT));
         resultsGrid.disableTextSelection(false);
 
         resultsToolBar = new ToolBar();
@@ -232,6 +238,7 @@ public class ResultsTable extends LayoutContainer {
         warningLabel.setStyleAttribute("margin-left", "10px");
         warningLabel.setStyleAttribute("font-weight", "bold");
         warningLabel.setStyleAttribute("color", "grey");
+        warningLabel.hide();
         resultsToolBar.add(warningLabel);
         resultsToolBar.add(new FillToolItem());
 
@@ -251,8 +258,24 @@ public class ResultsTable extends LayoutContainer {
         resultsToolBar.add(dateRangeSelector);
 
         pagingToolBar = new KapuaPagingToolBar(RESULTSTABLE_PAGE_SIZE);
+        pagingToolBar.setKapuaPagingToolbarMessages(getKapuaPagingToolbarMessages());
         pagingToolBar.bind(loader);
-        pagingToolBar.enable();
+        pagingToolBar.disable();
+    }
+
+    protected KapuaPagingToolbarMessages getKapuaPagingToolbarMessages() {
+        return new KapuaPagingToolbarMessages() {
+
+            @Override
+            public String pagingToolbarShowingPost() {
+                return C_MSGS.specificPagingToolbarShowingPost(RESULT);
+            }
+
+            @Override
+            public String pagingToolbarNoResult() {
+                return C_MSGS.specificPagingToolbarNoResult(RESULT);
+            }
+        };
     }
 
     public void refresh() {

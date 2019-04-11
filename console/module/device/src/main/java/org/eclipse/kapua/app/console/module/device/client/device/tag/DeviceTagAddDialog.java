@@ -79,15 +79,16 @@ public class DeviceTagAddDialog extends EntityAddEditDialog {
                 cancelButton.enable();
                 status.hide();
                 exitStatus = false;
-
-                FailureHandler.handleFormException(formPanel, cause);
-                if (cause instanceof GwtKapuaException) {
-                    GwtKapuaException gwtCause = (GwtKapuaException) cause;
-                    if (gwtCause.getCode().equals(GwtKapuaErrorCode.DUPLICATE_NAME)) {
-                        tagsCombo.markInvalid(gwtCause.getMessage());
-                    } else if (gwtCause.getCode().equals(GwtKapuaErrorCode.ENTITY_NOT_FOUND)) {
-                        tagsCombo.markInvalid(gwtCause.getMessage());
+                if (!isPermissionErrorMessage(cause)) {
+                    if (cause instanceof GwtKapuaException) {
+                        GwtKapuaException gwtCause = (GwtKapuaException) cause;
+                        if (gwtCause.getCode().equals(GwtKapuaErrorCode.DUPLICATE_NAME)) {
+                            tagsCombo.markInvalid(gwtCause.getMessage());
+                        } else if (gwtCause.getCode().equals(GwtKapuaErrorCode.ENTITY_NOT_FOUND)) {
+                            tagsCombo.markInvalid(gwtCause.getMessage());
+                        }
                     }
+                    FailureHandler.handleFormException(formPanel, cause);
                 }
             }
         });
@@ -95,7 +96,7 @@ public class DeviceTagAddDialog extends EntityAddEditDialog {
 
     @Override
     public String getHeaderMessage() {
-        return MSGS.dialogDeviceTagAddHeader(selectedDevice.getClientId());
+        return MSGS.dialogDeviceTagAddHeader();
     }
 
     @Override
@@ -124,7 +125,7 @@ public class DeviceTagAddDialog extends EntityAddEditDialog {
         tagsCombo.setTypeAhead(false);
         tagsCombo.setAllowBlank(false);
         tagsCombo.disable();
-        // tagsCombo.setEmptyText(MSGS.dialogDeviceTagAddFieldTagEmptyText());
+        tagsCombo.setEmptyText(MSGS.dialogDeviceTagAddFieldTagEmptyText());
         tagsCombo.setFieldLabel("* " + MSGS.dialogDeviceTagAddFieldTag());
         tagsCombo.setToolTip(MSGS.deviceFormTagTooltip());
         tagsCombo.setTriggerAction(TriggerAction.ALL);
@@ -136,8 +137,10 @@ public class DeviceTagAddDialog extends EntityAddEditDialog {
 
             @Override
             public void onFailure(Throwable caught) {
-                exitMessage = MSGS.dialogDeviceTagAddFieldTagLoadingError(caught.getLocalizedMessage());
                 exitStatus = false;
+                if (!isPermissionErrorMessage(caught)) {
+                    exitMessage = MSGS.dialogDeviceTagAddFieldTagLoadingError(caught.getLocalizedMessage());
+                }
                 hide();
             }
 

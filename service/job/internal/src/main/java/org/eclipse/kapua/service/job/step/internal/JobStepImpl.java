@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,8 +11,13 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.job.step.internal;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.commons.model.AbstractKapuaNamedEntity;
+import org.eclipse.kapua.commons.model.id.KapuaEid;
+import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.service.job.step.JobStep;
+import org.eclipse.kapua.service.job.step.definition.JobStepProperty;
+import org.eclipse.kapua.service.job.step.definition.internal.JobStepPropertyImpl;
 
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
@@ -24,30 +29,19 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
-
-import org.eclipse.kapua.commons.model.AbstractKapuaNamedEntity;
-import org.eclipse.kapua.commons.model.id.KapuaEid;
-import org.eclipse.kapua.model.id.KapuaId;
-import org.eclipse.kapua.service.job.step.JobStep;
-import org.eclipse.kapua.service.job.step.definition.JobStepDefinition;
-import org.eclipse.kapua.service.job.step.definition.JobStepProperty;
-import org.eclipse.kapua.service.job.step.definition.internal.JobStepPropertyImpl;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * {@link JobStepDefinition} entity.
- * 
- * @since 1.0
+ * {@link JobStep} implementation.
  *
+ * @since 1.0.0
  */
 @Entity(name = "JobStep")
 @Table(name = "job_job_step")
 public class JobStepImpl extends AbstractKapuaNamedEntity implements JobStep {
 
     private static final long serialVersionUID = -5686107367635300337L;
-
-    @Basic
-    @Column(name = "description", nullable = true, updatable = true)
-    private String description;
 
     @Embedded
     @AttributeOverrides({
@@ -69,21 +63,38 @@ public class JobStepImpl extends AbstractKapuaNamedEntity implements JobStep {
     @CollectionTable(name = "job_job_step_properties", joinColumns = @JoinColumn(name = "step_id", referencedColumnName = "id"))
     private List<JobStepPropertyImpl> stepProperties;
 
+    /**
+     * Constructor.
+     *
+     * @since 1.0.0
+     */
     public JobStepImpl() {
     }
 
+    /**
+     * Constructor.
+     *
+     * @param scopeId The scope {@link KapuaId} to set into the {@link JobStep}
+     * @since 1.0.0
+     */
     public JobStepImpl(KapuaId scopeId) {
         super(scopeId);
     }
 
-    @Override
-    public String getDescription() {
-        return description;
-    }
+    /**
+     * Clone constructor.
+     *
+     * @param jobStep
+     * @throws KapuaException
+     * @since 1.1.0
+     */
+    public JobStepImpl(JobStep jobStep) throws KapuaException {
+        super(jobStep);
 
-    @Override
-    public void setDescription(String description) {
-        this.description = description;
+        setJobId(jobStep.getJobId());
+        setJobStepDefinitionId(jobStep.getJobStepDefinitionId());
+        setStepIndex(jobStep.getStepIndex());
+        setStepProperties(jobStep.getStepProperties());
     }
 
     @Override
@@ -117,7 +128,6 @@ public class JobStepImpl extends AbstractKapuaNamedEntity implements JobStep {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<JobStepPropertyImpl> getStepProperties() {
         if (stepProperties == null) {
             stepProperties = new ArrayList<>();
@@ -135,5 +145,4 @@ public class JobStepImpl extends AbstractKapuaNamedEntity implements JobStep {
             this.stepProperties.add(JobStepPropertyImpl.parse(sp));
         }
     }
-
 }

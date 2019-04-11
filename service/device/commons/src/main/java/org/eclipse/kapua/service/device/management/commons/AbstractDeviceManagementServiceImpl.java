@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2018, 2019 Eurotech and/or its affiliates and others
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -13,14 +13,14 @@ package org.eclipse.kapua.service.device.management.commons;
 
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.commons.model.query.predicate.AndPredicateImpl;
-import org.eclipse.kapua.commons.model.query.predicate.AttributePredicateImpl;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.commons.util.ThrowingRunnable;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.type.ObjectTypeConverter;
 import org.eclipse.kapua.model.type.ObjectValueConverter;
+import org.eclipse.kapua.service.authorization.AuthorizationService;
+import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.device.management.message.notification.OperationStatus;
 import org.eclipse.kapua.service.device.management.message.request.KapuaRequestMessage;
 import org.eclipse.kapua.service.device.management.message.response.KapuaResponseMessage;
@@ -47,7 +47,10 @@ import java.util.Map;
  */
 public abstract class AbstractDeviceManagementServiceImpl {
 
-    private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
+    protected static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
+
+    protected static final AuthorizationService AUTHORIZATION_SERVICE = LOCATOR.getService(AuthorizationService.class);
+    protected static final PermissionFactory PERMISSION_FACTORY = LOCATOR.getFactory(PermissionFactory.class);
 
     private static final DeviceEventService DEVICE_EVENT_SERVICE = LOCATOR.getService(DeviceEventService.class);
     private static final DeviceEventFactory DEVICE_EVENT_FACTORY = LOCATOR.getFactory(DeviceEventFactory.class);
@@ -106,9 +109,9 @@ public abstract class AbstractDeviceManagementServiceImpl {
     protected void closeManagementOperation(KapuaId scopeId, KapuaId deviceId, KapuaId operationId, KapuaResponseMessage<?, ?> responseMessageMessage) throws KapuaException {
         DeviceManagementOperationQuery query = DEVICE_MANAGEMENT_OPERATION_FACTORY.newQuery(scopeId);
         query.setPredicate(
-                new AndPredicateImpl(
-                        new AttributePredicateImpl<>(DeviceManagementOperationAttributes.DEVICE_ID, deviceId),
-                        new AttributePredicateImpl<>(DeviceManagementOperationAttributes.OPERATION_ID, operationId)
+                query.andPredicate(
+                        query.attributePredicate(DeviceManagementOperationAttributes.DEVICE_ID, deviceId),
+                        query.attributePredicate(DeviceManagementOperationAttributes.OPERATION_ID, operationId)
                 )
         );
         DeviceManagementOperation deviceManagementOperation = DEVICE_MANAGEMENT_OPERATION_REGISTRY_SERVICE.query(query).getFirstItem();
