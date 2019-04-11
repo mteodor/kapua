@@ -28,7 +28,8 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import java.util.Optional;
-
+import java.util.Enumeration;
+import java.util.Properties;
 public class ConsoleListener implements ServletContextListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConsoleListener.class);
@@ -40,6 +41,15 @@ public class ConsoleListener implements ServletContextListener {
         LOG.info("Initialize Console JABContext Provider");
         JAXBContextProvider consoleProvider = new ConsoleJAXBContextProvider();
         XmlUtil.setContextProvider(consoleProvider);
+
+        LOG.error("JAVA_OPTS:" + System.getenv("JAVA_OPTS"));
+        Properties systemProperties = System.getProperties();
+        Enumeration enuProp = systemProperties.propertyNames();
+        while (enuProp.hasMoreElements()) {
+            String propertyName = (String) enuProp.nextElement();
+            String propertyValue = systemProperties.getProperty(propertyName);
+            LOG.error(propertyName + ": " + propertyValue);
+        }
 
         SystemSetting config = SystemSetting.getInstance();
         if (config.getBoolean(SystemSettingKey.DB_SCHEMA_UPDATE, false)) {
