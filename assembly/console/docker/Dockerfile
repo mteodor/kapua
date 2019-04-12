@@ -27,7 +27,7 @@ ENV SQL_DB_PORT 3306
 
 ENV SERVICE_BROKER_ADDR failover:(amqp://events-broker:5672)?jms.sendTimeout=1000
 
-ENV JAVA_OPTS "-Dcommons.db.schema.update=true \
+ENV JAVA_OPTS "-Dcommons.db.schema.update=false \
                -Dcommons.db.connection.host=\${SQL_DB_ADDR} \
                -Dcommons.db.connection.port=\${SQL_DB_PORT} \
                -Dbroker.host=\${BROKER_ADDR} \
@@ -36,7 +36,13 @@ ENV JAVA_OPTS "-Dcommons.db.schema.update=true \
                -Ddatastore.client.class=\${DATASTORE_CLIENT} \
                -Dcommons.eventbus.url=\${SERVICE_BROKER_ADDR} \
                -Dcertificate.jwt.private.key=file:///var/opt/jetty/key.pk8 \
-               -Dcertificate.jwt.certificate=file:///var/opt/jetty/cert.pem"
+               -Dcertificate.jwt.certificate=file:///var/opt/jetty/cert.pem \
+               -Dsso.provider=generic \
+               -Dsso.openid.client.id=@!1DA9.BCB4.7B32.B721!0001!022F.4EED!0008!9D4A.6A20.6243.F014 \
+               -Dsso.openid.client.secret=n7HwDXCO0MUP6iMzBSKYoaQO \
+               -Dsso.site.home.uri=http://portal.solidsense.tk \
+               -Dsso.sso.generic.openid.server.endpoint.auth=https://gluu-auth.tk/oxauth/restv1/authorize \
+               -Dsso.generic.openid.server.endpoint.token=https://gluu-auth.tk/oxauth/restv1/token"
 
 USER 0
 

@@ -38,18 +38,17 @@ public class ConsoleListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(final ServletContextEvent event) {
-        LOG.info("Initialize Console JABContext Provider");
-        JAXBContextProvider consoleProvider = new ConsoleJAXBContextProvider();
-        XmlUtil.setContextProvider(consoleProvider);
-
-        LOG.error("JAVA_OPTS:" + System.getenv("JAVA_OPTS"));
+        LOG.info("Initialize Console JABContext JABContext Provider");
+        LOG.info("JAVA_OPTS:" + System.getenv("JAVA_OPTS"));
         Properties systemProperties = System.getProperties();
         Enumeration enuProp = systemProperties.propertyNames();
         while (enuProp.hasMoreElements()) {
             String propertyName = (String) enuProp.nextElement();
             String propertyValue = systemProperties.getProperty(propertyName);
-            LOG.error(propertyName + ": " + propertyValue);
+            LOG.info("JAVA PROP:" + propertyName + ": " + propertyValue);
         }
+        JAXBContextProvider consoleProvider = new ConsoleJAXBContextProvider();
+        XmlUtil.setContextProvider(consoleProvider);
 
         SystemSetting config = SystemSetting.getInstance();
         if (config.getBoolean(SystemSettingKey.DB_SCHEMA_UPDATE, false)) {
