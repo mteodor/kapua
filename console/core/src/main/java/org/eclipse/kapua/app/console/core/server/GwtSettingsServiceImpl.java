@@ -21,6 +21,8 @@ import org.eclipse.kapua.app.console.module.api.setting.ConsoleSettingKeys;
 
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * This is the security token service, a concrete implementation to fix the XSFR security problem.
  */
@@ -28,6 +30,7 @@ public class GwtSettingsServiceImpl extends RemoteServiceServlet implements GwtS
 
     private static final long serialVersionUID = -6876999298300071273L;
     private static final ConsoleSetting SETTINGS = ConsoleSetting.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(GwtSettingsServiceImpl.class);
 
     @Override
     public GwtProductInformation getProductInformation() {
@@ -41,7 +44,9 @@ public class GwtSettingsServiceImpl extends RemoteServiceServlet implements GwtS
 
     @Override
     public String getSsoLoginUri() {
-        return SsoLocator.getLocator(this).getService().getLoginUri(UUID.randomUUID().toString(), SsoHelper.getSsoLoginUri());
+        logger.error("home uri" + SsoHelper.getHomeUri());
+        logger.error("redirect uri" + SsoHelper.getRedirectUri());
+        return SsoLocator.getLocator(this).getService().getLoginUri(UUID.randomUUID().toString(), SsoHelper.getRedirectUri());
     }
 
     @Override

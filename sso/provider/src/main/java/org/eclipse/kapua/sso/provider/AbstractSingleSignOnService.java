@@ -73,6 +73,7 @@ public abstract class AbstractSingleSignOnService implements SingleSignOnService
             uri.addParameter("state", state);
             uri.addParameter("redirect_uri", redirectUri.toString());
 
+            logger.error("login uri:" + uri);
             return uri.toString();
         } catch (Exception e) {
             logger.warn("Failed to construct SSO URI", e);
