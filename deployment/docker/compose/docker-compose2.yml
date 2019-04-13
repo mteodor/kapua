@@ -1,0 +1,8 @@
+version: '2'
+
+services:
+ 
+  testj:
+    image: testj
+    environment:
+      JAVA_OPTS: "-Dsso.provider=test"

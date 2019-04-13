@@ -41,7 +41,7 @@ public class GwtSettingsServiceImpl extends RemoteServiceServlet implements GwtS
 
     @Override
     public String getSsoLoginUri() {
-        return SsoLocator.getLocator(this).getService().getLoginUri(UUID.randomUUID().toString(), SsoHelper.getRedirectUri());
+        return SsoLocator.getLocator(this).getService().getLoginUri(UUID.randomUUID().toString(), SsoHelper.getSsoLoginUri());
     }
 
     @Override
