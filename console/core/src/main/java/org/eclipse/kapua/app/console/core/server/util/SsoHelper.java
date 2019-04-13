@@ -31,6 +31,7 @@ public final class SsoHelper {
 
     public static URI getRedirectUri() {
         String result = getSettings().getString(ConsoleSettingKeys.SSO_REDIRECT_URI);
+
         if (result != null && !result.isEmpty()) {
             return URI.create(result);
         }
