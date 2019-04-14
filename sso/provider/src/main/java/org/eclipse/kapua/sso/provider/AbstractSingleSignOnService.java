@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSingleSignOnService implements SingleSignOnService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractSingleSignOnService.class);
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractSingleSignOnService.class);
 
     protected SsoSetting ssoSettings;
 
