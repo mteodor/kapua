@@ -31,8 +31,8 @@ public class GenericSingleSignOnService extends AbstractSingleSignOnService {
 
     @Override
     protected String getAuthUri() {
-    	logger.error("GenericSsoSettingKeys.SSO_OPENID_SERVER_ENDPOINT_AUTH");
-    	logger.error(GenericSsoSettingKeys.SSO_OPENID_SERVER_ENDPOINT_AUTH + " :" +genericSettings.getString(GenericSsoSettingKeys.SSO_OPENID_SERVER_ENDPOINT_AUTH) );
+        logger.error("GenericSsoSettingKeys.SSO_OPENID_SERVER_ENDPOINT_AUTH");
+        logger.error(GenericSsoSettingKeys.SSO_OPENID_SERVER_ENDPOINT_AUTH + " :" +genericSettings.getString(GenericSsoSettingKeys.SSO_OPENID_SERVER_ENDPOINT_AUTH) );
         return genericSettings.getString(GenericSsoSettingKeys.SSO_OPENID_SERVER_ENDPOINT_AUTH);
     }
 
