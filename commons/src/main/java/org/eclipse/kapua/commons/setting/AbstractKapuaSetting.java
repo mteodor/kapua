@@ -22,11 +22,13 @@ import org.eclipse.kapua.commons.util.KapuaFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
+
 import java.io.File;
 import java.net.URL;
 
 /**
- * Setting reference abstract implementation.
+ * Setting reference abstract implementation.`
  *
  * @param <K> Setting key type
  * @since 1.0.0
@@ -73,6 +75,12 @@ public abstract class AbstractKapuaSetting<K extends SettingKey> extends Abstrac
             throw new ExceptionInInitializerError(e);
         }
 
+        Iterator<String> it = compositeConfig.getKeys();
+        String key;
+        while (it.hasNext()) {
+            key = it.next();
+            LOG.error( "PROPS:" + key + ":" + compositeConfig.getProperty(key) );
+        }
         return new DataConfiguration(compositeConfig);
     }
 
