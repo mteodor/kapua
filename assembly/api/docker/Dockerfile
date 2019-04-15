@@ -42,7 +42,7 @@ ENV JAVA_OPTS "-Dcommons.db.schema.update=false \
                -Dsso.openid.client.secret=n7HwDXCO0MUP6iMzBSKYoaQO \
                -Dsso.site.home.uri=http://portal.solidsense.tk \
                -Dsso.openid.redirect.uri=http://portal.solidsense.tk/sso/callback \
-               -Dsso.sso.generic.openid.server.endpoint.auth=https://gluu-auth.tk/oxauth/restv1/authorize \
+               -Dsso.generic.openid.server.endpoint.auth=https://gluu-auth.tk/oxauth/restv1/authorize \
                -Dsso.generic.openid.server.endpoint.token=https://gluu-auth.tk/oxauth/restv1/token"
 
 

@@ -57,6 +57,8 @@ services:
       - KAPUA_KEY_PASSWORD
       - KAPUA_KEYSTORE
       - KAPUA_KEYSTORE_PASSWORD
+    volumes:
+      - ./truststore.ks:/resources/truststore.ks
   kapua-api:
     image: kapua/kapua-api:${IMAGE_VERSION}
     ports:

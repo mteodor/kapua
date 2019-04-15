@@ -103,6 +103,9 @@ public abstract class AbstractSingleSignOnService implements SingleSignOnService
 
         parameters.add(new BasicNameValuePair("redirect_uri", redirectUri.toString()));
 
+        for ( NameValuePair p : parameters) {
+            logger.error("PARAM:" +p.getName() + ":" + p.getValue());
+        }
         final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(parameters);
 
         // Send post request
