@@ -77,3 +77,28 @@ services:
       - KAPUA_KEY_PASSWORD
       - KAPUA_KEYSTORE
       - KAPUA_KEYSTORE_PASSWORD
+      - "JAVA_OPTS=-Dcommons.db.schema.update=true \
+               -Dcommons.db.connection.host=\${SQL_DB_ADDR} \
+               -Dcommons.db.connection.port=\${SQL_DB_PORT} \
+               -Dbroker.host=\${BROKER_ADDR} \
+               -Ddatastore.elasticsearch.nodes=\${DATASTORE_ADDR} \
+               -Ddatastore.elasticsearch.port=\${DATASTORE_PORT} \
+               -Ddatastore.client.class=\${DATASTORE_CLIENT} \
+               -Dcommons.eventbus.url=\${SERVICE_BROKER_ADDR} \
+               -Dcertificate.jwt.private.key=file:///var/opt/jetty/key.pk8 \
+               -Dcertificate.jwt.certificate=file:///var/opt/jetty/cert.pem \
+               -Dsso.provider=generic \
+               -Dsso.openid.client.id=@!1DA9.BCB4.7B32.B721!0001!022F.4EED!0008!59B0.990E.3051.CA54 \
+               -Dsso.openid.client.secret=ChsQTJUnCU7SJtBLFYHpvnio \
+               -Dsso.site.home.uri=http://portal.solidsense.tk:8080 \
+               -Dsso.openid.redirect.uri=http://portal.solidsense.tk:8080/sso/callback \
+               -Dsso.generic.openid.server.endpoint.auth=https://gluu-auth.tk/oxauth/restv1/authorize \
+               -Dsso.generic.openid.server.endpoint.token=https://gluu-auth.tk/oxauth/restv1/token \
+               -Dconsole.site.home.uri=http://portal.solidsense.tk:8080 \
+               -Dconsole.sso.enabled=true \
+               -Dconsole.sso.openid.server.endpoint.auth=https://gluu-auth.tk/oxauth/restv1/authorize \
+               -Dconsole.sso.openid.server.endpoint.token=https://gluu-auth.tk/oxauth/restv1/token \
+               -Dconsole.sso.openid.client.id=@!1DA9.BCB4.7B32.B721!0001!022F.4EED!0008!59B0.990E.3051.CA54 \
+               -Djavax.net.ssl.trustStore=/resources/truststore.ks \
+               -Djavax.net.ssl.trustStorePassword=mflux56 \
+               -Dconsole.sso.openid.redirect.uri=sso/callback"

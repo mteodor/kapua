@@ -122,6 +122,7 @@ public abstract class AbstractSingleSignOnService implements SingleSignOnService
         try (final InputStream stream = urlConnection.getInputStream()) {
             jsonObject = Json.createReader(stream).readObject();
         }
+        logger.error("JSON RESP:" + jsonObject.toString());
         return jsonObject;
     }
 
