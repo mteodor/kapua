@@ -19,8 +19,8 @@ import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.DisabledAccountException;
 import org.apache.shiro.authc.ExpiredCredentialsException;
-import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.realm.AuthenticatingRealm;
+import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.Destroyable;
@@ -136,7 +136,7 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
         // Check user existence
 
         if (user == null) {
-            throw new KapuaAuthenticationException(KapuaAuthenticationErrorCodes.UNKNOWN_ACCOUNT);
+            throw new UnknownAccountException();
         }
 
         // Check disabled
@@ -169,7 +169,7 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
         // Check account existence
 
         if (account == null) {
-            throw new KapuaAuthenticationException(KapuaAuthenticationErrorCodes.UNKNOWN_ACCOUNT);
+            throw new UnknownAccountException();
         }
 
         // Create credential
