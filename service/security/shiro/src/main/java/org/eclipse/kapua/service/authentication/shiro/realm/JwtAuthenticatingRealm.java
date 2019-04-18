@@ -136,7 +136,7 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
         // Check user existence
 
         if (user == null) {
-            throw new UnknownAccountException();
+            throw new KapuaAuthenticationException(KapuaAuthenticationErrorCodes.UNKNOWN_ACCOUNT);
         }
 
         // Check disabled
@@ -169,7 +169,7 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
         // Check account existence
 
         if (account == null) {
-            throw new UnknownAccountException();
+            throw new KapuaAuthenticationException(KapuaAuthenticationErrorCodes.UNKNOWN_ACCOUNT);
         }
 
         // Create credential

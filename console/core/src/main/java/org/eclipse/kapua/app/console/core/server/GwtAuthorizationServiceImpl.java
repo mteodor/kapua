@@ -151,16 +151,16 @@ public class GwtAuthorizationServiceImpl extends KapuaRemoteServiceServlet imple
         try {
             authenticationService.login(credentials);
         } catch (KapuaAuthenticationException e) {
-            logger.debug("First level login attempt failed", e);
+            logger.error("First level login attempt failed", e);
             handleLoginError(authenticationService, credentials, e);
         }
     }
 
     private void handleLoginError(AuthenticationService authenticationService, JwtCredentials credentials, KapuaAuthenticationException e) throws KapuaException {
-        logger.debug("Handling error code: {}", e.getCode());
+        logger.error("Handling error code: {}", e.getCode());
 
         if (!isAccountCreationEnabled()) {
-            logger.debug("Account creation is not active");
+            logger.error("Account creation is not active");
             throw e;
         }
 
