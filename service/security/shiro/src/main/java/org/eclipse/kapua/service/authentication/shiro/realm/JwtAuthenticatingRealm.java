@@ -91,12 +91,21 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
     }
 
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken)
+            throws AuthenticationException {
         //
         // Extract credentials
         JwtCredentialsImpl token = (JwtCredentialsImpl) authenticationToken;
         String jwt = token.getJwt();
 
+        JwtContext ctx;
+        try {
+            ctx = jwtProcessor.process(jwt);
+            logger.error("token claims:" + ctx.getJwtClaims());
+        } catch (Exception e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         //
         // Get Services
         final KapuaLocator locator;

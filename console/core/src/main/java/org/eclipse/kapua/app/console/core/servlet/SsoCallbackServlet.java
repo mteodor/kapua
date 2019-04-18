@@ -26,11 +26,12 @@ import org.eclipse.kapua.app.console.core.server.util.SsoHelper;
 import org.apache.http.client.utils.URIBuilder;
 import org.eclipse.kapua.app.console.core.server.util.SsoLocator;
 import org.eclipse.kapua.sso.SingleSignOnLocator;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class SsoCallbackServlet extends HttpServlet {
 
     private static final long serialVersionUID = -4854037814597039013L;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(SsoCallbackServlet.class);
     private SingleSignOnLocator locator;
 
     @Override
@@ -50,6 +51,7 @@ public class SsoCallbackServlet extends HttpServlet {
         // Get and clean jwks_uri property
         final String accessToken = jsonObject.getString("access_token");
         final String homeUri = SsoHelper.getHomeUri();
+        LOGGER.error("Home uri:" + homeUri);
 
         try {
             final URIBuilder redirect = new URIBuilder(homeUri);

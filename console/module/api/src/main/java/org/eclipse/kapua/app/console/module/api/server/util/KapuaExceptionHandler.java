@@ -46,6 +46,7 @@ public class KapuaExceptionHandler {
         if (t instanceof KapuaUnauthenticatedException) {
 
             // sessions has expired
+            logger.error("Kapua unauthenticated");
             throw new GwtKapuaException(GwtKapuaErrorCode.UNAUTHENTICATED, t);
         } else if (t instanceof KapuaAuthenticationException) {
 

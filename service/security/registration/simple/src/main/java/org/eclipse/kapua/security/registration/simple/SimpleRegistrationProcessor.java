@@ -294,10 +294,10 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
 
         // define
 
+        logger.error("creating user:" + baseName + "accnt: " + account.getName() );
         UserCreator userCreator = userFactory.newCreator(account.getId(), baseName + "-broker");
         userCreator.setUserType(UserType.INTERNAL); // FIXME: need to find out why this isn't DEVICE but INTERNAL
         userCreator.setDisplayName("Gateway User");
-
         // create
 
         User user = userService.create(userCreator);
@@ -316,9 +316,10 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
 
         // Create default password
 
-        CredentialCreator credential = credentialFactory.newCreator(account.getId(), user.getId(), CredentialType.PASSWORD, baseName + "-pa5sw@rD", CredentialStatus.ENABLED, null);
+        CredentialCreator credential = credentialFactory.newCreator(account.getId(), user.getId(), CredentialType.PASSWORD, baseName + "-password", CredentialStatus.ENABLED, null);
         credentialService.create(credential);
 
+        logger.error("user created:" + user.getName() + ":" + user.getEmail());
         return user;
     }
 

@@ -74,6 +74,13 @@ public class CertificateServiceImpl implements CertificateService {
         KapuaSecurityUtils.doPrivileged(() -> {
             KapuaCertificateSetting setting = KapuaCertificateSetting.getInstance();
 
+            try{
+                throw new Exception("Im retrieving certificates");
+            }catch( Exception e){
+                for (StackTraceElement se:e.getStackTrace()){
+                    LOG.error("CERTIFICATE:" + se.getClassName() + ":" + se.getMethodName());
+                }
+            }
             String privateKeyPath = setting.getString(KapuaCertificateSettingKeys.CERTIFICATE_JWT_PRIVATE_KEY);
             String certificatePath = setting.getString(KapuaCertificateSettingKeys.CERTIFICATE_JWT_CERTIFICATE);
 

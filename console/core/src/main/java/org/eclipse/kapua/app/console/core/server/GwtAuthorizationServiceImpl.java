@@ -105,12 +105,13 @@ public class GwtAuthorizationServiceImpl extends KapuaRemoteServiceServlet imple
             }
 
             // Login
-            authenticationService.login(credentials);
+            logger.error("token retrieved:" + authenticationService.login(credentials).getTokenId());
 
             // Get the session infos
             return establishSession();
         } catch (Throwable t) {
-            logout();
+            //logout();
+            logger.error("login failed {}", t.getMessage());
             KapuaExceptionHandler.handle(t);
         }
         return null;
@@ -134,14 +135,13 @@ public class GwtAuthorizationServiceImpl extends KapuaRemoteServiceServlet imple
             JwtCredentials credentials = credentialsFactory.newJwtCredentials(gwtAccessTokenCredentials.getAccessToken());
 
             // Login
-
-            handleLogin(authenticationService, credentials);
-
+            logger.error("token retrieved:" + authenticationService.login(credentials).getTokenId());
             // Get the session infos
 
             return establishSession();
         } catch (Throwable t) {
-            logout();
+            //logout();
+            logger.error("login failed {}", t.getMessage());
             KapuaExceptionHandler.handle(t);
         }
         return null;
@@ -230,12 +230,12 @@ public class GwtAuthorizationServiceImpl extends KapuaRemoteServiceServlet imple
         //
         // Get info from session
         final KapuaSession kapuaSession = KapuaSecurityUtils.getSession();
-        logger.debug("Kapua session: {}", kapuaSession);
+        logger.error("Kapua session: {}", kapuaSession);
 
         //
         // Get user info
         final UserService userService = locator.getService(UserService.class);
-        logger.debug("Looking up - scopeId: {}, userId: {}", kapuaSession.getScopeId(), kapuaSession.getUserId());
+        logger.error("Looking up - scopeId: {}, userId: {}", kapuaSession.getScopeId(), kapuaSession.getUserId());
         final User user = KapuaSecurityUtils.doPrivileged(new Callable<User>() {
 
             @Override
@@ -283,6 +283,7 @@ public class GwtAuthorizationServiceImpl extends KapuaRemoteServiceServlet imple
 
         gwtSession.setAccountPath(gwtAccount.getParentAccountPath());
         gwtSession.setSelectedAccountPath(gwtAccount.getParentAccountPath());
+        logger.error("user session in:" + gwtUser.getId() + "::" + gwtUser.getUsername() + ":" + gwtUser.getDisplayName());
 
         //
         // Load permissions
