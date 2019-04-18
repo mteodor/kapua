@@ -106,5 +106,7 @@ public enum KapuaAuthenticationErrorCodes implements KapuaErrorCode {
     /**
      * JWT Certificate not found
      */
-    JWT_CERTIFICATE_NOT_FOUND
+    JWT_CERTIFICATE_NOT_FOUND,
+
+    UNKNOWN_ACCOUNT,
 }

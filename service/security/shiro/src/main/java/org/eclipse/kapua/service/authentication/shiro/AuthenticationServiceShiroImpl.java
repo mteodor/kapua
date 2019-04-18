@@ -94,6 +94,10 @@ public class AuthenticationServiceShiroImpl implements AuthenticationService {
             throw new ExceptionInInitializerError(e);
         }
 
+        for (Realm realm :realms ){
+            LOG.error("realms used:" + realm.getName());
+        }
+
         DefaultSecurityManager defaultSecurityManager = new DefaultSecurityManager();
         defaultSecurityManager.setAuthenticator(new KapuaAuthenticator());
         defaultSecurityManager.setRealms(realms);
@@ -120,6 +124,7 @@ public class AuthenticationServiceShiroImpl implements AuthenticationService {
 
         checkCurrentSubjectNotAuthenticated();
 
+        LOG.error("shiro login:" + loginCredentials.toString() );
         //
         // Parse login credentials
         AuthenticationToken shiroAuthenticationToken;
@@ -127,11 +132,15 @@ public class AuthenticationServiceShiroImpl implements AuthenticationService {
             UsernamePasswordCredentialsImpl usernamePasswordCredentials = (UsernamePasswordCredentialsImpl) loginCredentials;
 
             shiroAuthenticationToken = new UsernamePasswordCredentialsImpl(usernamePasswordCredentials.getUsername(), usernamePasswordCredentials.getPassword());
+            LOG.error("UsernamePasswordCredentialsImpl:");
         } else if (loginCredentials instanceof ApiKeyCredentialsImpl) {
             shiroAuthenticationToken = new ApiKeyCredentialsImpl(((ApiKeyCredentialsImpl) loginCredentials).getApiKey());
+            LOG.error("ApiKeyCredentialsImpl:");
         } else if (loginCredentials instanceof JwtCredentialsImpl) {
             shiroAuthenticationToken = new JwtCredentialsImpl(((JwtCredentialsImpl) loginCredentials).getJwt());
+            LOG.error("JwtCredentialsImpl:");
         } else {
+            LOG.error("INVALID_CREDENTIALS_TYPE_PROVIDED:");
             throw new KapuaAuthenticationException(KapuaAuthenticationErrorCodes.INVALID_CREDENTIALS_TYPE_PROVIDED);
         }
 
@@ -167,7 +176,7 @@ public class AuthenticationServiceShiroImpl implements AuthenticationService {
     @Override
     public void authenticate(SessionCredentials sessionCredentials) throws KapuaException {
         checkCurrentSubjectNotAuthenticated();
-
+        LOG.error("shiro authenticate:" + sessionCredentials.toString() );
         //
         // Parse login credentials
         AuthenticationToken shiroAuthenticationToken;
@@ -355,6 +364,9 @@ public class AuthenticationServiceShiroImpl implements AuthenticationService {
             currentSubject.logout();
         }
 
+        for ( StackTraceElement ste: se.getStackTrace()){
+            LOG.error("ShiroException: '{}' '{}' '{}' " , ste.getLineNumber(), ste.getClassName(), ste.getMethodName());
+        }
         KapuaAuthenticationException kae;
 
         if (se instanceof UnknownAccountException) {

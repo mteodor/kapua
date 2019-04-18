@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractSingleSignOnService implements SingleSignOnService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractSingleSignOnService.class);
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractSingleSignOnService.class);
 
     protected SsoSetting ssoSettings;
 
@@ -73,6 +73,7 @@ public abstract class AbstractSingleSignOnService implements SingleSignOnService
             uri.addParameter("state", state);
             uri.addParameter("redirect_uri", redirectUri.toString());
 
+            logger.error("login uri:" + uri);
             return uri.toString();
         } catch (Exception e) {
             logger.warn("Failed to construct SSO URI", e);
@@ -102,6 +103,9 @@ public abstract class AbstractSingleSignOnService implements SingleSignOnService
 
         parameters.add(new BasicNameValuePair("redirect_uri", redirectUri.toString()));
 
+        for ( NameValuePair p : parameters) {
+            logger.error("PARAM:" +p.getName() + ":" + p.getValue());
+        }
         final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(parameters);
 
         // Send post request
@@ -118,6 +122,7 @@ public abstract class AbstractSingleSignOnService implements SingleSignOnService
         try (final InputStream stream = urlConnection.getInputStream()) {
             jsonObject = Json.createReader(stream).readObject();
         }
+        logger.error("JSON RESP:" + jsonObject.toString());
         return jsonObject;
     }
 
