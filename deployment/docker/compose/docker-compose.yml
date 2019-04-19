@@ -74,14 +74,14 @@ services:
                -Dsso.openid.redirect.uri=http://portal.solidsense.tk:8080/sso/callback
                -Dsso.generic.openid.server.endpoint.auth=https://gluu-auth.tk/oxauth/restv1/authorize
                -Dsso.generic.openid.server.endpoint.token=https://gluu-auth.tk/oxauth/restv1/token
-               -Dconsole.site.home.uri=http://portal.solidsense.tk:8080
+               -Dconsole.site.home.uri=http://portal.solidsense.tk:8080/console.jsp
                -Dconsole.sso.enabled=true
+               -Dconsole.sso.redirect.uri=http://portal.solidsense.tk:8080/sso/callback
                -Dconsole.sso.openid.server.endpoint.auth=https://gluu-auth.tk/oxauth/restv1/authorize
                -Dconsole.sso.openid.server.endpoint.token=https://gluu-auth.tk/oxauth/restv1/token
                -Dconsole.sso.openid.client.id=@!1DA9.BCB4.7B32.B721!0001!022F.4EED!0008!59B0.990E.3051.CA54
                -Djavax.net.ssl.trustStore=/resources/truststore.ks
                -Djavax.net.ssl.trustStorePassword=mflux56
-               -Dconsole.sso.openid.redirect.uri=sso/callback
                -Dauthentication.credential.jwt.issuer.allowed=https://gluu-auth.tk
                -Dauthentication.credential.jwt.audience.allowed=@!1DA9.BCB4.7B32.B721!0001!022F.4EED!0008!59B0.990E.3051.CA54
                -Dauto.registration.simple.rootAccount=kapua-sys

@@ -150,10 +150,11 @@ public class GwtAuthorizationServiceImpl extends KapuaRemoteServiceServlet imple
     private void handleLogin(AuthenticationService authenticationService, JwtCredentials credentials) throws KapuaException {
         try {
             authenticationService.login(credentials);
-        } catch (KapuaAuthenticationException e) {
+        } catch (Exception e) {
             logger.error("First level login attempt failed", e);
-            handleLoginError(authenticationService, credentials, e);
-        }
+            KapuaAuthenticationException ke = new KapuaAuthenticationException(KapuaAuthenticationErrorCodes.UNKNOWN_LOGIN_CREDENTIAL);
+            handleLoginError(authenticationService, credentials, ke);
+        } 
     }
 
     private void handleLoginError(AuthenticationService authenticationService, JwtCredentials credentials, KapuaAuthenticationException e) throws KapuaException {
