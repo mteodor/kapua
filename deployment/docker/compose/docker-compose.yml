@@ -73,10 +73,10 @@ services:
                -Dsite.home.uri=http://kapua.solidsense.tk/console.jsp
                -Dsso.openid.redirect.uri=http://kapua.solidsense.tk/sso/callback
                -Dsso.keycloak.realm=kapua
-               -Dsso.keycloak.uri=http://auth.solidsense.tk:9080
+               -Dsso.keycloak.uri=http://mender.solidsense.tk
                -Dconsole.sso.enabled=true
                -Dconsole.sso.redirect.uri=http://kapua.solidsense.tk/sso/callback
-               -Dauthentication.credential.jwt.issuer.allowed=http://auth.solidsense.tk/auth/realms/kapua
+               -Dauthentication.credential.jwt.issuer.allowed=http://mender.solidsense.tk/auth/realms/kapua
     volumes:
       - ./truststore.ks:/resources/truststore.ks
   kapua-api:
@@ -107,4 +107,4 @@ services:
                -Dcommons.eventbus.url=$SERVICE_BROKER_ADDR
                -Dcertificate.jwt.private.key=file:///var/opt/jetty/key.pk8
                -Dcertificate.jwt.certificate=file:///var/opt/jetty/cert.pem
-               -Dauthentication.credential.jwt.issuer.allowed=http://auth.solidsense.tk/auth/realms/kapua
+               -Dauthentication.credential.jwt.issuer.allowed=http://mender.solidsense.tk/auth/realms/kapua
