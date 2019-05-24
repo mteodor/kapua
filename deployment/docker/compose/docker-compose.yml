@@ -76,9 +76,6 @@ services:
                -Dsso.keycloak.uri=http://auth.solidsense.tk:9080
                -Dconsole.sso.enabled=true
                -Dconsole.sso.redirect.uri=http://kapua.solidsense.tk/sso/callback
-               -Dauto.registration.simple.rootAccount=kapua-sys
-               -Dauto.registration.simple.maximumNumberOfChildUsers=1
-               -Dauto.registration.simple.accountExpirationDate.days=30
                -Dauthentication.credential.jwt.issuer.allowed=http://auth.solidsense.tk/auth/realms/kapua
     volumes:
       - ./truststore.ks:/resources/truststore.ks
