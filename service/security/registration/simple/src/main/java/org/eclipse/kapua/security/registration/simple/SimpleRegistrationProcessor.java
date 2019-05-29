@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -252,6 +253,7 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
 
         // define
 
+    	logger.error("creating user:");
         UserCreator userCreator = userFactory.newCreator(account.getId(), name);
         userCreator.setUserType(UserType.EXTERNAL);
         userCreator.setExternalId(subject);
@@ -261,7 +263,10 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
         // create
 
         User user = userService.create(userCreator);
+        
+        logger.error("creating user:"  + user.debugString());
 
+        
         // assign login permissions
 
         AccessInfoCreator accessInfoCreator = accessInfoFactory.newCreator(user.getScopeId());
@@ -270,16 +275,16 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
         Set<Permission> permissions = new HashSet<>();
         permissions.add(permissionFactory.newPermission(new AccessInfoDomain(), Actions.read, user.getScopeId()));
 
-        permissions.addAll(permissionFactory.newPermissions(AccountDomains.ACCOUNT_DOMAIN, user.getScopeId(), Actions.read));
+        permissions.addAll(permissionFactory.newPermissions(AccountDomains.ACCOUNT_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
         permissions.addAll(permissionFactory.newPermissions(AuthenticationDomains.CREDENTIAL_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
-        permissions.addAll(permissionFactory.newPermissions(DatastoreDomains.DATASTORE_DOMAIN, user.getScopeId(), Actions.read));
+        permissions.addAll(permissionFactory.newPermissions(DatastoreDomains.DATASTORE_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
         permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
-        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_CONNECTION_DOMAIN, user.getScopeId(), Actions.read));
-        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_EVENT_DOMAIN, user.getScopeId(), Actions.read, Actions.write));
+        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_CONNECTION_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
+        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_EVENT_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
         permissions.addAll(permissionFactory.newPermissions(DeviceManagementDomains.DEVICE_MANAGEMENT_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.execute));
-        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.GROUP_DOMAIN, user.getScopeId(), Actions.read));
-        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.ROLE_DOMAIN, user.getScopeId(), Actions.read));
-        permissions.addAll(permissionFactory.newPermissions(UserDomains.USER_DOMAIN, user.getScopeId(), Actions.read));
+        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.GROUP_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
+        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.ROLE_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
+        permissions.addAll(permissionFactory.newPermissions(UserDomains.USER_DOMAIN, user.getScopeId(), Actions.read, Actions.write));
 
         accessInfoCreator.setPermissions(permissions);
 

@@ -189,13 +189,13 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
         final String id;
         try {
             final JwtContext ctx = jwtProcessor.process(jwt);
-            id = ctx.getJwtClaims().getSubject();
+            id = ctx.getJwtClaims().getClaimValue("email", String.class);
         } catch (final Exception e) {
             throw new ShiroException("Failed to parse JWT", e);
         }
 
         if (id == null || id.isEmpty()) {
-            throw new ShiroException("'subject' missing on JWT");
+            throw new ShiroException("'email' missing on JWT");
         }
 
         return id;
