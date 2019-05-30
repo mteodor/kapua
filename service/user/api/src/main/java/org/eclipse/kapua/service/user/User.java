@@ -32,6 +32,13 @@ import java.util.Date;
 @XmlType(factoryClass = UserXmlRegistry.class, factoryMethod = "newUser")
 public interface User extends KapuaNamedEntity {
 
+    public default String debugString() {
+        return "User [TYPE=" + TYPE + ", getType()=" + getType() + ", getStatus()=" + getStatus()
+            + ", getDisplayName()=" + getDisplayName() + ", getEmail()=" + getEmail() + ", getPhoneNumber()="
+            + getPhoneNumber() + ", getUserType()=" + getUserType() + ", getExternalId()=" + getExternalId()
+            + ", getExpirationDate()=" + getExpirationDate() + "]";
+    }
+
     String TYPE = "user";
 
     @Override

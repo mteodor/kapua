@@ -251,35 +251,34 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
     private User createUser(String name, String email, String displayName, String subject, Account account) throws KapuaException {
 
         // define
-
+        logger.error("creating user:");
         UserCreator userCreator = userFactory.newCreator(account.getId(), name);
         userCreator.setUserType(UserType.EXTERNAL);
-        userCreator.setExternalId(subject);
+        userCreator.setExternalId(email);
         userCreator.setEmail(email);
         userCreator.setDisplayName(displayName);
 
         // create
-
         User user = userService.create(userCreator);
 
+        logger.error("creating user:" + user.debugString());
         // assign login permissions
-
         AccessInfoCreator accessInfoCreator = accessInfoFactory.newCreator(user.getScopeId());
         accessInfoCreator.setUserId(user.getId());
 
         Set<Permission> permissions = new HashSet<>();
         permissions.add(permissionFactory.newPermission(new AccessInfoDomain(), Actions.read, user.getScopeId()));
 
-        permissions.addAll(permissionFactory.newPermissions(AccountDomains.ACCOUNT_DOMAIN, user.getScopeId(), Actions.read));
+        permissions.addAll(permissionFactory.newPermissions(AccountDomains.ACCOUNT_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
         permissions.addAll(permissionFactory.newPermissions(AuthenticationDomains.CREDENTIAL_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
-        permissions.addAll(permissionFactory.newPermissions(DatastoreDomains.DATASTORE_DOMAIN, user.getScopeId(), Actions.read));
+        permissions.addAll(permissionFactory.newPermissions(DatastoreDomains.DATASTORE_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
         permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
-        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_CONNECTION_DOMAIN, user.getScopeId(), Actions.read));
-        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_EVENT_DOMAIN, user.getScopeId(), Actions.read, Actions.write));
+        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_CONNECTION_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
+        permissions.addAll(permissionFactory.newPermissions(DeviceDomains.DEVICE_EVENT_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
         permissions.addAll(permissionFactory.newPermissions(DeviceManagementDomains.DEVICE_MANAGEMENT_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.execute));
-        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.GROUP_DOMAIN, user.getScopeId(), Actions.read));
-        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.ROLE_DOMAIN, user.getScopeId(), Actions.read));
-        permissions.addAll(permissionFactory.newPermissions(UserDomains.USER_DOMAIN, user.getScopeId(), Actions.read));
+        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.GROUP_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
+        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.ROLE_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
+        permissions.addAll(permissionFactory.newPermissions(UserDomains.USER_DOMAIN, user.getScopeId(), Actions.read, Actions.write));
 
         accessInfoCreator.setPermissions(permissions);
 

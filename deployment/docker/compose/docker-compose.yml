@@ -79,7 +79,7 @@ services:
                -Dconsole.sso.enabled=true
                -Dconsole.sso.redirect.uri=http://kapua.solidsense.tk/sso/callback
                -Dauto.registration.simple.rootAccount=kapua-sys
-               -Dauto.registration.simple.maximumNumberOfChildUsers=1
+               -Dauto.registration.simple.maximumNumberOfChildUsers=30
                -Dauto.registration.simple.accountExpirationDate.days=30
                -Dauthentication.credential.jwt.issuer.allowed=http://mender.solidsense.tk/auth/realms/kapua
     volumes:
