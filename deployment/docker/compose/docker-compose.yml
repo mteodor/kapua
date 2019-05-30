@@ -1,5 +1,5 @@
 version: '3.1'
-
+        
 services:
   db:
     image: kapua/kapua-sql:${IMAGE_VERSION}
@@ -49,6 +49,8 @@ services:
       - db
       - es
       - events-broker
+    extra_hosts:
+      - "mender.solidsense.tk: 172.17.0.1"
     environment:
       - KAPUA_DISABLE_SSL
       - KAPUA_CA
@@ -69,17 +71,17 @@ services:
                -Dcertificate.jwt.certificate=file:///var/opt/jetty/cert.pem
                -Dsso.provider=keycloak
                -Dsso.openid.client.id=console
-               -Dsso.openid.client.secret=bf16df7a-c44e-4c5b-86d3-410b357fcf7e
+               -Dsso.openid.client.secret=9e8a0b13-08f1-4859-9a87-a1138058d616
                -Dsite.home.uri=http://kapua.solidsense.tk/console.jsp
                -Dsso.openid.redirect.uri=http://kapua.solidsense.tk/sso/callback
                -Dsso.keycloak.realm=kapua
-               -Dsso.keycloak.uri=http://auth.solidsense.tk:9080
+               -Dsso.keycloak.uri=http://mender.solidsense.tk
                -Dconsole.sso.enabled=true
                -Dconsole.sso.redirect.uri=http://kapua.solidsense.tk/sso/callback
                -Dauto.registration.simple.rootAccount=kapua-sys
                -Dauto.registration.simple.maximumNumberOfChildUsers=1
                -Dauto.registration.simple.accountExpirationDate.days=30
-               -Dauthentication.credential.jwt.issuer.allowed=http://auth.solidsense.tk/auth/realms/kapua
+               -Dauthentication.credential.jwt.issuer.allowed=http://mender.solidsense.tk/auth/realms/kapua
     volumes:
       - ./truststore.ks:/resources/truststore.ks
   kapua-api:
@@ -110,4 +112,4 @@ services:
                -Dcommons.eventbus.url=$SERVICE_BROKER_ADDR
                -Dcertificate.jwt.private.key=file:///var/opt/jetty/key.pk8
                -Dcertificate.jwt.certificate=file:///var/opt/jetty/cert.pem
-               -Dauthentication.credential.jwt.issuer.allowed=http://auth.solidsense.tk/auth/realms/kapua
+               -Dauthentication.credential.jwt.issuer.allowed=http://mender.solidsense.tk/auth/realms/kapua
