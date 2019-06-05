@@ -123,6 +123,12 @@ public enum KapuaErrorCodes implements KapuaErrorCode {
     /**
      * trigger will never be fired
      */
-    TRIGGER_NEVER_FIRE;
+    TRIGGER_NEVER_FIRE,
+    ADMIN_ROLE_DELETED_ERROR,
+
+    /**Deleting specific permission is not allowed
+     * 
+     */
+    PERMISSION_DELETE_NOT_ALLOWED
 
 }

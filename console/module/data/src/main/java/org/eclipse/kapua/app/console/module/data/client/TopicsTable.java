@@ -17,24 +17,28 @@ import com.extjs.gxt.ui.client.Style.Scroll;
 import com.extjs.gxt.ui.client.Style.SelectionMode;
 import com.extjs.gxt.ui.client.data.ModelData;
 import com.extjs.gxt.ui.client.data.SortInfo;
+import com.extjs.gxt.ui.client.event.BaseEvent;
 import com.extjs.gxt.ui.client.event.ButtonEvent;
 import com.extjs.gxt.ui.client.event.Events;
 import com.extjs.gxt.ui.client.event.Listener;
 import com.extjs.gxt.ui.client.event.SelectionChangedListener;
 import com.extjs.gxt.ui.client.event.SelectionListener;
 import com.extjs.gxt.ui.client.event.TreeGridEvent;
+import com.extjs.gxt.ui.client.store.ListStore;
 import com.extjs.gxt.ui.client.store.TreeStore;
 import com.extjs.gxt.ui.client.widget.ContentPanel;
 import com.extjs.gxt.ui.client.widget.LayoutContainer;
 import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
 import com.extjs.gxt.ui.client.widget.grid.ColumnModel;
 import com.extjs.gxt.ui.client.widget.grid.GridSelectionModel;
+import com.extjs.gxt.ui.client.widget.grid.GridViewConfig;
 import com.extjs.gxt.ui.client.widget.layout.FitLayout;
 import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.extjs.gxt.ui.client.widget.treegrid.TreeGrid;
 import com.extjs.gxt.ui.client.widget.treegrid.TreeGridCellRenderer;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
@@ -156,6 +160,12 @@ public class TopicsTable extends LayoutContainer {
         store.setSortInfo(new SortInfo("topicName", Style.SortDir.ASC));
         dataService.findTopicsTree(currentSession.getSelectedAccountId(), topicsCallback);
         topicInfoGrid = new TreeGrid<GwtTopic>(store, new ColumnModel(configs));
+        topicInfoGrid.getView().setViewConfig(new GridViewConfig() {
+            @Override
+            public String getRowStyle(ModelData model, int rowIndex, ListStore<ModelData> ds) {
+                return "custom-x-grid3-row";
+            }
+        });
         topicInfoGrid.setBorders(false);
         topicInfoGrid.setStateful(false);
         topicInfoGrid.setLoadMask(true);
@@ -164,6 +174,14 @@ public class TopicsTable extends LayoutContainer {
         topicInfoGrid.getView().setForceFit(true);
         topicInfoGrid.getView().setEmptyText(MSGS.topicInfoGridEmptyText());
         topicInfoGrid.disableTextSelection(false);
+
+        topicInfoGrid.addListener(Events.OnClick, new Listener<BaseEvent>() {
+
+            @Override
+            public void handleEvent(BaseEvent be) {
+                topicInfoGrid.unsinkEvents(Event.ONDBLCLICK);
+            }
+        });
 
         GridSelectionModel<GwtTopic> selectionModel = new GridSelectionModel<GwtTopic>();
         selectionModel.setSelectionMode(SelectionMode.SINGLE);

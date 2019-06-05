@@ -11,9 +11,11 @@
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.device.client.device;
 
+import com.extjs.gxt.ui.client.widget.tips.ToolTipConfig;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.client.util.KapuaSafeHtmlUtils;
+import org.eclipse.kapua.app.console.module.api.client.util.SplitTooltipStringUtil;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.authorization.shared.model.GwtGroup;
 import org.eclipse.kapua.app.console.module.authorization.shared.model.permission.GroupSessionPermission;
@@ -23,6 +25,8 @@ import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceQueryPr
 public class DeviceEditDialog extends DeviceAddDialog {
 
     private GwtDevice selectedDevice;
+    public static final int MAX_LINE_LENGTH = 40;
+    public static final int MAX_TOOLTIP_WIDTH = 400;
 
     public DeviceEditDialog(GwtSession currentSession, GwtDevice selectedDevice) {
         super(currentSession);
@@ -34,8 +38,8 @@ public class DeviceEditDialog extends DeviceAddDialog {
         generateBody();
         submitButton.disable();
 
-        // hide fields used for add
-        clientIdField.hide();
+        // remove field used only on Add dialog
+        fieldSet.remove(clientIdField);
         // this protects against odd issue https://github.com/eclipse/kapua/issues/1631
         groupCombo.setAllowBlank(true);
 
@@ -118,10 +122,17 @@ public class DeviceEditDialog extends DeviceAddDialog {
 
     private void populateDialog(GwtDevice device) {
         if (device != null) {
+            ToolTipConfig toolTipConfig = new ToolTipConfig();
+            toolTipConfig.setMaxWidth(MAX_TOOLTIP_WIDTH);
+            String toolTipText = SplitTooltipStringUtil.splitTooltipString(device.getClientId(), MAX_LINE_LENGTH);
+            toolTipConfig.setText(toolTipText);
             // General info data
-            clientIdField.setValue(device.getClientId());
-            clientIdLabel.setText(device.getClientId());
-            clientIdLabel.setToolTip(DEVICE_MSGS.deviceFormClientIDEditDialogTooltip());
+                clientIdLabel.setValue(device.getClientId());
+                clientIdLabel.setStyleAttribute("white-space", "nowrap");
+                clientIdLabel.setStyleAttribute("text-overflow", "ellipsis");
+                clientIdLabel.setStyleAttribute("overflow", "hidden");
+                clientIdLabel.setToolTip(toolTipConfig);
+
             displayNameField.setValue(device.getUnescapedDisplayName());
             statusCombo.setSimpleValue(GwtDeviceQueryPredicates.GwtDeviceStatus.valueOf(device.getGwtDeviceStatus()));
 
