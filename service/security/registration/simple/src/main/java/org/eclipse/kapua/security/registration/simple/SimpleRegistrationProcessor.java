@@ -278,6 +278,8 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
         permissions.addAll(permissionFactory.newPermissions(DeviceManagementDomains.DEVICE_MANAGEMENT_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.execute));
         permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.GROUP_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
         permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.ROLE_DOMAIN, user.getScopeId(), Actions.read, Actions.write, Actions.delete));
+        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.ACCESS_INFO_DOMAIN , user.getScopeId(), Actions.read, Actions.write));
+        permissions.addAll(permissionFactory.newPermissions(AuthorizationDomains.DOMAIN_DOMAIN , user.getScopeId(), Actions.read, Actions.write));
         permissions.addAll(permissionFactory.newPermissions(UserDomains.USER_DOMAIN, user.getScopeId(), Actions.read, Actions.write));
 
         accessInfoCreator.setPermissions(permissions);

@@ -79,7 +79,7 @@ services:
                -Dconsole.sso.enabled=true
                -Dconsole.sso.redirect.uri=http://kapua.solidsense.tk/sso/callback
                -Dauto.registration.simple.rootAccount=kapua-sys
-               -Dauto.registration.simple.maximumNumberOfChildUsers=30
+               -Dauto.registration.simple.maximumNumberOfChildUsers=1
                -Dauto.registration.simple.accountExpirationDate.days=30
                -Dauthentication.credential.jwt.issuer.allowed=http://mender.solidsense.tk/auth/realms/kapua
     volumes:
@@ -89,6 +89,8 @@ services:
     ports:
       - 8081:8080
       - 8444:8443
+    extra_hosts:
+      - "mender.solidsense.tk: 172.17.0.1"
     depends_on:
       - broker
       - db
@@ -113,3 +115,4 @@ services:
                -Dcertificate.jwt.private.key=file:///var/opt/jetty/key.pk8
                -Dcertificate.jwt.certificate=file:///var/opt/jetty/cert.pem
                -Dauthentication.credential.jwt.issuer.allowed=http://mender.solidsense.tk/auth/realms/kapua
+
