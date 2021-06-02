@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,24 +13,25 @@
 package org.eclipse.kapua.service.datastore.internal.schema;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.commons.util.KapuaDateUtils;
 import org.eclipse.kapua.model.id.KapuaId;
-import org.eclipse.kapua.service.datastore.client.ClientException;
-import org.eclipse.kapua.service.datastore.client.DatamodelMappingException;
-import org.eclipse.kapua.service.datastore.client.DatastoreClient;
-import org.eclipse.kapua.service.datastore.client.SchemaKeys;
-import org.eclipse.kapua.service.datastore.client.model.IndexRequest;
-import org.eclipse.kapua.service.datastore.client.model.IndexResponse;
-import org.eclipse.kapua.service.datastore.client.model.TypeDescriptor;
 import org.eclipse.kapua.service.datastore.internal.DatastoreCacheManager;
 import org.eclipse.kapua.service.datastore.internal.client.DatastoreClientFactory;
-import org.eclipse.kapua.service.datastore.internal.mediator.DatastoreErrorCodes;
 import org.eclipse.kapua.service.datastore.internal.mediator.DatastoreUtils;
 import org.eclipse.kapua.service.datastore.internal.mediator.Metric;
-import org.eclipse.kapua.service.datastore.internal.setting.DatastoreSettingKey;
 import org.eclipse.kapua.service.datastore.internal.setting.DatastoreSettings;
+import org.eclipse.kapua.service.datastore.internal.setting.DatastoreSettingsKey;
+import org.eclipse.kapua.service.elasticsearch.client.ElasticsearchClient;
+import org.eclipse.kapua.service.elasticsearch.client.SchemaKeys;
+import org.eclipse.kapua.service.elasticsearch.client.exception.ClientErrorCodes;
+import org.eclipse.kapua.service.elasticsearch.client.exception.ClientException;
+import org.eclipse.kapua.service.elasticsearch.client.exception.DatamodelMappingException;
+import org.eclipse.kapua.service.elasticsearch.client.model.IndexRequest;
+import org.eclipse.kapua.service.elasticsearch.client.model.IndexResponse;
+import org.eclipse.kapua.service.elasticsearch.client.model.TypeDescriptor;
+import org.eclipse.kapua.service.storable.exception.MappingException;
+import org.eclipse.kapua.service.storable.model.utils.KeyValueEntry;
+import org.eclipse.kapua.service.storable.model.utils.MappingUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,17 +43,11 @@ import java.util.Map.Entry;
 /**
  * Datastore schema creation/update
  *
- * @since 1.0
+ * @since 1.0.0
  */
 public class Schema {
 
     private static final Logger LOG = LoggerFactory.getLogger(Schema.class);
-
-    /**
-     * Construct the Elasticsearch schema
-     */
-    public Schema() {
-    }
 
     /**
      * Synchronize metadata
@@ -60,15 +56,15 @@ public class Schema {
      * @param time
      * @return
      * @throws ClientException
+     * @since 1.0.0
      */
-    public Metadata synch(KapuaId scopeId, long time)
-            throws ClientException {
+    public Metadata synch(KapuaId scopeId, long time) throws ClientException, MappingException {
         String dataIndexName;
         try {
-            String indexingWindowOption = DatastoreSettings.getInstance().getString(DatastoreSettingKey.INDEXING_WINDOW_OPTION, DatastoreUtils.INDEXING_WINDOW_OPTION_WEEK);
+            String indexingWindowOption = DatastoreSettings.getInstance().getString(DatastoreSettingsKey.INDEXING_WINDOW_OPTION, DatastoreUtils.INDEXING_WINDOW_OPTION_WEEK);
             dataIndexName = DatastoreUtils.getDataIndexName(scopeId, time, indexingWindowOption);
         } catch (KapuaException kaex) {
-            throw new ClientException(DatastoreErrorCodes.CONFIGURATION_ERROR, "Error while generating index name", kaex);
+            throw new ClientException(ClientErrorCodes.INTERNAL_ERROR, kaex, "Error while generating index name");
         }
 
         Metadata currentMetadata = DatastoreCacheManager.getInstance().getMetadataCache().get(dataIndexName);
@@ -79,31 +75,47 @@ public class Schema {
         LOG.debug("Before entering updating metadata");
         synchronized (Schema.class) {
             LOG.debug("Entered updating metadata");
-            DatastoreClient datastoreClient = DatastoreClientFactory.getInstance();
+            ElasticsearchClient<?> elasticsearchClient = DatastoreClientFactory.getInstance().getElasticsearchClient();
             // Check existence of the data index
-            IndexResponse dataIndexExistsResponse = datastoreClient.isIndexExists(new IndexRequest(dataIndexName));
+            IndexResponse dataIndexExistsResponse = elasticsearchClient.isIndexExists(new IndexRequest(dataIndexName));
             if (!dataIndexExistsResponse.isIndexExists()) {
-                datastoreClient.createIndex(dataIndexName, getMappingSchema(dataIndexName));
-                LOG.info("Data index created: " + dataIndexName);
+                elasticsearchClient.createIndex(dataIndexName, getMappingSchema(dataIndexName));
+                LOG.info("Data index created: {}", dataIndexName);
             }
 
-            boolean enableAllField = false;
             boolean enableSourceField = true;
 
-            datastoreClient.putMapping(new TypeDescriptor(dataIndexName, MessageSchema.MESSAGE_TYPE_NAME), MessageSchema.getMesageTypeSchema(enableAllField, enableSourceField));
-            // Check existence of the kapua internal index
-            String registryIndexName = DatastoreUtils.getRegistryIndexName(scopeId);
-            IndexResponse registryIndexExistsResponse = datastoreClient.isIndexExists(new IndexRequest(registryIndexName));
-            if (!registryIndexExistsResponse.isIndexExists()) {
-                datastoreClient.createIndex(registryIndexName, getMappingSchema(registryIndexName));
-                LOG.info("Metadata index created: " + registryIndexExistsResponse);
+            elasticsearchClient.putMapping(new TypeDescriptor(dataIndexName, MessageSchema.MESSAGE_TYPE_NAME), MessageSchema.getMesageTypeSchema(enableSourceField));
 
-                datastoreClient.putMapping(new TypeDescriptor(registryIndexName, ChannelInfoSchema.CHANNEL_TYPE_NAME), ChannelInfoSchema.getChannelTypeSchema(enableAllField, enableSourceField));
-                datastoreClient.putMapping(new TypeDescriptor(registryIndexName, MetricInfoSchema.METRIC_TYPE_NAME), MetricInfoSchema.getMetricTypeSchema(enableAllField, enableSourceField));
-                datastoreClient.putMapping(new TypeDescriptor(registryIndexName, ClientInfoSchema.CLIENT_TYPE_NAME), ClientInfoSchema.getClientTypeSchema(enableAllField, enableSourceField));
+            // Check existence of the kapua internal indexes
+            String channelRegistryIndexName = DatastoreUtils.getChannelIndexName(scopeId);
+            IndexResponse channelRegistryIndexExistsResponse = elasticsearchClient.isIndexExists(new IndexRequest(channelRegistryIndexName));
+            if (!channelRegistryIndexExistsResponse.isIndexExists()) {
+                elasticsearchClient.createIndex(channelRegistryIndexName, getMappingSchema(channelRegistryIndexName));
+                LOG.info("Channel Metadata index created: {}", channelRegistryIndexExistsResponse);
+
+                elasticsearchClient.putMapping(new TypeDescriptor(channelRegistryIndexName, ChannelInfoSchema.CHANNEL_TYPE_NAME), ChannelInfoSchema.getChannelTypeSchema(enableSourceField));
             }
 
-            currentMetadata = new Metadata(dataIndexName, registryIndexName);
+            String clientRegistryIndexName = DatastoreUtils.getClientIndexName(scopeId);
+            IndexResponse clientRegistryIndexExistsResponse = elasticsearchClient.isIndexExists(new IndexRequest(clientRegistryIndexName));
+            if (!clientRegistryIndexExistsResponse.isIndexExists()) {
+                elasticsearchClient.createIndex(clientRegistryIndexName, getMappingSchema(clientRegistryIndexName));
+                LOG.info("Client Metadata index created: {}", clientRegistryIndexExistsResponse);
+
+                elasticsearchClient.putMapping(new TypeDescriptor(clientRegistryIndexName, ClientInfoSchema.CLIENT_TYPE_NAME), ClientInfoSchema.getClientTypeSchema(enableSourceField));
+            }
+
+            String metricRegistryIndexName = DatastoreUtils.getMetricIndexName(scopeId);
+            IndexResponse metricRegistryIndexExistsResponse = elasticsearchClient.isIndexExists(new IndexRequest(metricRegistryIndexName));
+            if (!metricRegistryIndexExistsResponse.isIndexExists()) {
+                elasticsearchClient.createIndex(metricRegistryIndexName, getMappingSchema(metricRegistryIndexName));
+                LOG.info("Metric Metadata index created: {}", metricRegistryIndexExistsResponse);
+
+                elasticsearchClient.putMapping(new TypeDescriptor(metricRegistryIndexName, MetricInfoSchema.METRIC_TYPE_NAME), MetricInfoSchema.getMetricTypeSchema(enableSourceField));
+            }
+
+            currentMetadata = new Metadata(dataIndexName, channelRegistryIndexName, clientRegistryIndexName, metricRegistryIndexName);
             LOG.debug("Leaving updating metadata");
         }
 
@@ -123,18 +135,19 @@ public class Schema {
      * @param time
      * @param metrics
      * @throws ClientException
+     * @since 1.0.0
      */
     public void updateMessageMappings(KapuaId scopeId, long time, Map<String, Metric> metrics)
-            throws ClientException {
+            throws ClientException, MappingException {
         if (metrics == null || metrics.size() == 0) {
             return;
         }
         String newIndex;
         try {
-            String indexingWindowOption = DatastoreSettings.getInstance().getString(DatastoreSettingKey.INDEXING_WINDOW_OPTION, DatastoreUtils.INDEXING_WINDOW_OPTION_WEEK);
+            String indexingWindowOption = DatastoreSettings.getInstance().getString(DatastoreSettingsKey.INDEXING_WINDOW_OPTION, DatastoreUtils.INDEXING_WINDOW_OPTION_WEEK);
             newIndex = DatastoreUtils.getDataIndexName(scopeId, time, indexingWindowOption);
         } catch (KapuaException kaex) {
-            throw new ClientException(DatastoreErrorCodes.CONFIGURATION_ERROR, "Error while generating index name", kaex);
+            throw new ClientException(ClientErrorCodes.INTERNAL_ERROR, kaex, "Error while generating index name");
         }
         Metadata currentMetadata = DatastoreCacheManager.getInstance().getMetadataCache().get(newIndex);
 
@@ -150,22 +163,27 @@ public class Schema {
             metricsMapping = getNewMessageMappingsBuilder(diffs);
         }
 
-        LOG.trace("Sending dynamic message mappings: " + metricsMapping);
-        DatastoreClientFactory.getInstance().putMapping(new TypeDescriptor(currentMetadata.getDataIndexName(), MessageSchema.MESSAGE_TYPE_NAME), metricsMapping);
+        LOG.trace("Sending dynamic message mappings: {}", metricsMapping);
+        DatastoreClientFactory.getInstance().getElasticsearchClient().putMapping(new TypeDescriptor(currentMetadata.getDataIndexName(), MessageSchema.MESSAGE_TYPE_NAME), metricsMapping);
     }
 
-    private ObjectNode getNewMessageMappingsBuilder(Map<String, Metric> esMetrics) throws DatamodelMappingException {
+    /**
+     * @param esMetrics
+     * @return
+     * @throws DatamodelMappingException
+     * @throws KapuaException
+     * @since 1.0.0
+     */
+    private ObjectNode getNewMessageMappingsBuilder(Map<String, Metric> esMetrics) throws MappingException {
         if (esMetrics == null) {
             return null;
         }
         // metrics mapping container (to be added to message mapping)
-        ObjectNode typeNode = SchemaUtil.getObjectNode(); // root
-        ObjectNode messageNode = SchemaUtil.getObjectNode(); // message
-        ObjectNode typePropertiesNode = SchemaUtil.getObjectNode(); // properties
-        ObjectNode metricsNode = SchemaUtil.getObjectNode(); // metrics
-        ObjectNode metricsPropertiesNode = SchemaUtil.getObjectNode(); // properties (metric properties)
-        typeNode.set(SchemaKeys.FIELD_NAME_MESSAGE, messageNode);
-        messageNode.set(SchemaKeys.FIELD_NAME_PROPERTIES, typePropertiesNode);
+        ObjectNode typeNode = MappingUtils.newObjectNode(); // root
+        ObjectNode typePropertiesNode = MappingUtils.newObjectNode(); // properties
+        ObjectNode metricsNode = MappingUtils.newObjectNode(); // metrics
+        ObjectNode metricsPropertiesNode = MappingUtils.newObjectNode(); // properties (metric properties)
+        typeNode.set(SchemaKeys.FIELD_NAME_PROPERTIES, typePropertiesNode);
         typePropertiesNode.set(SchemaKeys.FIELD_NAME_METRICS, metricsNode);
         metricsNode.set(SchemaKeys.FIELD_NAME_PROPERTIES, metricsPropertiesNode);
 
@@ -173,32 +191,37 @@ public class Schema {
         ObjectNode metricMapping;
         for (Entry<String, Metric> esMetric : esMetrics.entrySet()) {
             Metric metric = esMetric.getValue();
-            metricMapping = SchemaUtil.getField(new KeyValueEntry[]{ new KeyValueEntry(SchemaKeys.KEY_DYNAMIC, SchemaKeys.VALUE_TRUE) });
+            metricMapping = MappingUtils.newObjectNode(new KeyValueEntry[]{new KeyValueEntry(SchemaKeys.KEY_DYNAMIC, SchemaKeys.VALUE_TRUE)});
 
-            ObjectNode matricMappingPropertiesNode = SchemaUtil.getObjectNode(); // properties (inside metric name)
+            ObjectNode metricMappingPropertiesNode = MappingUtils.newObjectNode(); // properties (inside metric name)
             ObjectNode valueMappingNode;
 
             switch (metric.getType()) {
                 case SchemaKeys.TYPE_STRING:
-                    valueMappingNode = SchemaUtil
-                            .getField(new KeyValueEntry[]{ new KeyValueEntry(SchemaKeys.KEY_TYPE, SchemaKeys.TYPE_KEYWORD), new KeyValueEntry(SchemaKeys.KEY_INDEX, SchemaKeys.VALUE_TRUE) });
+                    valueMappingNode = MappingUtils.newObjectNode(new KeyValueEntry[]{new KeyValueEntry(SchemaKeys.KEY_TYPE, SchemaKeys.TYPE_KEYWORD), new KeyValueEntry(SchemaKeys.KEY_INDEX, SchemaKeys.VALUE_TRUE)});
                     break;
                 case SchemaKeys.TYPE_DATE:
-                    valueMappingNode = SchemaUtil.getField(
-                            new KeyValueEntry[]{ new KeyValueEntry(SchemaKeys.KEY_TYPE, SchemaKeys.TYPE_DATE), new KeyValueEntry(SchemaKeys.KEY_FORMAT, KapuaDateUtils.ISO_DATE_PATTERN) });
+                    valueMappingNode = MappingUtils.newObjectNode(
+                            new KeyValueEntry[]{new KeyValueEntry(SchemaKeys.KEY_TYPE, SchemaKeys.TYPE_DATE), new KeyValueEntry(SchemaKeys.KEY_FORMAT, DatastoreUtils.DATASTORE_DATE_FORMAT)});
                     break;
                 default:
-                    valueMappingNode = SchemaUtil.getField(new KeyValueEntry[]{ new KeyValueEntry(SchemaKeys.KEY_TYPE, metric.getType()) });
+                    valueMappingNode = MappingUtils.newObjectNode(new KeyValueEntry[]{new KeyValueEntry(SchemaKeys.KEY_TYPE, metric.getType())});
                     break;
             }
 
-            matricMappingPropertiesNode.set(DatastoreUtils.getClientMetricFromAcronym(metric.getType()), valueMappingNode);
-            metricMapping.set(SchemaKeys.FIELD_NAME_PROPERTIES, matricMappingPropertiesNode);
+            metricMappingPropertiesNode.set(DatastoreUtils.getClientMetricFromAcronym(metric.getType()), valueMappingNode);
+            metricMapping.set(SchemaKeys.FIELD_NAME_PROPERTIES, metricMappingPropertiesNode);
             metricsPropertiesNode.set(metric.getName(), metricMapping);
         }
         return typeNode;
     }
 
+    /**
+     * @param currentMetadata
+     * @param esMetrics
+     * @return
+     * @since 1.0.0
+     */
     private Map<String, Metric> getMessageMappingDiffs(Metadata currentMetadata, Map<String, Metric> esMetrics) {
         if (esMetrics == null || esMetrics.isEmpty()) {
             return null;
@@ -218,18 +241,24 @@ public class Schema {
         return diffs;
     }
 
-    private ObjectNode getMappingSchema(String idxName) throws DatamodelMappingException {
-        String idxRefreshInterval = String.format("%ss", DatastoreSettings.getInstance().getLong(DatastoreSettingKey.INDEX_REFRESH_INTERVAL));
-        Integer idxShardNumber = DatastoreSettings.getInstance().getInt(DatastoreSettingKey.INDEX_SHARD_NUMBER, 1);
-        Integer idxReplicaNumber = DatastoreSettings.getInstance().getInt(DatastoreSettingKey.INDEX_REPLICA_NUMBER, 0);
+    /**
+     * @param idxName
+     * @return
+     * @throws MappingException
+     * @since 1.0.0
+     */
+    private ObjectNode getMappingSchema(String idxName) throws MappingException {
+        String idxRefreshInterval = String.format("%ss", DatastoreSettings.getInstance().getLong(DatastoreSettingsKey.INDEX_REFRESH_INTERVAL));
+        Integer idxShardNumber = DatastoreSettings.getInstance().getInt(DatastoreSettingsKey.INDEX_SHARD_NUMBER, 1);
+        Integer idxReplicaNumber = DatastoreSettings.getInstance().getInt(DatastoreSettingsKey.INDEX_REPLICA_NUMBER, 0);
 
-        ObjectNode rootNode = SchemaUtil.getObjectNode();
-        ObjectNode refreshIntervaleNode = SchemaUtil.getField(new KeyValueEntry[]{
+        ObjectNode rootNode = MappingUtils.newObjectNode();
+        ObjectNode refreshIntervalNode = MappingUtils.newObjectNode(new KeyValueEntry[]{
                 new KeyValueEntry(SchemaKeys.KEY_REFRESH_INTERVAL, idxRefreshInterval),
                 new KeyValueEntry(SchemaKeys.KEY_SHARD_NUMBER, idxShardNumber),
-                new KeyValueEntry(SchemaKeys.KEY_REPLICA_NUMBER, idxReplicaNumber) });
+                new KeyValueEntry(SchemaKeys.KEY_REPLICA_NUMBER, idxReplicaNumber)});
 
-        rootNode.set(SchemaKeys.KEY_INDEX, refreshIntervaleNode);
+        rootNode.set(SchemaKeys.KEY_INDEX, refreshIntervalNode);
         LOG.info("Creating index for '{}' - refresh: '{}' - shards: '{}' replicas: '{}': ", idxName, idxRefreshInterval, idxShardNumber, idxReplicaNumber);
         return rootNode;
     }

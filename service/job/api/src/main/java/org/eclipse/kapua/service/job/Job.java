@@ -1,27 +1,30 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.job;
 
+import org.eclipse.kapua.model.KapuaEntity;
 import org.eclipse.kapua.model.KapuaNamedEntity;
 import org.eclipse.kapua.service.job.step.JobStep;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import java.util.List;
 
 /**
- * {@link Job} {@link org.eclipse.kapua.model.KapuaEntity} definition.
+ * {@link Job} {@link KapuaEntity} definition.
  *
  * @since 1.0.0
  */
@@ -37,12 +40,45 @@ public interface Job extends KapuaNamedEntity {
         return TYPE;
     }
 
+    /**
+     * Gets the {@link List} of {@link JobStep}.
+     *
+     * @return The {@link List} of {@link JobStep}.
+     * @since 1.0.0
+     * @deprecated Since 1.1.0. The {@link JobStep} are no longer bound to the {@link Job}.
+     */
+    @Deprecated
+    @XmlTransient
     List<JobStep> getJobSteps();
 
+    /**
+     * Sets the {@link List} of {@link JobStep}.
+     *
+     * @param jobSteps The {@link List} of {@link JobStep}.
+     * @since 1.0.0
+     * @deprecated Since 1.1.0. The {@link JobStep} are no longer bound to the {@link Job}.
+     */
+    @Deprecated
     void setJobSteps(List<JobStep> jobSteps);
 
+    /**
+     * Gets the jBatch Job xml definition.
+     *
+     * @return The jBatch Job xml definition.
+     * @since 1.0.0
+     * @deprecated Since 1.1.0. The definition is no longer generated.
+     */
+    @Deprecated
     String getJobXmlDefinition();
 
+    /**
+     * Sets the jBatch Job xml definition.
+     *
+     * @param jobXmlDefinition The jBatch Job xml definition.
+     * @since 1.0.0
+     * @deprecated Since 1.1.0. The definition is no longer generated.
+     */
+    @Deprecated
     void setJobXmlDefinition(String jobXmlDefinition);
 
 }

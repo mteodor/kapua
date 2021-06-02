@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -116,12 +117,12 @@ public class DeviceEventCreatorImpl extends AbstractKapuaEntityCreator<DeviceEve
 
     @Override
     public KapuaMethod getAction() {
-        return action;
+        return action.normalizeAction();
     }
 
     @Override
     public void setAction(KapuaMethod action) {
-        this.action = action;
+        this.action = action.normalizeAction();
     }
 
     @Override

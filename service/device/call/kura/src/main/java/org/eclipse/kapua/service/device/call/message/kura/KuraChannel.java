@@ -1,55 +1,60 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.call.message.kura;
 
-import org.eclipse.kapua.commons.setting.system.SystemSetting;
+import com.google.common.collect.Lists;
 import org.eclipse.kapua.service.device.call.message.DeviceChannel;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * {@link DeviceChannel} {@link org.eclipse.kapua.service.device.call.kura.Kura} implementation.
+ *
+ * @since 1.0.0
  */
 public class KuraChannel implements DeviceChannel {
-
-    protected static final String DESTINATION_CONTROL_PREFIX = SystemSetting.getInstance().getMessageClassifier();
 
     protected String messageClassification;
     protected String scopeNamespace;
     protected String clientId;
 
     /**
-     * Constructor
+     * Constructor.
+     *
+     * @since 1.0.0
      */
     public KuraChannel() {
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param scopeNamespace
-     * @param clientId
+     * @param scopeNamespace The scope namespace.
+     * @param clientId       The clientId.
+     * @since 1.0.0
      */
     public KuraChannel(String scopeNamespace, String clientId) {
         this(null, scopeNamespace, clientId);
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param messageClassification
-     * @param scopeNamespace
-     * @param clientId
+     * @param messageClassification The message classification.
+     * @param scopeNamespace        The scope namespace.
+     * @param clientId              The clientId.
+     * @since 1.0.0
      */
     public KuraChannel(String messageClassification, String scopeNamespace, String clientId) {
         setMessageClassification(messageClassification);
@@ -88,12 +93,18 @@ public class KuraChannel implements DeviceChannel {
     }
 
     /**
-     * Get the semantic tokens list.<br>
-     * The semantic part, of a channel, describes an action or a destination inside a domain (eg a scope identifier and a client identifier)
+     * Gets the {@link KuraChannel} tokens in a user-friendly format.
      *
-     * @return
+     * @return The {@link KuraChannel} tokens in a user-friendly format.
+     * @since 1.2.0
      */
-    public List<String> getSemanticChannelParts() {
-        return new ArrayList<>();
+    @Override
+    public String toString() {
+        return Arrays.toString(getParts().toArray());
+    }
+
+    @Override
+    public List<String> getParts() {
+        return Lists.newArrayList(getMessageClassification(), getScope(), getClientId());
     }
 }

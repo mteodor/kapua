@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2019, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -52,9 +53,10 @@ public class GroupAddDialog extends EntityAddEditDialog {
         FormPanel groupFormPanel = new FormPanel(FORM_LABEL_WIDTH);
         groupNameField = new KapuaTextField<String>();
         groupNameField.setAllowBlank(false);
+        groupNameField.setMinLength(3);
         groupNameField.setMaxLength(255);
         groupNameField.setFieldLabel("* " + MSGS.dialogAddFieldName());
-        groupNameField.setValidator(new TextFieldValidator(groupNameField, FieldType.NAME));
+        groupNameField.setValidator(new TextFieldValidator(groupNameField, FieldType.NAME_SPACE));
         groupNameField.setToolTip(MSGS.dialogAddFieldNameTooltip());
         groupFormPanel.add(groupNameField);
 
@@ -71,7 +73,7 @@ public class GroupAddDialog extends EntityAddEditDialog {
     public void validateGroups() {
         if (groupNameField.getValue() == null) {
             ConsoleInfo.display("Error", CONSOLE_MSGS.allFieldsRequired());
-        } 
+        }
     }
 
     @Override

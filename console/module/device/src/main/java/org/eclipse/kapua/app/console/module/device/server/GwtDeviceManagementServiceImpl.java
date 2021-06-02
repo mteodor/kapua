@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -27,17 +28,17 @@ import org.eclipse.kapua.app.console.module.api.shared.model.GwtConfigComponent;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtConfigParameter;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtConfigParameter.GwtConfigParameterType;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtXSRFToken;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtBundleInfo;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeploymentPackage;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDevice;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceCommandInput;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceCommandOutput;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtSnapshot;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.bundles.GwtBundle;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.packages.GwtPackageDownloadOperation;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.packages.GwtPackageInstallRequest;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.packages.GwtPackageOperation;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.packages.GwtPackageUninstallRequest;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.bundles.GwtBundle;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.bundles.GwtBundleInfo;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.command.GwtDeviceCommandInput;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.command.GwtDeviceCommandOutput;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.configurations.GwtSnapshot;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.packages.GwtDeploymentPackage;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.packages.GwtPackageDownloadOperation;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.packages.GwtPackageInstallRequest;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.packages.GwtPackageOperation;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.packages.GwtPackageUninstallRequest;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceManagementService;
 import org.eclipse.kapua.commons.configuration.metatype.Password;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
@@ -64,6 +65,8 @@ import org.eclipse.kapua.service.device.management.packages.model.DevicePackage;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackageBundleInfo;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackageBundleInfos;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackages;
+import org.eclipse.kapua.service.device.management.packages.model.FileType;
+import org.eclipse.kapua.service.device.management.packages.model.download.AdvancedPackageDownloadOptions;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadOperation;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadRequest;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadStatus;
@@ -176,7 +179,7 @@ public class GwtDeviceManagementServiceImpl extends KapuaRemoteServiceServlet im
             KapuaId deviceId = KapuaEid.parseCompactId(gwtPackageInstallRequest.getDeviceId());
 
             DevicePackageDownloadRequest packageDownloadRequest = DEVICE_PACKAGE_FACTORY.newPackageDownloadRequest();
-            URI packageUri = null;
+            URI packageUri;
             try {
                 packageUri = new URI(gwtPackageInstallRequest.getPackageURI());
             } catch (URISyntaxException e) {
@@ -185,11 +188,23 @@ public class GwtDeviceManagementServiceImpl extends KapuaRemoteServiceServlet im
             packageDownloadRequest.setUri(packageUri);
             packageDownloadRequest.setName(gwtPackageInstallRequest.getPackageName());
             packageDownloadRequest.setVersion(gwtPackageInstallRequest.getPackageVersion());
+            packageDownloadRequest.setUsername(gwtPackageInstallRequest.getUsername());
+            packageDownloadRequest.setPassword(gwtPackageInstallRequest.getPassword());
+            packageDownloadRequest.setFileHash(gwtPackageInstallRequest.getFileHash());
+            packageDownloadRequest.setFileType(FileType.valueOf(gwtPackageInstallRequest.getFileType()));
             packageDownloadRequest.setInstall(true); // Always install
             packageDownloadRequest.setReboot(gwtPackageInstallRequest.isReboot());
             packageDownloadRequest.setRebootDelay(gwtPackageInstallRequest.getRebootDelay());
 
-            PACKAGE_MANAGEMENT_SERVICE.downloadExec(scopeId, deviceId, packageDownloadRequest, DEVICE_PACKAGE_FACTORY.newDevicePackageDownloadOptions());
+            AdvancedPackageDownloadOptions advancedOptions = packageDownloadRequest.getAdvancedOptions();
+            advancedOptions.setRestart(gwtPackageInstallRequest.getRestart());
+            advancedOptions.setBlockSize(gwtPackageInstallRequest.getBlockSize());
+            advancedOptions.setBlockDelay(gwtPackageInstallRequest.getBlockDelay());
+            advancedOptions.setBlockTimeout(gwtPackageInstallRequest.getBlockTimeout());
+            advancedOptions.setNotifyBlockSize(gwtPackageInstallRequest.getNotifyBlockSize());
+            advancedOptions.setInstallVerifierURI(gwtPackageInstallRequest.getInstallVerifierURI());
+
+            PACKAGE_MANAGEMENT_SERVICE.downloadExec(scopeId, deviceId, packageDownloadRequest, DEVICE_PACKAGE_FACTORY.newPackageDownloadOptions());
         } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }
@@ -240,7 +255,7 @@ public class GwtDeviceManagementServiceImpl extends KapuaRemoteServiceServlet im
             packageUninstallRequest.setReboot(gwtPackageUninstallRequest.isReboot());
             packageUninstallRequest.setRebootDelay(gwtPackageUninstallRequest.getRebootDelay());
 
-            PACKAGE_MANAGEMENT_SERVICE.uninstallExec(scopeId, deviceId, packageUninstallRequest, DEVICE_PACKAGE_FACTORY.newDevicePackageUninstallOptions());
+            PACKAGE_MANAGEMENT_SERVICE.uninstallExec(scopeId, deviceId, packageUninstallRequest, DEVICE_PACKAGE_FACTORY.newPackageUninstallOptions());
         } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
         }

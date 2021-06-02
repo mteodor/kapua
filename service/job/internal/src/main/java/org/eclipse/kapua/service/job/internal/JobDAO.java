@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,6 +16,7 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.jpa.EntityManager;
 import org.eclipse.kapua.commons.service.internal.ServiceDAO;
+import org.eclipse.kapua.model.KapuaNamedEntityAttributes;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.job.Job;
@@ -23,7 +25,7 @@ import org.eclipse.kapua.service.job.JobListResult;
 
 /**
  * Job DAO
- * 
+ *
  * @since 1.0
  *
  */
@@ -34,7 +36,7 @@ public class JobDAO {
 
     /**
      * Creates and return new Job
-     * 
+     *
      * @param em
      * @param jobCreator
      * @return
@@ -54,7 +56,7 @@ public class JobDAO {
 
     /**
      * Updates the provided job
-     * 
+     *
      * @param em
      * @param job
      * @return
@@ -89,7 +91,7 @@ public class JobDAO {
      * @return
      */
     public static Job findByName(EntityManager em, String name) {
-        return ServiceDAO.findByField(em, JobImpl.class, "name", name);
+        return ServiceDAO.findByField(em, JobImpl.class, KapuaNamedEntityAttributes.NAME, name);
     }
 
     /**
@@ -100,7 +102,7 @@ public class JobDAO {
      * @return
      * @throws KapuaException
      */
-    public static JobListResult query(EntityManager em, KapuaQuery<Job> jobQuery)
+    public static JobListResult query(EntityManager em, KapuaQuery jobQuery)
             throws KapuaException {
         return ServiceDAO.query(em, Job.class, JobImpl.class, new JobListResultImpl(), jobQuery);
     }
@@ -113,7 +115,7 @@ public class JobDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<Job> jobQuery)
+    public static long count(EntityManager em, KapuaQuery jobQuery)
             throws KapuaException {
         return ServiceDAO.count(em, Job.class, JobImpl.class, jobQuery);
     }
@@ -124,11 +126,12 @@ public class JobDAO {
      * @param em
      * @param scopeId
      * @param jobId
+     * @return deleted entity
      * @throws KapuaEntityNotFoundException
      *             If the {@link Job} is not found
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId jobId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, JobImpl.class, scopeId, jobId);
+    public static Job delete(EntityManager em, KapuaId scopeId, KapuaId jobId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, JobImpl.class, scopeId, jobId);
     }
 
 }

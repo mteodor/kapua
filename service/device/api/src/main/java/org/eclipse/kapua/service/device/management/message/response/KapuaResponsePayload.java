@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,39 +15,44 @@ package org.eclipse.kapua.service.device.management.message.response;
 import org.eclipse.kapua.message.KapuaPayload;
 
 /**
- * Kapua response message payload definition.<br>
- * This object defines the payload for a Kapua response message.<br>
+ * Response {@link KapuaPayload} definition.
+ * <p>
+ * This object defines the {@link KapuaPayload} for a {@link KapuaResponseMessage}.<br>
  * The response message is used to perform interactive operations with the device (e.g. to send command to the device, to ask configurations...)
  *
- * @since 1.0
+ * @since 1.0.0
  */
 public interface KapuaResponsePayload extends KapuaPayload {
 
     /**
-     * Get the exception message (if present)
+     * Gets the exception message (if present).
      *
-     * @return
+     * @return The exception message.
+     * @since 1.0.0
      */
     String getExceptionMessage();
 
     /**
-     * Set the exception message (if present)
+     * Sets the exception message.
      *
-     * @param setExecptionMessage
+     * @param exceptionMessage The exception message.
+     * @since 1.0.0
      */
-    void setExceptionMessage(String setExecptionMessage);
+    void setExceptionMessage(String exceptionMessage);
 
     /**
-     * Get the exception stack trace (if present)
+     * Gets the exception stack trace (if present).
      *
-     * @return
+     * @return The exception stack trace (if present).
+     * @since 1.0.0
      */
     String getExceptionStack();
 
     /**
-     * Set the exception stack trace (if present)
+     * Sets the exception stack trace.
      *
-     * @param setExecptionStack
+     * @param setExecptionStack The exception stack trace.
+     * @since 1.0.0
      */
     void setExceptionStack(String setExecptionStack);
 }

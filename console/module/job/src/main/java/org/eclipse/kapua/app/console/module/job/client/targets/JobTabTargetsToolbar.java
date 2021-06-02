@@ -1,24 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.job.client.targets;
 
-import com.extjs.gxt.ui.client.event.ButtonEvent;
-import com.extjs.gxt.ui.client.event.SelectionListener;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.Element;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
-import org.eclipse.kapua.app.console.module.api.client.ui.button.Button;
+import org.eclipse.kapua.app.console.module.api.client.ui.button.KapuaButton;
 import org.eclipse.kapua.app.console.module.api.client.ui.dialog.KapuaDialog;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.EntityCRUDToolbar;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
@@ -29,6 +25,14 @@ import org.eclipse.kapua.app.console.module.job.shared.model.permission.JobSessi
 import org.eclipse.kapua.app.console.module.job.shared.service.GwtJobService;
 import org.eclipse.kapua.app.console.module.job.shared.service.GwtJobServiceAsync;
 
+import com.extjs.gxt.ui.client.event.ButtonEvent;
+import com.extjs.gxt.ui.client.event.SelectionListener;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.http.client.URL;
+import com.google.gwt.user.client.Element;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+
 public class JobTabTargetsToolbar extends EntityCRUDToolbar<GwtJobTarget> {
 
     private static final ConsoleJobMessages JOB_MSGS = GWT.create(ConsoleJobMessages.class);
@@ -37,7 +41,9 @@ public class JobTabTargetsToolbar extends EntityCRUDToolbar<GwtJobTarget> {
 
     private GwtJob gwtSelectedJob;
 
-    private Button jobStartTargetButton;
+    private KapuaButton jobStartTargetButton;
+    private KapuaButton jobRestartTargetButton;
+    private KapuaButton exportButton;
 
     public JobTabTargetsToolbar(GwtSession currentSession) {
         super(currentSession, true);
@@ -70,7 +76,7 @@ public class JobTabTargetsToolbar extends EntityCRUDToolbar<GwtJobTarget> {
 
     @Override
     protected void onRender(Element target, int index) {
-        jobStartTargetButton = new Button(JOB_MSGS.jobStartTargetButton(), new KapuaIcon(IconSet.PLAY), new SelectionListener<ButtonEvent>() {
+        jobStartTargetButton = new KapuaButton(JOB_MSGS.jobStartTargetButton(), new KapuaIcon(IconSet.PLAY), new SelectionListener<ButtonEvent>() {
 
             @Override
             public void componentSelected(ButtonEvent buttonEvent) {
@@ -81,9 +87,42 @@ public class JobTabTargetsToolbar extends EntityCRUDToolbar<GwtJobTarget> {
         jobStartTargetButton.disable();
         addExtraButton(jobStartTargetButton);
 
+        jobRestartTargetButton = new KapuaButton(JOB_MSGS.jobRestartTargetButton(), new KapuaIcon(IconSet.REPEAT), new SelectionListener<ButtonEvent>() {
+
+            @Override
+            public void componentSelected(ButtonEvent buttonEvent) {
+                JobTargetRestartTargetDialog dialog = new JobTargetRestartTargetDialog(gwtSelectedJob, gridSelectionModel.getSelectedItem());
+                dialog.show();
+            }
+        });
+        jobRestartTargetButton.disable();
+        addExtraButton(jobRestartTargetButton);
+
+        exportButton = new KapuaButton(JOB_MSGS.exportToCSV(), new KapuaIcon(IconSet.FILE_TEXT_O),
+                new SelectionListener<ButtonEvent>() {
+
+                    @Override
+                    public void componentSelected(ButtonEvent be) {
+                        export();
+                    }
+                });
+        exportButton.disable();
+        addExtraButton(exportButton);
         super.onRender(target, index);
 
         checkButtons();
+    }
+
+    private void export() {
+        StringBuilder sbUrl = new StringBuilder("exporter_job_target?format=")
+                .append("csv")
+                .append("&scopeId=")
+                .append(URL.encodeQueryString(currentSession.getSelectedAccountId()));
+
+            sbUrl.append("&jobId=")
+                    .append(gwtSelectedJob.getId());
+
+        Window.open(sbUrl.toString(), "_blank", "location=no");
     }
 
     @Override
@@ -91,15 +130,20 @@ public class JobTabTargetsToolbar extends EntityCRUDToolbar<GwtJobTarget> {
         super.updateButtonEnablement();
 
         jobStartTargetButton.setEnabled(selectedEntity != null && currentSession.hasPermission(JobSessionPermission.execute()));
+        jobRestartTargetButton.setEnabled(selectedEntity != null && currentSession.hasPermission(JobSessionPermission.execute()));
         addEntityButton.setEnabled(selectedEntity != null && currentSession.hasPermission(JobSessionPermission.write()));
         deleteEntityButton
                 .setEnabled(selectedEntity != null && currentSession.hasPermission(JobSessionPermission.delete())
                         && currentSession.hasPermission(JobSessionPermission.write()));
         deleteEntityButton.setText(JOB_MSGS.tabTargetsDeleteButton());
+        exportButton.setEnabled(gwtSelectedJob != null);
     }
 
     private void checkButtons() {
         if (gwtSelectedJob != null) {
+            if (exportButton != null) {
+                exportButton.setEnabled(true);
+            }
             JOB_SERVICE.find(currentSession.getSelectedAccountId(), gwtSelectedJob.getId(), new AsyncCallback<GwtJob>() {
 
                 @Override
@@ -124,6 +168,9 @@ public class JobTabTargetsToolbar extends EntityCRUDToolbar<GwtJobTarget> {
                     if (jobStartTargetButton != null) {
                         jobStartTargetButton.setEnabled(gridSelectionModel != null && gridSelectionModel.getSelectedItem() != null && currentSession.hasPermission(JobSessionPermission.execute()));
                     }
+                    if (jobRestartTargetButton != null) {
+                        jobRestartTargetButton.setEnabled(gridSelectionModel != null && gridSelectionModel.getSelectedItem() != null && currentSession.hasPermission(JobSessionPermission.execute()));
+                    }
                 }
             });
         } else {
@@ -136,6 +183,13 @@ public class JobTabTargetsToolbar extends EntityCRUDToolbar<GwtJobTarget> {
             if (jobStartTargetButton != null) {
                 jobStartTargetButton.setEnabled(false);
             }
+            if (jobRestartTargetButton != null) {
+                jobRestartTargetButton.setEnabled(false);
+            }
+            if (exportButton != null) {
+                exportButton.setEnabled(false);
+            }
         }
     }
+
 }

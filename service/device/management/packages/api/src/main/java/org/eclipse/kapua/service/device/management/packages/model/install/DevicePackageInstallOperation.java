@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,12 +13,24 @@
 package org.eclipse.kapua.service.device.management.packages.model.install;
 
 import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.model.id.KapuaIdAdapter;
+import org.eclipse.kapua.service.device.management.packages.model.DevicePackageXmlRegistry;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
- * Device package install operation entity definition.
+ * {@link DevicePackageInstallOperation} definition.
  *
- * @since 1.0
+ * @since 1.0.0
  */
+@XmlRootElement(name = "packageInstallOperation")
+@XmlAccessorType(XmlAccessType.PROPERTY)
+@XmlType(factoryClass = DevicePackageXmlRegistry.class, factoryMethod = "newDevicePackageInstallOperation")
 public interface DevicePackageInstallOperation {
 
     /**
@@ -25,6 +38,8 @@ public interface DevicePackageInstallOperation {
      *
      * @return
      */
+    @XmlElement(name = "id")
+    @XmlJavaTypeAdapter(KapuaIdAdapter.class)
     KapuaId getId();
 
     /**
@@ -39,6 +54,7 @@ public interface DevicePackageInstallOperation {
      *
      * @return
      */
+    @XmlElement(name = "name")
     String getName();
 
     /**
@@ -53,6 +69,7 @@ public interface DevicePackageInstallOperation {
      *
      * @return
      */
+    @XmlElement(name = "version")
     String getVersion();
 
     /**
@@ -67,6 +84,7 @@ public interface DevicePackageInstallOperation {
      *
      * @return
      */
+    @XmlElement(name = "status")
     DevicePackageInstallStatus getStatus();
 
     /**

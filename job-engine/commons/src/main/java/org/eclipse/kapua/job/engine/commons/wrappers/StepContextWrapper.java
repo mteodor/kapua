@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -24,8 +25,6 @@ import javax.batch.runtime.Metric;
 import javax.batch.runtime.context.StepContext;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLStreamException;
 import java.io.Serializable;
 import java.util.Properties;
 
@@ -59,7 +58,7 @@ public class StepContextWrapper {
         return stepNextIndexString != null ? Integer.parseInt(stepNextIndexString) : null;
     }
 
-    public <T> T getStepProperty(String stepPropertyName, Class<T> type) throws KapuaIllegalArgumentException {
+    public <T, E extends Enum<E>> T getStepProperty(String stepPropertyName, Class<T> type) throws KapuaIllegalArgumentException {
         Properties jobContextProperties = stepContext.getProperties();
         String stepPropertyString = jobContextProperties.getProperty(stepPropertyName);
 
@@ -82,7 +81,7 @@ public class StepContextWrapper {
             } else if (type == KapuaId.class) {
                 stepProperty = (T) KapuaEid.parseCompactId(stepPropertyString);
             } else if (type.isEnum()) {
-                Class<? extends Enum> enumType = (Class<? extends Enum>) type;
+                Class<E> enumType = (Class<E>) type;
 
                 try {
                     stepProperty = (T) Enum.valueOf(enumType, stepPropertyString);
@@ -92,7 +91,7 @@ public class StepContextWrapper {
             } else {
                 try {
                     stepProperty = XmlUtil.unmarshal(stepPropertyString, type);
-                } catch (JAXBException | XMLStreamException | FactoryConfigurationError | SAXException e) {
+                } catch (JAXBException | SAXException e) {
                     throw new KapuaIllegalArgumentException(stepPropertyName, stepPropertyString);
                 }
             }

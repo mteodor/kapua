@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,12 +16,13 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.jpa.EntityManager;
 import org.eclipse.kapua.commons.service.internal.ServiceDAO;
+import org.eclipse.kapua.model.KapuaNamedEntityAttributes;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
 
 /**
  * Service configuration DAO
- * 
+ *
  * @since 1.0
  *
  */
@@ -28,7 +30,7 @@ public class ServiceConfigDAO extends ServiceDAO {
 
     /**
      * Create and return new service configuration
-     * 
+     *
      * @param em
      * @param serviceConfigCreator
      * @return
@@ -48,7 +50,7 @@ public class ServiceConfigDAO extends ServiceDAO {
 
     /**
      * Update the provided service configuration
-     * 
+     *
      * @param em
      * @param serviceConfig
      * @return
@@ -83,7 +85,7 @@ public class ServiceConfigDAO extends ServiceDAO {
      * @return
      */
     public static ServiceConfig findByName(EntityManager em, String name) {
-        return ServiceDAO.findByField(em, ServiceConfigImpl.class, "name", name);
+        return ServiceDAO.findByField(em, ServiceConfigImpl.class, KapuaNamedEntityAttributes.NAME, name);
     }
 
     /**
@@ -94,7 +96,7 @@ public class ServiceConfigDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static ServiceConfigListResult query(EntityManager em, KapuaQuery<ServiceConfig> serviceConfigQuery)
+    public static ServiceConfigListResult query(EntityManager em, KapuaQuery serviceConfigQuery)
             throws KapuaException {
         return ServiceDAO.query(em, ServiceConfig.class, ServiceConfigImpl.class, new ServiceConfigListResultImpl(), serviceConfigQuery);
     }
@@ -107,7 +109,7 @@ public class ServiceConfigDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<ServiceConfig> serviceConfigQuery)
+    public static long count(EntityManager em, KapuaQuery serviceConfigQuery)
             throws KapuaException {
         return ServiceDAO.count(em, ServiceConfig.class, ServiceConfigImpl.class, serviceConfigQuery);
     }

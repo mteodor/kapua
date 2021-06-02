@@ -1,17 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.transport.utils;
 
-import org.apache.commons.lang3.RandomUtils;
+
+import org.eclipse.kapua.commons.util.RandomUtils;
+
+import java.util.Random;
 
 /**
  * Utility class that generates random IDs for the transport layer.
@@ -27,6 +31,13 @@ public class ClientIdGenerator {
      * @since 1.0.0
      */
     private static final String GENERATED_ID_STRING_FORMAT = "%s-%d-%d";
+
+    /**
+     * {@link Random} instance.
+     *
+     * @since 1.2.0
+     */
+    private static final Random RANDOM = RandomUtils.getInstance();
 
     /**
      * {@code static} instance singleton reference
@@ -75,11 +86,11 @@ public class ClientIdGenerator {
      */
     public String next(String prefix) {
         long timestamp = System.currentTimeMillis();
-        long randomNumber = RandomUtils.nextLong(0, Long.MAX_VALUE);
+        long randomNumber = RANDOM.nextLong();
 
         return String.format(GENERATED_ID_STRING_FORMAT,
                 prefix,
                 timestamp,
-                randomNumber);
+                randomNumber >= 0 ? randomNumber : -randomNumber);
     }
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Red Hat Inc and others
+ * Copyright (c) 2017, 2021 Red Hat Inc and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat Inc - initial API and implementation
@@ -66,7 +67,8 @@ public class SimpleDeployApplication extends AbstractDeployApplication implement
     private long nextFreeBundleId;
 
     public SimpleDeployApplication(final ScheduledExecutorService downloadExecutor) {
-        this.downloadSimulator = new DownloadSimulator(downloadExecutor, 10 * 1024);
+        // Sonar java:S2184
+        this.downloadSimulator = new DownloadSimulator(downloadExecutor, (long)10 * 1024);
 
         this.bundles.put(this.nextFreeBundleId++, new BundleState("org.osgi", "6.0.0", Bundle.ACTIVE));
         this.bundles.put(this.nextFreeBundleId++, new BundleState("org.eclipse.kura.api", "2.1.0", Bundle.ACTIVE));
@@ -78,7 +80,8 @@ public class SimpleDeployApplication extends AbstractDeployApplication implement
     }
 
     public SimpleDeployApplication(final ScheduledExecutorService downloadExecutor, final List<BundleState> bundles) {
-        this.downloadSimulator = new DownloadSimulator(downloadExecutor, 10 * 1024);
+        // Sonar java:S2184
+        this.downloadSimulator = new DownloadSimulator(downloadExecutor, (long)10 * 1024);
 
         if (bundles != null) {
             for (final BundleState bundle : bundles) {
@@ -96,12 +99,12 @@ public class SimpleDeployApplication extends AbstractDeployApplication implement
     protected void executeDownload(final Request request, final DeploymentDownloadPackageRequest downloadRequest) {
         request.replySuccess().send();
 
-        final boolean started = this.downloadSimulator.startDownload(downloadRequest.getJobId(), 128 * 1024, state -> {
-            request.notification("download").send(toMetrics(state));
-        }, () -> {
+        // Sonar java:S2184
+        final boolean started = this.downloadSimulator.startDownload(downloadRequest.getJobId(), (long)128 * 1024, state ->
+            request.notification("download").send(toMetrics(state)), () ->
             internalInstallPackage(downloadRequest.getName(), downloadRequest.getVersion(),
-                    bundles(downloadRequest.getName(), downloadRequest.getVersion(), 10));
-        });
+                    bundles(downloadRequest.getName(), downloadRequest.getVersion(), 10))
+        );
 
         if (!started) {
             request.replyError().send(Collections.singletonMap("download.status", "IN_PROGRESS"),

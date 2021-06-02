@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -19,47 +20,106 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * Device {@link Payload} definition.
+ * {@link DevicePayload} definition.
  *
- * @since 1.0
+ * @since 1.0.0
  */
 public interface DevicePayload extends Payload {
 
     /**
-     * Get the message timestamp
+     * Gets the timestamp.
      *
-     * @return
+     * @return The timestamp.
+     * @since 1.0.0
      */
     Date getTimestamp();
+
+    /**
+     * Sets the timestamp.
+     *
+     * @param timestamp The timestamp
+     * @since 1.0.0
+     */
+    void setTimestamp(Date timestamp);
 
     /**
      * Get the {@link DevicePosition}
      *
      * @return A {@link DevicePosition} if present, or {@code null} otherwise
+     * @since 1.0.0
      */
     DevicePosition getPosition();
 
     /**
-     * Get the metrics
+     * Sets the {@link DevicePosition}
      *
-     * @return
+     * @param position The {@link DevicePosition}
+     * @since 1.0.0
+     */
+    void setPosition(DevicePosition position);
+
+    /**
+     * Gets the metrics.
+     *
+     * @return The metrics
+     * @since 1.0.0
      */
     Map<String, Object> getMetrics();
 
     /**
-     * Get the message body
+     * Sets the metrics.
      *
-     * @return
+     * @param metrics The metrics.
+     * @since 1.0.0
+     */
+    void setMetrics(Map<String, Object> metrics);
+
+    /**
+     * Adds a new metric to {@link #getMetrics()}.
+     *
+     * @param name  The name of the metric.
+     * @param value The value of the metric.
+     * @since 1.2.0
+     */
+    void addMetric(String name, Object value);
+
+    /**
+     * Removes a metric from {@link #getMetrics()}.
+     * <p>
+     * If not present it will do nothing.
+     *
+     * @param name The name of the metric to remove.
+     * @since 1.2.0
+     */
+    void removeMetric(String name);
+
+    /**
+     * Gets the raw body.
+     *
+     * @return The raw body.
+     * @since 1.0.0
      */
     byte[] getBody();
 
-    void setTimestamp(Date timestamp);
-
-    void setPosition(DevicePosition position);
-
-    void setMetrics(Map<String, Object> metrics);
-
+    /**
+     * Sets the raw body.
+     *
+     * @param body The raw body.
+     * @since 1.0.0
+     */
     void setBody(byte[] body);
+
+    /**
+     * Says whether or not the {@link #getBody()} has value.
+     * <p>
+     * Checks for {@code null} and size equals to 0
+     *
+     * @return {@code true} if {@link #getBody()} is not {@code null} and {@link #getBody()}{@code length > 0}, {@code false} otherwise.
+     * @since 1.2.0
+     */
+    default boolean hasBody() {
+        return getBody() != null && getBody().length > 0;
+    }
 
     //
     // Encode/Decode stuff
@@ -69,6 +129,7 @@ public interface DevicePayload extends Payload {
      * Converts the {@link DevicePayload} to a protobuf encoded {@code byte[]}
      *
      * @return The protobuf encoding of {@code this} {@link DevicePayload}
+     * @since 1.0.0
      */
     byte[] toByteArray();
 
@@ -77,6 +138,7 @@ public interface DevicePayload extends Payload {
      *
      * @param rawPayload The {@code byte[]} to convert
      * @throws KapuaException If the given {@code byte[]} is not properly formatted.
+     * @since 1.0.0
      */
     void readFromByteArray(byte[] rawPayload)
             throws KapuaException;
@@ -86,9 +148,10 @@ public interface DevicePayload extends Payload {
     //
 
     /**
-     * Returns a string for displaying the {@link DevicePayload} content.
+     * Returns a {@link String} for displaying the {@link DevicePayload} content.
      *
      * @return A {@link String} used for displaying the content of the {@link DevicePayload}, never returns {@code null}
+     * @since 1.0.0
      */
     default String toDisplayString() {
         return Payloads.toDisplayString(getMetrics());

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,6 +22,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
 import org.eclipse.kapua.app.console.module.api.client.util.DateUtils;
 import org.eclipse.kapua.app.console.module.api.client.util.DialogUtils;
+import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.client.util.KapuaSafeHtmlUtils;
 import org.eclipse.kapua.app.console.module.api.client.util.validator.ConfirmPasswordUpdateFieldValidator;
 import org.eclipse.kapua.app.console.module.api.client.util.validator.PasswordUpdateFieldValidator;
@@ -107,7 +109,6 @@ public class CredentialEditDialog extends CredentialAddDialog {
         credentialFormPanel.remove(credentialType);
         credentialTypeLabel.setVisible(true);
         credentialTypeLabel.setValue(selectedCredential.getCredentialType());
-        password.setValidator(new PasswordUpdateFieldValidator(password));
         password.setFieldLabel(MSGS.dialogEditFieldNewPassword());
         password.setAllowBlank(true);
         password.addListener(Events.Change, new Listener<BaseEvent>() {
@@ -117,13 +118,25 @@ public class CredentialEditDialog extends CredentialAddDialog {
                 confirmPassword.setAllowBlank(password.getValue() == null || password.getValue().equals(""));
             }
         });
-        confirmPassword.setValidator(new ConfirmPasswordUpdateFieldValidator(confirmPassword, password));
         confirmPassword.setFieldLabel(MSGS.dialogEditFieldConfirmNewPassword());
         confirmPassword.setAllowBlank(true);
         if (selectedCredential.getLockoutReset() != null && selectedCredential.getLockoutReset().after(new Date())) {
             lockedUntil.setText(MSGS.dialogEditLockedUntil(DateUtils.formatDateTime(selectedCredential.getLockoutReset())));
             credentialFormPanel.add(lockedUntil);
         }
+        GWT_CREDENTIAL_SERVICE.getMinPasswordLength(selectedCredential.getScopeId(), new AsyncCallback<Integer>() {
+
+            @Override
+            public void onFailure(Throwable caught) {
+                FailureHandler.handle(caught);
+            }
+
+            @Override
+            public void onSuccess(Integer result) {
+                confirmPassword.setValidator(new ConfirmPasswordUpdateFieldValidator(confirmPassword, password, result));
+                password.setValidator(new PasswordUpdateFieldValidator(password, result));
+            }
+        });
     }
 
     @Override

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -91,25 +92,25 @@ public class GwtKapuaCommonsModelConverter {
         for (GwtConfigParameter gwtConfigParameter : configComponent.getParameters()) {
             switch (gwtConfigParameter.getType()) {
             case BOOLEAN:
-                parameters.put(gwtConfigParameter.getId(), Boolean.parseBoolean(gwtConfigParameter.getValue()));
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? Boolean.parseBoolean(gwtConfigParameter.getValue()) : null);
                 break;
             case BYTE:
-                parameters.put(gwtConfigParameter.getId(), Byte.parseByte(gwtConfigParameter.getValue()));
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? Byte.parseByte(gwtConfigParameter.getValue()) : null);
                 break;
             case CHAR:
-                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue().toCharArray());
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? gwtConfigParameter.getValue().toCharArray() : null);
                 break;
             case DOUBLE:
-                parameters.put(gwtConfigParameter.getId(), Double.parseDouble(gwtConfigParameter.getValue()));
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? Double.parseDouble(gwtConfigParameter.getValue()) : null);
                 break;
             case FLOAT:
-                parameters.put(gwtConfigParameter.getId(), Float.parseFloat(gwtConfigParameter.getValue()));
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? Float.parseFloat(gwtConfigParameter.getValue()) : null);
                 break;
             case INTEGER:
-                parameters.put(gwtConfigParameter.getId(), Integer.parseInt(gwtConfigParameter.getValue()));
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? Integer.parseInt(gwtConfigParameter.getValue()) : null);
                 break;
             case LONG:
-                parameters.put(gwtConfigParameter.getId(), Long.parseLong(gwtConfigParameter.getValue()));
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? Long.parseLong(gwtConfigParameter.getValue()) : null);
                 break;
             case PASSWORD:
             case STRING:
@@ -117,7 +118,7 @@ public class GwtKapuaCommonsModelConverter {
                 parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue());
                 break;
             case SHORT:
-                parameters.put(gwtConfigParameter.getId(), Short.parseShort(gwtConfigParameter.getValue()));
+                parameters.put(gwtConfigParameter.getId(), gwtConfigParameter.getValue() != null ? Short.parseShort(gwtConfigParameter.getValue()) : null);
                 break;
             }
         }

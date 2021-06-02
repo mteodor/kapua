@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -22,6 +23,8 @@ import com.extjs.gxt.ui.client.data.ModelData;
 import com.extjs.gxt.ui.client.data.PagingLoadResult;
 import com.extjs.gxt.ui.client.data.RpcProxy;
 import com.extjs.gxt.ui.client.event.LoadListener;
+import com.extjs.gxt.ui.client.event.SelectionChangedEvent;
+import com.extjs.gxt.ui.client.event.SelectionChangedListener;
 import com.extjs.gxt.ui.client.store.ListStore;
 import com.extjs.gxt.ui.client.widget.ContentPanel;
 import com.extjs.gxt.ui.client.widget.grid.ColumnConfig;
@@ -31,7 +34,6 @@ import com.extjs.gxt.ui.client.widget.grid.Grid;
 import com.extjs.gxt.ui.client.widget.grid.GridCellRenderer;
 import com.extjs.gxt.ui.client.widget.grid.GridSelectionModel;
 import com.extjs.gxt.ui.client.widget.layout.FitLayout;
-import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -42,10 +44,11 @@ import org.eclipse.kapua.app.console.module.api.client.ui.tab.KapuaTabItem;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaPagingToolBar;
 import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
+import org.eclipse.kapua.app.console.module.device.client.device.packages.dialog.DeviceManagementOperationLog;
 import org.eclipse.kapua.app.console.module.device.client.messages.ConsoleDeviceMessages;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDevice;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.registry.GwtDeviceManagementOperation;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.registry.GwtDeviceManagementOperationQuery;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.registry.GwtDeviceManagementOperation;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.registry.GwtDeviceManagementOperationQuery;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceManagementOperationService;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceManagementOperationServiceAsync;
 
@@ -63,15 +66,13 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
 
     private boolean initialized;
 
-    private ToolBar toolBar;
-
     private Grid<GwtDeviceManagementOperation> grid;
+
     private KapuaPagingToolBar pagingToolBar;
     private BasePagingLoader<PagingLoadResult<GwtDeviceManagementOperation>> loader;
     private DeviceTabPackages deviceTabPackages;
     private boolean contentDirty = true;
     private boolean loadingInProgress;
-
     protected boolean refreshProcess;
 
     public DeviceTabPackagesHistory(GwtSession currentSession, DeviceTabPackages deviceTabPackages) {
@@ -102,7 +103,6 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
         devicesPackageHistoryPanel.setBodyBorder(true);
         devicesPackageHistoryPanel.setHeaderVisible(false);
         devicesPackageHistoryPanel.setLayout(new FitLayout());
-        devicesPackageHistoryPanel.setTopComponent(toolBar);
         devicesPackageHistoryPanel.add(grid);
         devicesPackageHistoryPanel.setBottomComponent(pagingToolBar);
 
@@ -136,6 +136,32 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
 
                         return model.get(property);
                     }
+                });
+        configs.add(column);
+
+        column = new ColumnConfig();
+        column.setId("status");
+        column.setHeader(DEVICES_MSGS.deviceInstallTabHistoryTableStatus());
+        column.setWidth(200);
+        column.setAlignment(HorizontalAlignment.CENTER);
+        column.setRenderer(
+                new GridCellRenderer<GwtDeviceManagementOperation>() {
+
+                    @Override
+                    public Object render(GwtDeviceManagementOperation model, String property, ColumnData config, int rowIndex, int colIndex, ListStore<GwtDeviceManagementOperation> store, Grid<GwtDeviceManagementOperation> grid) {
+                        switch (model.getStatusEnum()) {
+                            case COMPLETED:
+                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusCompleted();
+                            case RUNNING:
+                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusRunning();
+                            case STALE:
+                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusStale();
+                            case FAILED:
+                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusFailed();
+                        }
+                        return null;
+                    }
+
                 });
         configs.add(column);
 
@@ -198,32 +224,6 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
         column.setWidth(200);
         configs.add(column);
 
-        column = new ColumnConfig();
-        column.setId("status");
-        column.setHeader(DEVICES_MSGS.deviceInstallTabHistoryTableStatus());
-        column.setWidth(200);
-        column.setAlignment(HorizontalAlignment.CENTER);
-        column.setRenderer(
-                new GridCellRenderer<GwtDeviceManagementOperation>() {
-
-                    @Override
-                    public Object render(GwtDeviceManagementOperation model, String property, ColumnData config, int rowIndex, int colIndex, ListStore<GwtDeviceManagementOperation> store, Grid<GwtDeviceManagementOperation> grid) {
-                        switch (model.getStatusEnum()) {
-                            case COMPLETED:
-                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusCompleted();
-                            case RUNNING:
-                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusRunning();
-                            case STALE:
-                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusStale();
-                            case FAILED:
-                                return DEVICES_MSGS.deviceInstallTabHistoryTableStatusFailed();
-                        }
-                        return null;
-                    }
-
-                });
-        configs.add(column);
-
         // loader and store
         RpcProxy<PagingLoadResult<GwtDeviceManagementOperation>> proxy = new RpcProxy<PagingLoadResult<GwtDeviceManagementOperation>>() {
 
@@ -236,6 +236,7 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
                     GwtDeviceManagementOperationQuery query = new GwtDeviceManagementOperationQuery();
                     query.setScopeId(selectedEntity.getScopeId());
                     query.setDeviceId(selectedEntity.getId());
+                    query.setAppId("DEPLOY");
 
                     DEVICE_MANAGEMENT_SERVICE.query(pagingConfig, query, callback);
                 } else {
@@ -268,10 +269,22 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
 
         GridSelectionModel<GwtDeviceManagementOperation> selectionModel = new GridSelectionModel<GwtDeviceManagementOperation>();
         selectionModel.setSelectionMode(SelectionMode.SINGLE);
+        selectionModel.addSelectionChangedListener(new SelectionChangedListener<GwtDeviceManagementOperation>() {
+
+            @Override
+            public void selectionChanged(SelectionChangedEvent<GwtDeviceManagementOperation> se) {
+                deviceTabPackages.getLogButton().setEnabled(se.getSelectedItem() != null);
+            }
+
+        });
         grid.setSelectionModel(selectionModel);
 
         loader.load();
         initialized = true;
+    }
+
+    public Grid<GwtDeviceManagementOperation> getGrid() {
+        return grid;
     }
 
     // --------------------------------------------------------------------------------------
@@ -280,13 +293,22 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
     //
     // --------------------------------------------------------------------------------------
 
+    public void showOperationLog() {
+        GwtDeviceManagementOperation deviceManagementOperation = grid.getSelectionModel().getSelectedItem();
+        if (deviceManagementOperation != null) {
+            DeviceManagementOperationLog logDialog = new DeviceManagementOperationLog(deviceManagementOperation);
+            logDialog.show();
+        }
+    }
+
+
     @Override
     public void doRefresh() {
         if (contentDirty && initialized) {
             if (selectedEntity == null) {
                 // clear the table
                 grid.getStore().removeAll();
-            } else if (!loadingInProgress){
+            } else if (!loadingInProgress) {
                 loader.load();
             }
             contentDirty = false;
@@ -297,10 +319,12 @@ public class DeviceTabPackagesHistory extends KapuaTabItem<GwtDevice> {
         loader.load();
     }
 
+    @Override
     public void refresh() {
         doRefresh();
     }
 
+    @Override
     public void setDirty(boolean isDirty) {
         contentDirty = isDirty;
     }

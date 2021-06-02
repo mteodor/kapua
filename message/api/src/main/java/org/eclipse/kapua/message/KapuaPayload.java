@@ -1,17 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.message;
 
-import io.swagger.annotations.ApiModelProperty;
 import org.eclipse.kapua.commons.util.Payloads;
 import org.eclipse.kapua.message.xml.MessageXmlRegistry;
 import org.eclipse.kapua.message.xml.MetricsXmlAdapter;
@@ -62,7 +62,6 @@ public interface KapuaPayload extends Payload {
      */
     @XmlElement(name = "body")
     @XmlJavaTypeAdapter(BinaryXmlAdapter.class)
-    @ApiModelProperty(dataType = "string")
     byte[] getBody();
 
     /**
@@ -72,6 +71,18 @@ public interface KapuaPayload extends Payload {
      * @since 1.0.0
      */
     void setBody(byte[] body);
+
+    /**
+     * Says whether or not the {@link #getBody()} has value.
+     * <p>
+     * Checks for {@code null} and size equals to 0
+     *
+     * @return {@code true} if {@link #getBody()} is not {@code null} and {@link #getBody()}{@code length > 0}, {@code false} otherwise.
+     * @since 1.2.0
+     */
+    default boolean hasBody() {
+        return getBody() != null && getBody().length > 0;
+    }
 
     /**
      * Returns a string for displaying the {@link KapuaPayload} content.

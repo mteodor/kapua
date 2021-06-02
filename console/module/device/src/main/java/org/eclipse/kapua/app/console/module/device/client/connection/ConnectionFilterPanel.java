@@ -1,32 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.device.client.connection;
-
-import org.eclipse.kapua.app.console.module.api.client.ui.grid.EntityGrid;
-import org.eclipse.kapua.app.console.module.api.client.ui.panel.EntityFilterPanel;
-import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractEntityView;
-import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaTextField;
-import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
-import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
-import org.eclipse.kapua.app.console.module.device.client.messages.ConsoleConnectionMessages;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnection;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnectionQuery;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnectionQueryPredicates.GwtDeviceConnectionReservedUser;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnectionQueryPredicates.GwtDeviceConnectionUser;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceQueryPredicates;
-import org.eclipse.kapua.app.console.module.user.shared.model.GwtUser;
-import org.eclipse.kapua.app.console.module.user.shared.model.permission.UserSessionPermission;
-import org.eclipse.kapua.app.console.module.user.shared.service.GwtUserService;
-import org.eclipse.kapua.app.console.module.user.shared.service.GwtUserServiceAsync;
 
 import com.extjs.gxt.ui.client.data.ListLoadResult;
 import com.extjs.gxt.ui.client.store.ListStore;
@@ -37,6 +21,23 @@ import com.extjs.gxt.ui.client.widget.form.ComboBox.TriggerAction;
 import com.extjs.gxt.ui.client.widget.form.SimpleComboBox;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import org.eclipse.kapua.app.console.module.api.client.ui.grid.EntityGrid;
+import org.eclipse.kapua.app.console.module.api.client.ui.panel.EntityFilterPanel;
+import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractEntityView;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaTextField;
+import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
+import org.eclipse.kapua.app.console.module.api.client.util.CssLiterals;
+import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
+import org.eclipse.kapua.app.console.module.device.client.messages.ConsoleConnectionMessages;
+import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceQueryPredicates;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnection;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionQuery;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionQueryPredicates.GwtDeviceConnectionReservedUser;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionQueryPredicates.GwtDeviceConnectionUser;
+import org.eclipse.kapua.app.console.module.user.shared.model.GwtUser;
+import org.eclipse.kapua.app.console.module.user.shared.model.permission.UserSessionPermission;
+import org.eclipse.kapua.app.console.module.user.shared.service.GwtUserService;
+import org.eclipse.kapua.app.console.module.user.shared.service.GwtUserServiceAsync;
 
 public class ConnectionFilterPanel extends EntityFilterPanel<GwtDeviceConnection> {
 
@@ -67,31 +68,31 @@ public class ConnectionFilterPanel extends EntityFilterPanel<GwtDeviceConnection
         setHeading(MSGS.connectionFilterHeader());
         Label clientIdLabel = new Label(MSGS.connectionFilterClientIdLabel());
         clientIdLabel.setWidth(WIDTH);
-        clientIdLabel.setStyleAttribute("margin", "5px");
+        clientIdLabel.setStyleAttribute(CssLiterals.MARGIN, "5px");
         fieldsPanel.add(clientIdLabel);
 
         clientIdField = new KapuaTextField<String>();
         clientIdField.setName("name");
         clientIdField.setWidth(WIDTH);
         clientIdField.setMaxLength(MAX_LEN);
-        clientIdField.setStyleAttribute("margin-top", "0px");
-        clientIdField.setStyleAttribute("margin-left", "5px");
-        clientIdField.setStyleAttribute("margin-right", "5px");
-        clientIdField.setStyleAttribute("margin-bottom", "10px");
+        clientIdField.setStyleAttribute(CssLiterals.MARGIN_TOP, "0px");
+        clientIdField.setStyleAttribute(CssLiterals.MARGIN_LEFT, "5px");
+        clientIdField.setStyleAttribute(CssLiterals.MARGIN_RIGHT, "5px");
+        clientIdField.setStyleAttribute(CssLiterals.MARGIN_BOTTOM, "10px");
         fieldsPanel.add(clientIdField);
 
         Label connectionStatusLabel = new Label(MSGS.connectionFilterConnectionStatus());
         connectionStatusLabel.setWidth(WIDTH);
-        connectionStatusLabel.setStyleAttribute("margin", "5px");
+        connectionStatusLabel.setStyleAttribute(CssLiterals.MARGIN, "5px");
         fieldsPanel.add(connectionStatusLabel);
 
         connectionStatusCombo = new SimpleComboBox<GwtDeviceQueryPredicates.GwtDeviceConnectionStatus>();
         connectionStatusCombo.setName("connectionStatus");
         connectionStatusCombo.setWidth(WIDTH);
-        connectionStatusCombo.setStyleAttribute("margin-top", "0px");
-        connectionStatusCombo.setStyleAttribute("margin-left", "5px");
-        connectionStatusCombo.setStyleAttribute("margin-right", "5px");
-        connectionStatusCombo.setStyleAttribute("margin-bottom", "10px");
+        connectionStatusCombo.setStyleAttribute(CssLiterals.MARGIN_TOP, "0px");
+        connectionStatusCombo.setStyleAttribute(CssLiterals.MARGIN_LEFT, "5px");
+        connectionStatusCombo.setStyleAttribute(CssLiterals.MARGIN_RIGHT, "5px");
+        connectionStatusCombo.setStyleAttribute(CssLiterals.MARGIN_BOTTOM, "10px");
 
         connectionStatusCombo.add(GwtDeviceQueryPredicates.GwtDeviceConnectionStatus.ANY);
         connectionStatusCombo.add(GwtDeviceQueryPredicates.GwtDeviceConnectionStatus.CONNECTED);
@@ -106,23 +107,23 @@ public class ConnectionFilterPanel extends EntityFilterPanel<GwtDeviceConnection
 
         Label clientIPFilterLabel = new Label(MSGS.connectionFilterCLientIPLabel());
         clientIPFilterLabel.setWidth(WIDTH);
-        clientIPFilterLabel.setStyleAttribute("margin", "5px");
+        clientIPFilterLabel.setStyleAttribute(CssLiterals.MARGIN, "5px");
         fieldsPanel.add(clientIPFilterLabel);
 
         clientIPFilter = new KapuaTextField<String>();
         clientIPFilter.setName("Client IP");
         clientIPFilter.setWidth(WIDTH);
         clientIPFilter.setMaxLength(MAX_LEN);
-        clientIPFilter.setStyleAttribute("margin-top", "0px");
-        clientIPFilter.setStyleAttribute("margin-left", "5px");
-        clientIPFilter.setStyleAttribute("margin-right", "5px");
-        clientIPFilter.setStyleAttribute("margin-bottom", "10px");
+        clientIPFilter.setStyleAttribute(CssLiterals.MARGIN_TOP, "0px");
+        clientIPFilter.setStyleAttribute(CssLiterals.MARGIN_LEFT, "5px");
+        clientIPFilter.setStyleAttribute(CssLiterals.MARGIN_RIGHT, "5px");
+        clientIPFilter.setStyleAttribute(CssLiterals.MARGIN_BOTTOM, "10px");
         fieldsPanel.add(clientIPFilter);
 
         if (currentSession.hasPermission(UserSessionPermission.read())) {
             userLabel = new Label(MSGS.connectionFilterUser());
             userLabel.setWidth(WIDTH);
-            userLabel.setStyleAttribute("margin", "5px");
+            userLabel.setStyleAttribute(CssLiterals.MARGIN, "5px");
             fieldsPanel.add(userLabel);
         }
 
@@ -143,10 +144,10 @@ public class ConnectionFilterPanel extends EntityFilterPanel<GwtDeviceConnection
         userCombo.setValueField("id");
         userCombo.setName("userId");
         userCombo.setWidth(WIDTH);
-        userCombo.setStyleAttribute("margin-top", "0px");
-        userCombo.setStyleAttribute("margin-left", "5px");
-        userCombo.setStyleAttribute("margin-right", "5px");
-        userCombo.setStyleAttribute("margin-bottom", "10px");
+        userCombo.setStyleAttribute(CssLiterals.MARGIN_TOP, "0px");
+        userCombo.setStyleAttribute(CssLiterals.MARGIN_LEFT, "5px");
+        userCombo.setStyleAttribute(CssLiterals.MARGIN_RIGHT, "5px");
+        userCombo.setStyleAttribute(CssLiterals.MARGIN_BOTTOM, "10px");
         userCombo.setTriggerAction(TriggerAction.ALL);
         userCombo.setValue(anyUser);
         if (currentSession.hasPermission(UserSessionPermission.read())) {
@@ -173,27 +174,27 @@ public class ConnectionFilterPanel extends EntityFilterPanel<GwtDeviceConnection
                 }
             });
             fieldsPanel.add(userCombo);
-}
+        }
 
         Label protocolLabel = new Label(MSGS.connectionFilterProtocolLabel());
         protocolLabel.setWidth(WIDTH);
-        protocolLabel.setStyleAttribute("margin", "5px");
+        protocolLabel.setStyleAttribute(CssLiterals.MARGIN, "5px");
         fieldsPanel.add(protocolLabel);
 
         protocolField = new KapuaTextField<String>();
         protocolField.setName("protocol");
         protocolField.setWidth(WIDTH);
         protocolField.setMaxLength(MAX_LEN);
-        protocolField.setStyleAttribute("margin-top", "0px");
-        protocolField.setStyleAttribute("margin-left", "5px");
-        protocolField.setStyleAttribute("margin-right", "5px");
-        protocolField.setStyleAttribute("margin-bottom", "10px");
+        protocolField.setStyleAttribute(CssLiterals.MARGIN_TOP, "0px");
+        protocolField.setStyleAttribute(CssLiterals.MARGIN_LEFT, "5px");
+        protocolField.setStyleAttribute(CssLiterals.MARGIN_RIGHT, "5px");
+        protocolField.setStyleAttribute(CssLiterals.MARGIN_BOTTOM, "10px");
         fieldsPanel.add(protocolField);
 
         if (currentSession.hasPermission(UserSessionPermission.read())) {
             reservedUserLabel = new Label(MSGS.connectionFilterReservedUserLabel());
             reservedUserLabel.setWidth(WIDTH);
-            reservedUserLabel.setStyleAttribute("margin", "5px");
+            reservedUserLabel.setStyleAttribute(CssLiterals.MARGIN, "5px");
             fieldsPanel.add(reservedUserLabel);
         }
 
@@ -206,10 +207,10 @@ public class ConnectionFilterPanel extends EntityFilterPanel<GwtDeviceConnection
         reservedUserCombo.setValueField("id");
         reservedUserCombo.setName("userId");
         reservedUserCombo.setWidth(WIDTH);
-        reservedUserCombo.setStyleAttribute("margin-top", "0px");
-        reservedUserCombo.setStyleAttribute("margin-left", "5px");
-        reservedUserCombo.setStyleAttribute("margin-right", "5px");
-        reservedUserCombo.setStyleAttribute("margin-bottom", "10px");
+        reservedUserCombo.setStyleAttribute(CssLiterals.MARGIN_TOP, "0px");
+        reservedUserCombo.setStyleAttribute(CssLiterals.MARGIN_LEFT, "5px");
+        reservedUserCombo.setStyleAttribute(CssLiterals.MARGIN_RIGHT, "5px");
+        reservedUserCombo.setStyleAttribute(CssLiterals.MARGIN_BOTTOM, "10px");
         reservedUserCombo.setTriggerAction(TriggerAction.ALL);
         reservedUserCombo.setValue(anyUser);
         if (currentSession.hasPermission(UserSessionPermission.read())) {

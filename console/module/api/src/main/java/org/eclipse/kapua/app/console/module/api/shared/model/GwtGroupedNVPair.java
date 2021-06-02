@@ -1,35 +1,50 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.api.shared.model;
 
-import java.io.Serializable;
-
-
 import com.google.gwt.core.client.GWT;
 import org.eclipse.kapua.app.console.module.api.client.messages.ValidationMessages;
+
+import java.io.Serializable;
 
 public class GwtGroupedNVPair extends KapuaBaseModel implements Serializable {
 
     private static final long serialVersionUID = 6017065568183482351L;
 
     @Override
-    @SuppressWarnings("unchecked")
     public <X> X get(String property) {
+        ValidationMessages msgs = GWT.create(ValidationMessages.class);
         if ("groupLoc".equals(property)) {
-            ValidationMessages msgs = GWT.create(ValidationMessages.class);
-            return (X) msgs.getString(getGroup());
+            try {
+                return (X) msgs.getString(getGroup());
+            } catch (Exception e) {
+                return (X) getGroup();
+            }
         } else if ("nameLoc".equals(property)) {
-            ValidationMessages msgs = GWT.create(ValidationMessages.class);
-            return (X) msgs.getString(getName());
+            try {
+                return (X) msgs.getString(getName());
+            } catch (Exception e) {
+                String[] nameSplitted = getName().split("_");
+
+                StringBuilder sb = new StringBuilder();
+                for (String split : nameSplitted) {
+                    sb.append(split.substring(0, 1).toUpperCase())
+                            .append(split.substring(1))
+                            .append(" ");
+                }
+
+                return (X) sb.deleteCharAt(sb.length()).toString();
+            }
         } else {
             X value = (X) super.get(property);
             if (value == null || (value instanceof String && ((String) value).isEmpty())) {
@@ -44,6 +59,7 @@ public class GwtGroupedNVPair extends KapuaBaseModel implements Serializable {
 
     public GwtGroupedNVPair(String group, String name, Object value) {
         this();
+
         setGroup(group);
         setName(name);
         setValue(value);

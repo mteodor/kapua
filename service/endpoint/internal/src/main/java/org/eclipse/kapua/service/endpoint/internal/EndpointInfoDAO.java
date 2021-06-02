@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -46,6 +47,7 @@ public class EndpointInfoDAO extends ServiceDAO {
         endpointInfo.setPort(creator.getPort());
         endpointInfo.setSecure(creator.getSecure());
         endpointInfo.setUsages(creator.getUsages());
+        endpointInfo.setEndpointType(creator.getEndpointType());
 
         return ServiceDAO.create(em, endpointInfo);
     }
@@ -85,7 +87,7 @@ public class EndpointInfoDAO extends ServiceDAO {
      * @throws KapuaException On query error.
      * @since 1.0.0
      */
-    public static EndpointInfoListResult query(EntityManager em, KapuaQuery<EndpointInfo> endpointInfoQuery)
+    public static EndpointInfoListResult query(EntityManager em, KapuaQuery endpointInfoQuery)
             throws KapuaException {
         return ServiceDAO.query(em, EndpointInfo.class, EndpointInfoImpl.class, new EndpointInfoListResultImpl(), endpointInfoQuery);
     }
@@ -99,7 +101,7 @@ public class EndpointInfoDAO extends ServiceDAO {
      * @throws KapuaException
      * @since 1.0.0
      */
-    public static long count(EntityManager em, KapuaQuery<EndpointInfo> endpointInfoQuery)
+    public static long count(EntityManager em, KapuaQuery endpointInfoQuery)
             throws KapuaException {
         return ServiceDAO.count(em, EndpointInfo.class, EndpointInfoImpl.class, endpointInfoQuery);
     }
@@ -110,10 +112,11 @@ public class EndpointInfoDAO extends ServiceDAO {
      * @param em             The {@link EntityManager} that holds the transaction.
      * @param scopeId
      * @param endpointInfoId The {@link EndpointInfo} id to delete.
+     * @return deleted entity
      * @throws KapuaEntityNotFoundException If {@link EndpointInfo} is not found.
      * @since 1.0.0
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId endpointInfoId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, EndpointInfoImpl.class, scopeId, endpointInfoId);
+    public static EndpointInfo delete(EntityManager em, KapuaId scopeId, KapuaId endpointInfoId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, EndpointInfoImpl.class, scopeId, endpointInfoId);
     }
 }

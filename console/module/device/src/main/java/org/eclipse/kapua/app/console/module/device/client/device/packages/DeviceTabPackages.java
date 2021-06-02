@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -38,13 +39,17 @@ import org.eclipse.kapua.app.console.module.api.client.ui.dialog.InfoDialog;
 import org.eclipse.kapua.app.console.module.api.client.ui.dialog.InfoDialog.InfoDialogType;
 import org.eclipse.kapua.app.console.module.api.client.ui.tab.KapuaTabItem;
 import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
+import org.eclipse.kapua.app.console.module.api.client.util.CssLiterals;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.device.client.device.DeviceView;
+import org.eclipse.kapua.app.console.module.device.client.device.packages.button.DeviceManagementOperationLogButton;
 import org.eclipse.kapua.app.console.module.device.client.device.packages.button.PackageInstallButton;
 import org.eclipse.kapua.app.console.module.device.client.device.packages.button.PackageUninstallButton;
+import org.eclipse.kapua.app.console.module.device.client.device.packages.dialog.PackageInstallDialog;
+import org.eclipse.kapua.app.console.module.device.client.device.packages.dialog.PackageUninstallDialog;
 import org.eclipse.kapua.app.console.module.device.client.messages.ConsoleDeviceMessages;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeploymentPackage;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDevice;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.packages.GwtDeploymentPackage;
 import org.eclipse.kapua.app.console.module.device.shared.model.permission.DeviceManagementRegistrySessionPermission;
 import org.eclipse.kapua.app.console.module.device.shared.model.permission.DeviceManagementSessionPermission;
 
@@ -60,8 +65,10 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
     private ToolBar toolBar;
     private Button refreshButton;
     private Button installButton;
+    private SeparatorToolItem unistallSeparator = new SeparatorToolItem();
     private Button uninstallButton;
-    private SeparatorToolItem separator;
+    private SeparatorToolItem logSeparator = new SeparatorToolItem();
+    private Button logButton;
 
     private TabPanel tabsPanel;
     private DeviceTabPackagesInstalled installedPackageTab;
@@ -116,9 +123,9 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
 
         add(devicesConfigurationPanel);
         layout(true);
-        toolBar.setStyleAttribute("border-left", "1px solid rgb(208, 208, 208)");
-        toolBar.setStyleAttribute("border-right", "1px solid rgb(208, 208, 208)");
-        toolBar.setStyleAttribute("border-top", "1px solid rgb(208, 208, 208)");
+        toolBar.setStyleAttribute("border-left", CssLiterals.border1PxSolidRgb(208, 208, 208));
+        toolBar.setStyleAttribute("border-right", CssLiterals.border1PxSolidRgb(208, 208, 208));
+        toolBar.setStyleAttribute("border-top", CssLiterals.border1PxSolidRgb(208, 208, 208));
         toolBar.setStyleAttribute("border-bottom", "0px none");
         initialized = true;
     }
@@ -169,12 +176,24 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
             }
         });
 
+        logButton = new DeviceManagementOperationLogButton(new SelectionListener<ButtonEvent>() {
+            @Override
+            public void componentSelected(ButtonEvent buttonEvent) {
+                if (selectedEntity != null && selectedEntity.isOnline()) {
+                    openLogDialog();
+                } else {
+                    openDeviceOfflineAlertDialog();
+                }
+            }
+        });
+
         toolBar.add(refreshButton);
         toolBar.add(new SeparatorToolItem());
         toolBar.add(installButton);
-        separator = new SeparatorToolItem();
-        toolBar.add(separator);
+        toolBar.add(unistallSeparator);
         toolBar.add(uninstallButton);
+        toolBar.add(logSeparator);
+        toolBar.add(logButton);
 
         toolBar.disable();
     }
@@ -196,6 +215,7 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
             @Override
             public void handleEvent(ComponentEvent be) {
                 showUninstallButton();
+                hideLogButton();
                 refresh();
             }
         });
@@ -213,6 +233,7 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
             public void handleEvent(ComponentEvent be) {
                 setEntity(selectedEntity);
                 hideUninstallButton();
+                hideLogButton();
                 refresh();
             }
         });
@@ -230,6 +251,7 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
             public void handleEvent(ComponentEvent be) {
                 setEntity(selectedEntity);
                 hideUninstallButton();
+                showLogButton();
                 refresh();
             }
         });
@@ -264,19 +286,17 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
             @Override
             public void handleEvent(BaseEvent be) {
                 toolBar.enable();
-
+                logButton.setEnabled(historyPackageTab.getGrid().getSelectionModel().getSelectedItem() != null);
                 Boolean exitStatus = packageInstallDialog.getExitStatus();
                 if (exitStatus == null) { // Operation Aborted
                     if (installedPackageTab.getTreeGrid() != null) {
-                        installedPackageTab.getTreeGrid().getSelectionModel().fireEvent(Events.SelectionChange, 
-                                new SelectionChangedEvent<ModelData>(installedPackageTab.getTreeGrid().getSelectionModel(), 
+                        installedPackageTab.getTreeGrid().getSelectionModel().fireEvent(Events.SelectionChange,
+                                new SelectionChangedEvent<ModelData>(installedPackageTab.getTreeGrid().getSelectionModel(),
                                         installedPackageTab.getTreeGrid().getSelectionModel().getSelectedItems()));
-                    } 
-                    return;
+                    }
                 } else {
-
                     String exitMessage = packageInstallDialog.getExitMessage();
-                    ConsoleInfo.display(exitStatus == true ? CMSGS.information() : CMSGS.error(), exitMessage);
+                    ConsoleInfo.display(exitStatus ? CMSGS.information() : CMSGS.error(), exitMessage);
 
                     uninstallButton.disable();
                     deviceTabs.setSelectedEntity(selectedEntity);
@@ -320,6 +340,10 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
         }
     }
 
+    public void openLogDialog() {
+        historyPackageTab.showOperationLog();
+    }
+
     public void openDeviceOfflineAlertDialog() {
         InfoDialog errorDialog = new InfoDialog(InfoDialogType.INFO, MSGS.deviceOffline());
         errorDialog.show();
@@ -348,6 +372,7 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
                 toolBar.enable();
                 installButton.setEnabled(currentSession.hasPermission(DeviceManagementSessionPermission.write()));
                 uninstallButton.disable();
+                logButton.disable();
             } else {
                 toolBar.disable();
             }
@@ -384,13 +409,27 @@ public class DeviceTabPackages extends KapuaTabItem<GwtDevice> {
         return installButton;
     }
 
+    public Button getLogButton() {
+        return logButton;
+    }
+
     private void showUninstallButton() {
         uninstallButton.show();
-        separator.show();
+        unistallSeparator.show();
     }
 
     private void hideUninstallButton() {
         uninstallButton.hide();
-        separator.hide();
+        unistallSeparator.hide();
+    }
+
+    private void showLogButton() {
+        logButton.show();
+        logSeparator.show();
+    }
+
+    private void hideLogButton() {
+        logButton.hide();
+        logSeparator.hide();
     }
 }

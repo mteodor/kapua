@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -13,45 +14,54 @@ package org.eclipse.kapua.service.device.management.asset.message.internal;
 
 import org.eclipse.kapua.commons.util.xml.XmlUtil;
 import org.eclipse.kapua.locator.KapuaLocator;
-import org.eclipse.kapua.message.KapuaPayload;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssetFactory;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssets;
 import org.eclipse.kapua.service.device.management.commons.message.response.KapuaResponsePayloadImpl;
 import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSetting;
 import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSettingKey;
 import org.eclipse.kapua.service.device.management.message.response.KapuaResponsePayload;
-import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLStreamException;
-import java.io.UnsupportedEncodingException;
+import javax.validation.constraints.NotNull;
 
 /**
- * {@link DeviceAssets} information {@link KapuaResponsePayload}.
+ * {@link DeviceAssets} {@link KapuaResponsePayload} implementation.
  *
  * @since 1.0.0
  */
-public class AssetResponsePayload extends KapuaResponsePayloadImpl implements KapuaPayload {
+public class AssetResponsePayload extends KapuaResponsePayloadImpl implements KapuaResponsePayload {
+
+    private static final long serialVersionUID = -9087980446970521618L;
+
+    private static final String CHAR_ENCODING = DeviceManagementSetting.getInstance().getString(DeviceManagementSettingKey.CHAR_ENCODING);
 
     private static final DeviceAssetFactory DEVICE_ASSET_FACTORY = KapuaLocator.getInstance().getFactory(DeviceAssetFactory.class);
-    private static final DeviceManagementSetting CONFIG = DeviceManagementSetting.getInstance();
-    private static final String CHAR_ENCODING = CONFIG.getString(DeviceManagementSettingKey.CHAR_ENCODING);
 
-    public DeviceAssets getDeviceAssets() throws JAXBException, XMLStreamException, FactoryConfigurationError, SAXException, UnsupportedEncodingException {
-        DeviceAssets deviceAssets = DEVICE_ASSET_FACTORY.newAssetListResult();
-        byte[] body = getBody();
-        if (body != null && body.length > 0) {
-            deviceAssets = XmlUtil.unmarshal(new String(body, CHAR_ENCODING), DeviceAssets.class);
+    /**
+     * Gets the {@link DeviceAssets} from the {@link #getBody()}.
+     *
+     * @return The {@link DeviceAssets} from the {@link #getBody()}.
+     * @throws Exception if reading {@link #getBody()} errors.
+     * @since 1.5.0
+     */
+    public DeviceAssets getDeviceAssets() throws Exception {
+        if (!hasBody()) {
+            return DEVICE_ASSET_FACTORY.newAssetListResult();
         }
 
-        return deviceAssets;
+        String bodyString = new String(getBody(), CHAR_ENCODING);
+        return XmlUtil.unmarshal(bodyString, DeviceAssets.class);
     }
 
-    public void setDeviceAssets(DeviceAssets deviceAssets) throws JAXBException, UnsupportedEncodingException {
-        if (deviceAssets != null) {
-            setBody(XmlUtil.marshal(deviceAssets).getBytes(CHAR_ENCODING));
-        }
+    /**
+     * Sets the {@link DeviceAssets} in the {@link #getBody()}.
+     *
+     * @param deviceAssets The {@link DeviceAssets} in the {@link #getBody()}.
+     * @throws Exception if writing errors.
+     * @since 1.5.0
+     */
+    public void setDeviceAssets(@NotNull DeviceAssets deviceAssets) throws Exception {
+        String bodyString = XmlUtil.marshal(deviceAssets);
+        setBody(bodyString.getBytes(CHAR_ENCODING));
     }
 
 }

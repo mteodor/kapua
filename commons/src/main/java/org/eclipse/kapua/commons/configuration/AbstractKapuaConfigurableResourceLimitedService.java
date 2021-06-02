@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,6 +13,7 @@
 package org.eclipse.kapua.commons.configuration;
 
 import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.commons.jpa.AbstractEntityCacheFactory;
 import org.eclipse.kapua.commons.jpa.EntityManagerFactory;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
@@ -34,36 +36,48 @@ import org.eclipse.kapua.service.account.AccountService;
 
 import java.util.Map;
 
-public abstract class AbstractKapuaConfigurableResourceLimitedService<E extends KapuaEntity, C extends KapuaEntityCreator<E>, S extends KapuaEntityService<E, C>, L extends KapuaListResult<E>, Q extends KapuaQuery<E>, F extends KapuaEntityFactory<E, C, Q, L>>
+public abstract class AbstractKapuaConfigurableResourceLimitedService<E extends KapuaEntity, C extends KapuaEntityCreator<E>, S extends KapuaEntityService<E, C>, L extends KapuaListResult<E>, Q extends KapuaQuery, F extends KapuaEntityFactory<E, C, Q, L>>
         extends AbstractKapuaConfigurableService {
 
     private final Class<S> serviceClass;
     private final Class<F> factoryClass;
 
+    /**
+     * @deprecated this constructor will be removed in a next release (may be)
+     */
+    @Deprecated
     protected AbstractKapuaConfigurableResourceLimitedService(
             String pid,
             Domain domain,
             EntityManagerFactory entityManagerFactory,
             Class<S> serviceClass,
             Class<F> factoryClass) {
-        super(pid, domain, entityManagerFactory);
+        this(pid, domain, entityManagerFactory, null, serviceClass, factoryClass);
+    }
+
+    protected AbstractKapuaConfigurableResourceLimitedService(
+            String pid,
+            Domain domain,
+            EntityManagerFactory entityManagerFactory,
+            AbstractEntityCacheFactory abstractCacheFactory,
+            Class<S> serviceClass,
+            Class<F> factoryClass) {
+        super(pid, domain, entityManagerFactory, abstractCacheFactory);
         this.serviceClass = serviceClass;
         this.factoryClass = factoryClass;
     }
 
     @Override
     protected boolean validateNewConfigValuesCoherence(KapuaTocd ocd, Map<String, Object> updatedProps, KapuaId scopeId, KapuaId parentId) throws KapuaException {
-        boolean parentValidation = super.validateNewConfigValuesCoherence(ocd, updatedProps, scopeId, parentId);
+        super.validateNewConfigValuesCoherence(ocd, updatedProps, scopeId, parentId);
         int availableChildEntitiesWithNewConfig = allowedChildEntities(scopeId, null, updatedProps);
         if (availableChildEntitiesWithNewConfig < 0) {
             throw new KapuaConfigurationException(KapuaConfigurationErrorCodes.SELF_LIMIT_EXCEEDED_IN_CONFIG);
-            // parentValidation = "you can't set limited entities if current limit is lower than actual child accounts count";
         }
         if (parentId != null) {
             int availableParentEntitiesWithCurrentConfig = allowedChildEntities(parentId, scopeId);
             if (availableParentEntitiesWithCurrentConfig - availableChildEntitiesWithNewConfig < 0) {
                 throw new KapuaConfigurationException(KapuaConfigurationErrorCodes.PARENT_LIMIT_EXCEEDED_IN_CONFIG);
-                // parentValidation = "parent account child entities limit is lower than the sum of his child entities and his children's assigned child entities";
             }
         }
         return true;
@@ -93,7 +107,7 @@ public abstract class AbstractKapuaConfigurableResourceLimitedService<E extends 
         AccountFactory accountFactory = locator.getFactory(AccountFactory.class);
         AccountService accountService = locator.getService(AccountService.class);
 
-        Map<String, Object> finalConfig = configuration == null ? getConfigValues(scopeId) : configuration;
+        Map<String, Object> finalConfig = configuration == null ? getConfigValues(scopeId, false) : configuration;
         boolean allowInfiniteChildEntities = (boolean) finalConfig.get("infiniteChildEntities");
         if (!allowInfiniteChildEntities) {
             return KapuaSecurityUtils.doPrivileged(() -> {
@@ -113,8 +127,11 @@ public abstract class AbstractKapuaConfigurableResourceLimitedService<E extends 
                 long childCount = 0;
                 for (Account childAccount : childAccounts.getItems()) {
                     Map<String, Object> childConfigValues = getConfigValues(childAccount);
-                    int maxChildChildAccounts = (int) childConfigValues.get("maxNumberChildEntities");
-                    childCount += maxChildChildAccounts;
+                    // maxNumberChildEntities can be null if such property is disabled via the
+                    // isPropertyEnabled() method in the service implementation. In such case,
+                    // it makes sense to treat the service as it had 0 available entities
+                    Integer maxNumberChildEntities = (Integer) childConfigValues.get("maxNumberChildEntities");
+                    childCount += maxNumberChildEntities != null ? maxNumberChildEntities : 0;
                 }
 
                 // Max allowed for this account

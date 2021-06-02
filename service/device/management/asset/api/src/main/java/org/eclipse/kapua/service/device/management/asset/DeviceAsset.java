@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -23,42 +24,38 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
 
 /**
- * {@link DeviceAsset} entity definition.<br>
+ * {@link DeviceAsset} definition.
+ * <p>
  * This entity is used to get information about assets installed in the device.
  *
  * @since 1.0.0
  */
 @XmlRootElement(name = "deviceAsset")
 @XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlType(propOrder = {//
-        "name", //
-        "channels" //
-}, //
-        factoryClass = DeviceAssetXmlRegistry.class, //
-        factoryMethod = "newDeviceAsset")
+@XmlType(factoryClass = DeviceAssetXmlRegistry.class, factoryMethod = "newDeviceAsset")
 public interface DeviceAsset {
 
     /**
-     * Get the asset name
+     * Gets the name.
      *
-     * @return The asset name
+     * @return The name.
      * @since 1.0.0
      */
     @XmlElement(name = "name")
     String getName();
 
     /**
-     * Set the asset name
+     * Sets the name.
      *
-     * @param name The name to set
+     * @param name The name.
      * @since 1.0.0
      */
     void setName(String name);
 
     /**
-     * Gets the channels available for this {@link DeviceAsset}
+     * Gets the {@link DeviceAssetChannel} available.
      *
-     * @return The channels available for this {@link DeviceAsset}
+     * @return The {@link DeviceAssetChannel} available.
      * @since 1.0.0
      */
     @XmlElementWrapper(name = "channels")
@@ -67,9 +64,9 @@ public interface DeviceAsset {
     List<DeviceAssetChannel> getChannels();
 
     /**
-     * Sets the channels for this {@link DeviceAsset}.
+     * Sets the {@link DeviceAssetChannel} available.
      *
-     * @param channels The channels to set for this {@link DeviceAsset}.
+     * @param channels The {@link DeviceAssetChannel} available.
      * @since 1.0.0
      */
     void setChannels(List<DeviceAssetChannel> channels);

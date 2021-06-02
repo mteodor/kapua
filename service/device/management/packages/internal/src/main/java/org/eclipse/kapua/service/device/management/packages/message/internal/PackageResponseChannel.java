@@ -1,24 +1,37 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.packages.message.internal;
 
-import org.eclipse.kapua.service.device.management.commons.message.KapuaAppChannelImpl;
+import org.eclipse.kapua.service.device.management.commons.message.response.KapuaResponseChannelImpl;
 import org.eclipse.kapua.service.device.management.message.response.KapuaResponseChannel;
+import org.eclipse.kapua.service.device.management.packages.model.DevicePackage;
 
 /**
- * Package response message channel.
+ * {@link DevicePackage} {@link KapuaResponseChannel} implementation.
  *
- * @since 1.0
+ * @since 1.0.0
  */
-public class PackageResponseChannel extends KapuaAppChannelImpl implements KapuaResponseChannel {
+public class PackageResponseChannel extends KapuaResponseChannelImpl implements KapuaResponseChannel {
 
+    private static final long serialVersionUID = 6807938372603652236L;
+
+    /**
+     * Constructor.
+     *
+     * @since 1.5.0
+     */
+    public PackageResponseChannel() {
+        setAppName(PackageAppProperties.APP_NAME);
+        setVersion(PackageAppProperties.APP_VERSION);
+    }
 }

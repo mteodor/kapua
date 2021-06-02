@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -30,6 +31,7 @@ import org.eclipse.kapua.app.console.module.api.client.ui.dialog.entity.EntityAd
 import org.eclipse.kapua.app.console.module.api.client.ui.panel.FormPanel;
 import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
 import org.eclipse.kapua.app.console.module.api.client.util.DialogUtils;
+import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.client.util.KapuaSafeHtmlUtils;
 import org.eclipse.kapua.app.console.module.api.client.util.validator.ConfirmPasswordFieldValidator;
 import org.eclipse.kapua.app.console.module.api.client.util.validator.PasswordFieldValidator;
@@ -129,7 +131,6 @@ public class CredentialAddDialog extends EntityAddEditDialog {
         password = new TextField<String>();
         password.setName("password");
         password.setFieldLabel("* " + MSGS.dialogAddFieldPassword());
-        password.setValidator(new PasswordFieldValidator(password));
         password.setPassword(true);
         password.setVisible(false);
         password.setAutoValidate(true);
@@ -139,7 +140,6 @@ public class CredentialAddDialog extends EntityAddEditDialog {
         confirmPassword.setAllowBlank(false);
         confirmPassword.setName("confirmPassword");
         confirmPassword.setFieldLabel("* " + MSGS.dialogAddFieldConfirmPassword());
-        confirmPassword.setValidator(new ConfirmPasswordFieldValidator(confirmPassword, password));
         confirmPassword.setPassword(true);
         confirmPassword.setVisible(false);
         confirmPassword.setAutoValidate(true);
@@ -161,7 +161,20 @@ public class CredentialAddDialog extends EntityAddEditDialog {
         });
 
         passwordTooltip = new LabelField();
-        passwordTooltip.setValue(MSGS.dialogAddTooltipCredentialPassword());
+        GWT_CREDENTIAL_SERVICE.getMinPasswordLength(currentSession.getSelectedAccountId(), new AsyncCallback<Integer>() {
+
+            @Override
+            public void onFailure(Throwable caught) {
+                FailureHandler.handle(caught);
+            }
+
+            @Override
+            public void onSuccess(Integer result) {
+                password.setValidator(new PasswordFieldValidator(password, result));
+                confirmPassword.setValidator(new ConfirmPasswordFieldValidator(confirmPassword, password, result));
+                passwordTooltip.setValue(MSGS.dialogAddTooltipCredentialPassword(result.toString()));
+            }
+        });
         passwordTooltip.setStyleAttribute("margin-top", "-5px");
         passwordTooltip.setStyleAttribute("color", "gray");
         passwordTooltip.setStyleAttribute("font-size", "10px");

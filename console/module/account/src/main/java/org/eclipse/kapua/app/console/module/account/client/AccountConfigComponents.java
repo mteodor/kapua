@@ -1,17 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.account.client;
-
-import org.eclipse.kapua.app.console.module.api.client.ui.dialog.KapuaMessageBox;
 
 import com.extjs.gxt.ui.client.Style.LayoutRegion;
 import com.extjs.gxt.ui.client.Style.Scroll;
@@ -44,7 +43,6 @@ import com.extjs.gxt.ui.client.widget.treepanel.TreePanelSelectionModel;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-
 import org.eclipse.kapua.app.console.module.account.shared.model.GwtAccount;
 import org.eclipse.kapua.app.console.module.account.shared.service.GwtAccountService;
 import org.eclipse.kapua.app.console.module.account.shared.service.GwtAccountServiceAsync;
@@ -56,6 +54,7 @@ import org.eclipse.kapua.app.console.module.api.client.ui.button.RefreshButton;
 import org.eclipse.kapua.app.console.module.api.client.ui.button.SaveButton;
 import org.eclipse.kapua.app.console.module.api.client.ui.dialog.InfoDialog;
 import org.eclipse.kapua.app.console.module.api.client.ui.dialog.InfoDialog.InfoDialogType;
+import org.eclipse.kapua.app.console.module.api.client.ui.dialog.KapuaMessageBox;
 import org.eclipse.kapua.app.console.module.api.client.ui.label.Label;
 import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.client.util.KapuaLoadListener;
@@ -67,6 +66,7 @@ import org.eclipse.kapua.app.console.module.api.shared.service.GwtConsoleService
 import org.eclipse.kapua.app.console.module.api.shared.service.GwtSecurityTokenService;
 import org.eclipse.kapua.app.console.module.api.shared.service.GwtSecurityTokenServiceAsync;
 import org.eclipse.kapua.app.console.module.device.client.messages.ConsoleDeviceMessages;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,7 +100,6 @@ public class AccountConfigComponents extends LayoutContainer {
     private AccountDetailsTabDescription accountDetailsTabDescription;
     private SeparatorToolItem separatorToolItem = new SeparatorToolItem();
 
-    @SuppressWarnings("rawtypes")
     private BaseTreeLoader loader;
     private TreeStore<ModelData> treeStore;
     private TreePanel<ModelData> tree;
@@ -116,8 +115,15 @@ public class AccountConfigComponents extends LayoutContainer {
         @Override
         public void onFailure(Throwable caught) {
             FailureHandler.handle(caught);
+
+            devConfPanel.unmask();
+            tree.unmask();
+
+            apply.setEnabled(true);
+            reset.setEnabled(true);
+            refreshButton.setEnabled(true);
+
             dirty = true;
-            refresh();
         }
 
         @Override
@@ -127,8 +133,7 @@ public class AccountConfigComponents extends LayoutContainer {
         }
     };
 
-    AccountConfigComponents(GwtSession currentSession,
-                            AccountTabConfiguration tabConfig) {
+    AccountConfigComponents(GwtSession currentSession, AccountTabConfiguration tabConfig) {
         this.currentSession = currentSession;
         this.tabConfig = tabConfig;
         dirty = false;
@@ -239,7 +244,6 @@ public class AccountConfigComponents extends LayoutContainer {
         toolBar.add(reset);
     }
 
-    @SuppressWarnings("unchecked")
     private void initConfigPanel() {
         configPanel = new ContentPanel();
         configPanel.setBorders(false);
@@ -294,7 +298,6 @@ public class AccountConfigComponents extends LayoutContainer {
         // make sure the form is not dirty before switching.
         tree.getSelectionModel().addListener(Events.BeforeSelect, new Listener<BaseEvent>() {
 
-            @SuppressWarnings("rawtypes")
             @Override
             public void handleEvent(BaseEvent be) {
 
@@ -517,8 +520,7 @@ public class AccountConfigComponents extends LayoutContainer {
                     } else {
                         kapuaIcon = new KapuaIcon(IconSet.PUZZLE_PIECE);
                     }
-                }
-                else {
+                } else {
                     kapuaIcon = new KapuaIcon(IconSet.PUZZLE_PIECE);
                 }
             }
@@ -574,11 +576,4 @@ public class AccountConfigComponents extends LayoutContainer {
         }
     }
 
-    public void removeApplyAndResetButtons() {
-        if (toolBar != null) {
-            toolBar.remove(apply);
-            toolBar.remove(reset);
-            toolBar.remove(separatorToolItem);
-        }
-    }
 }

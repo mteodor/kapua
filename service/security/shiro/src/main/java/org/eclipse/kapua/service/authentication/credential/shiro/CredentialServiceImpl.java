@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -16,6 +17,8 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.KapuaIllegalArgumentException;
 import org.eclipse.kapua.commons.configuration.AbstractKapuaConfigurableService;
+import org.eclipse.kapua.commons.configuration.KapuaConfigurationErrorCodes;
+import org.eclipse.kapua.commons.configuration.KapuaConfigurationException;
 import org.eclipse.kapua.commons.jpa.EntityManager;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.commons.util.CommonsValidationRegex;
@@ -23,6 +26,8 @@ import org.eclipse.kapua.commons.util.KapuaExceptionUtils;
 import org.eclipse.kapua.event.ServiceEvent;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
+import org.eclipse.kapua.model.KapuaEntityAttributes;
+import org.eclipse.kapua.model.config.metatype.KapuaTocd;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
@@ -40,6 +45,8 @@ import org.eclipse.kapua.service.authentication.credential.CredentialQuery;
 import org.eclipse.kapua.service.authentication.credential.CredentialService;
 import org.eclipse.kapua.service.authentication.credential.CredentialType;
 import org.eclipse.kapua.service.authentication.credential.KapuaExistingCredentialException;
+import org.eclipse.kapua.service.authentication.credential.KapuaPasswordTooLongException;
+import org.eclipse.kapua.service.authentication.credential.KapuaPasswordTooShortException;
 import org.eclipse.kapua.service.authentication.shiro.AuthenticationEntityManagerFactory;
 import org.eclipse.kapua.service.authentication.shiro.setting.KapuaAuthenticationSetting;
 import org.eclipse.kapua.service.authentication.shiro.setting.KapuaAuthenticationSettingKeys;
@@ -49,6 +56,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * {@link CredentialService} implementation.
@@ -60,8 +69,29 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CredentialServiceImpl.class);
 
+    private static final String PASSWORD_MIN_LENGTH = "password.minLength";
+
+    /**
+     * The minimum password length specified for the whole system. If not defined, assume 12; if defined and less than 12, assume 12.
+     */
+    private final int systemMinimumPasswordLength;
+
+    private static final int SYSTEM_MAXIMUM_PASSWORD_LENGTH = 255;
+
     public CredentialServiceImpl() {
         super(CredentialService.class.getName(), AuthenticationDomains.CREDENTIAL_DOMAIN, AuthenticationEntityManagerFactory.getInstance());
+        int minPasswordLengthConfigValue;
+        try {
+            minPasswordLengthConfigValue = KapuaAuthenticationSetting.getInstance().getInt(KapuaAuthenticationSettingKeys.AUTHENTICATION_CREDENTIAL_USERPASS_PASSWORD_MINLENGTH);
+        } catch (NoSuchElementException ex) {
+            LOGGER.warn("Minimum password length not set, 12 characters minimum will be enforced");
+            minPasswordLengthConfigValue = 12;
+        }
+        if (minPasswordLengthConfigValue < 12) {
+            LOGGER.warn("Minimum password length too short, 12 characters minimum will be enforced");
+            minPasswordLengthConfigValue = 12;
+        }
+        systemMinimumPasswordLength = minPasswordLengthConfigValue;
     }
 
     @Override
@@ -88,6 +118,15 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
                 }
             }
 
+            // Validate Password length
+            int minPasswordLength = getMinimumPasswordLength(credentialCreator.getScopeId());
+            if (credentialCreator.getCredentialPlainKey().length() < minPasswordLength) {
+                throw new KapuaPasswordTooShortException(minPasswordLength);
+            }
+            if (credentialCreator.getCredentialPlainKey().length() > SYSTEM_MAXIMUM_PASSWORD_LENGTH) {
+                throw new KapuaPasswordTooLongException(SYSTEM_MAXIMUM_PASSWORD_LENGTH);
+            }
+
             //
             // Validate Password regex
             ArgumentValidator.match(credentialCreator.getCredentialPlainKey(), CommonsValidationRegex.PASSWORD_REGEXP, "credentialCreator.credentialKey");
@@ -102,7 +141,7 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
 
         //
         // Do create
-        Credential credential = null;
+        Credential credential;
         EntityManager em = AuthenticationEntityManagerFactory.getEntityManager();
         try {
             em.beginTransaction();
@@ -187,7 +226,7 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthenticationDomains.CREDENTIAL_DOMAIN, Actions.write, credential.getScopeId()));
 
-        return entityManagerSession.onTransactedResult(em -> {
+        return entityManagerSession.doTransactedAction(em -> {
             Credential currentCredential = CredentialDAO.find(em, credential.getScopeId(), credential.getId());
 
             if (currentCredential == null) {
@@ -207,7 +246,7 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
     public Credential find(KapuaId scopeId, KapuaId credentialId)
             throws KapuaException {
         // Validation of the fields
-        ArgumentValidator.notNull(scopeId, "scopeId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
         ArgumentValidator.notNull(credentialId, "credentialId");
 
         //
@@ -217,16 +256,15 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthenticationDomains.CREDENTIAL_DOMAIN, Actions.read, scopeId));
 
-        return entityManagerSession.onResult(em -> CredentialDAO.find(em, scopeId, credentialId));
+        return entityManagerSession.doAction(em -> CredentialDAO.find(em, scopeId, credentialId));
     }
 
     @Override
-    public CredentialListResult query(KapuaQuery<Credential> query)
+    public CredentialListResult query(KapuaQuery query)
             throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -235,16 +273,15 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthenticationDomains.CREDENTIAL_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> CredentialDAO.query(em, query));
+        return entityManagerSession.doAction(em -> CredentialDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<Credential> query)
+    public long count(KapuaQuery query)
             throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -253,7 +290,7 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthenticationDomains.CREDENTIAL_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> CredentialDAO.count(em, query));
+        return entityManagerSession.doAction(em -> CredentialDAO.count(em, query));
     }
 
     @Override
@@ -271,11 +308,11 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthenticationDomains.CREDENTIAL_DOMAIN, Actions.delete, scopeId));
 
-        entityManagerSession.onTransactedAction(em -> {
+        entityManagerSession.doTransactedAction(em -> {
             if (CredentialDAO.find(em, scopeId, credentialId) == null) {
                 throw new KapuaEntityNotFoundException(Credential.TYPE, credentialId);
             }
-            CredentialDAO.delete(em, scopeId, credentialId);
+            return CredentialDAO.delete(em, scopeId, credentialId);
         });
     }
 
@@ -284,7 +321,7 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
             throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
         ArgumentValidator.notNull(userId, "userId");
 
         //
@@ -307,26 +344,29 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
 
     @Override
     public Credential findByApiKey(String apiKey) throws KapuaException {
+
+        KapuaAuthenticationSetting setting = KapuaAuthenticationSetting.getInstance();
+        int preLength = setting.getInt(KapuaAuthenticationSettingKeys.AUTHENTICATION_CREDENTIAL_APIKEY_PRE_LENGTH);
+
         //
         // Argument Validation
         ArgumentValidator.notEmptyOrNull(apiKey, "apiKey");
+        ArgumentValidator.lengthRange(apiKey, preLength, null, "apiKey");
 
         //
         // Do the find
-        Credential credential = null;
+        Credential credential;
         EntityManager em = AuthenticationEntityManagerFactory.getEntityManager();
         try {
 
             //
             // Build search query
-            KapuaAuthenticationSetting setting = KapuaAuthenticationSetting.getInstance();
-            int preLength = setting.getInt(KapuaAuthenticationSettingKeys.AUTHENTICATION_CREDENTIAL_APIKEY_PRE_LENGTH);
             String preSeparator = setting.getString(KapuaAuthenticationSettingKeys.AUTHENTICATION_CREDENTIAL_APIKEY_PRE_SEPARATOR);
             String apiKeyPreValue = apiKey.substring(0, preLength).concat(preSeparator);
 
             //
             // Build query
-            KapuaQuery<Credential> query = new CredentialQueryImpl();
+            KapuaQuery query = new CredentialQueryImpl();
             AttributePredicate<CredentialType> typePredicate = query.attributePredicate(CredentialAttributes.CREDENTIAL_TYPE, CredentialType.API_KEY);
             AttributePredicate<String> keyPredicate = query.attributePredicate(CredentialAttributes.CREDENTIAL_KEY, apiKeyPreValue, Operator.STARTS_WITH);
 
@@ -367,7 +407,7 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
     public void unlock(KapuaId scopeId, KapuaId credentialId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
         ArgumentValidator.notNull(credentialId, "credentialId");
 
         //
@@ -385,10 +425,33 @@ public class CredentialServiceImpl extends AbstractKapuaConfigurableService impl
         update(credential);
     }
 
+    @Override
+    public int getMinimumPasswordLength(KapuaId scopeId) throws KapuaException {
+        Object minPasswordLengthConfigValue = getConfigValues(scopeId).get(PASSWORD_MIN_LENGTH);
+        int minPasswordLength = systemMinimumPasswordLength;
+        if (minPasswordLengthConfigValue != null) {
+            minPasswordLength = Integer.parseInt(minPasswordLengthConfigValue.toString());
+        }
+        return minPasswordLength;
+    }
+
+    @Override
+    protected boolean validateNewConfigValuesCoherence(KapuaTocd ocd, Map<String, Object> updatedProps, KapuaId scopeId, KapuaId parentId) throws KapuaException {
+        boolean valid = super.validateNewConfigValuesCoherence(ocd, updatedProps, scopeId, parentId);
+        if (updatedProps.get(PASSWORD_MIN_LENGTH) != null) {
+            // If we're going to set a new limit, check that it's not less than system limit
+            int newPasswordLimit = Integer.parseInt(updatedProps.get(PASSWORD_MIN_LENGTH).toString());
+            if (newPasswordLimit < systemMinimumPasswordLength || newPasswordLimit > SYSTEM_MAXIMUM_PASSWORD_LENGTH) {
+                throw new KapuaConfigurationException(KapuaConfigurationErrorCodes.ILLEGAL_ARGUMENT, PASSWORD_MIN_LENGTH, newPasswordLimit);
+            }
+        }
+        return valid;
+    }
+
     private long countExistingCredentials(CredentialType credentialType, KapuaId scopeId, KapuaId userId) throws KapuaException {
         KapuaLocator locator = KapuaLocator.getInstance();
         CredentialFactory credentialFactory = locator.getFactory(CredentialFactory.class);
-        KapuaQuery<Credential> query = credentialFactory.newQuery(scopeId);
+        KapuaQuery query = credentialFactory.newQuery(scopeId);
 
         QueryPredicate credentialTypePredicate = query.attributePredicate(CredentialAttributes.CREDENTIAL_TYPE, credentialType);
         QueryPredicate userIdPredicate = query.attributePredicate(CredentialAttributes.USER_ID, userId);

@@ -1,16 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.registry.operation.internal;
 
+import com.google.common.base.Strings;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.model.AbstractKapuaUpdatableEntity;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
@@ -81,6 +83,10 @@ public class DeviceManagementOperationImpl extends AbstractKapuaUpdatableEntity 
     @ElementCollection
     @CollectionTable(name = "dvcm_device_management_operation_input_property", joinColumns = @JoinColumn(name = "operation_id", referencedColumnName = "id"))
     private List<DeviceManagementOperationPropertyImpl> inputProperties;
+
+    @Basic
+    @Column(name = "log", nullable = true, updatable = true)
+    private String log;
 
     /**
      * Constructor.
@@ -174,12 +180,12 @@ public class DeviceManagementOperationImpl extends AbstractKapuaUpdatableEntity 
 
     @Override
     public KapuaMethod getAction() {
-        return action;
+        return action.normalizeAction();
     }
 
     @Override
     public void setAction(KapuaMethod action) {
-        this.action = action;
+        this.action = action.normalizeAction();
     }
 
     @Override
@@ -219,5 +225,17 @@ public class DeviceManagementOperationImpl extends AbstractKapuaUpdatableEntity 
                 this.inputProperties.add(DeviceManagementOperationPropertyImpl.parse(sp));
             }
         }
+    }
+
+    @Override
+    public String getLog() {
+        // Setting to empty if null to avoid checking for null and empty when using this value.
+        return Strings.nullToEmpty(log);
+    }
+
+    @Override
+    public void setLog(String log) {
+        // Setting to null to avoid storing empty string in database
+        this.log = Strings.emptyToNull(log);
     }
 }

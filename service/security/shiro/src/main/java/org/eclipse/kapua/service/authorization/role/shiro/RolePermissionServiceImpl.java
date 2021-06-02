@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,10 +16,12 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaEntityUniquenessException;
 import org.eclipse.kapua.KapuaErrorCodes;
 import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.commons.jpa.EntityManagerContainer;
 import org.eclipse.kapua.commons.service.internal.AbstractKapuaService;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
+import org.eclipse.kapua.model.KapuaEntityAttributes;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
@@ -53,7 +56,7 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
     private static final RoleService ROLE_SERVICE = KapuaLocator.getInstance().getService(RoleService.class);
 
     public RolePermissionServiceImpl() {
-        super(AuthorizationEntityManagerFactory.getInstance());
+        super(AuthorizationEntityManagerFactory.getInstance(), RolePermissionCacheFactory.getInstance());
     }
 
     @Override
@@ -92,7 +95,7 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
         RolePermissionQuery query = new RolePermissionQueryImpl(rolePermissionCreator.getScopeId());
         query.setPredicate(
                 query.andPredicate(
-                        query.attributePredicate(RolePermissionAttributes.SCOPE_ID, rolePermissionCreator.getScopeId()),
+                        query.attributePredicate(KapuaEntityAttributes.SCOPE_ID, rolePermissionCreator.getScopeId()),
                         query.attributePredicate(RolePermissionAttributes.ROLE_ID, rolePermissionCreator.getRoleId()),
                         query.attributePredicate(RolePermissionAttributes.PERMISSION_DOMAIN, rolePermissionCreator.getPermission().getDomain()),
                         query.attributePredicate(RolePermissionAttributes.PERMISSION_ACTION, rolePermissionCreator.getPermission().getAction()),
@@ -104,7 +107,7 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
         if (count(query) > 0) {
             List<Map.Entry<String, Object>> uniquesFieldValues = new ArrayList<>();
 
-            uniquesFieldValues.add(new AbstractMap.SimpleEntry<>(RolePermissionAttributes.SCOPE_ID, rolePermissionCreator.getScopeId()));
+            uniquesFieldValues.add(new AbstractMap.SimpleEntry<>(KapuaEntityAttributes.SCOPE_ID, rolePermissionCreator.getScopeId()));
             uniquesFieldValues.add(new AbstractMap.SimpleEntry<>(RolePermissionAttributes.ROLE_ID, rolePermissionCreator.getRoleId()));
             uniquesFieldValues.add(new AbstractMap.SimpleEntry<>(RolePermissionAttributes.PERMISSION_DOMAIN, rolePermissionCreator.getPermission().getDomain()));
             uniquesFieldValues.add(new AbstractMap.SimpleEntry<>(RolePermissionAttributes.PERMISSION_ACTION, rolePermissionCreator.getPermission().getAction()));
@@ -115,13 +118,14 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
             throw new KapuaEntityUniquenessException(RolePermission.TYPE, uniquesFieldValues);
         }
 
-        return entityManagerSession.onTransactedInsert(em -> RolePermissionDAO.create(em, rolePermissionCreator));
+        return entityManagerSession.doTransactedAction(EntityManagerContainer.<RolePermission>create().onResultHandler(em -> RolePermissionDAO.create(em, rolePermissionCreator))
+                .onAfterHandler((entity) -> entityCache.removeList(entity.getScopeId(), entity.getRoleId())));
     }
 
     @Override
     public void delete(KapuaId scopeId, KapuaId rolePermissionId) throws KapuaException {
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(rolePermissionId, "rolePermissionId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(rolePermissionId, KapuaEntityAttributes.ENTITY_ID);
 
         // Check Access
         KapuaLocator locator = KapuaLocator.getInstance();
@@ -129,22 +133,28 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.ROLE_DOMAIN, Actions.delete, scopeId));
 
-        entityManagerSession.onTransactedAction(em -> {
-            if (RolePermissionDAO.find(em, scopeId, rolePermissionId) == null) {
+        entityManagerSession.doTransactedAction(EntityManagerContainer.<RolePermission>create().onResultHandler(em -> {
+            // TODO: check if it is correct to remove this statement (already thrown by the delete method, but
+            //  without TYPE)
+            RolePermission rolePermission = RolePermissionDAO.find(em, scopeId, rolePermissionId);
+            if (rolePermission == null) {
                 throw new KapuaEntityNotFoundException(RolePermission.TYPE, rolePermissionId);
             } else if (KapuaId.ONE.equals(rolePermissionId)) {
                 throw new KapuaException(KapuaErrorCodes.PERMISSION_DELETE_NOT_ALLOWED);
             }
 
-            RolePermissionDAO.delete(em, scopeId, rolePermissionId);
-        });
+            return RolePermissionDAO.delete(em, scopeId, rolePermissionId);
+        }).onAfterHandler((entity) -> {
+            entityCache.remove(scopeId, rolePermissionId);
+            entityCache.removeList(scopeId, entity.getRoleId());
+        }));
     }
 
     @Override
     public RolePermission find(KapuaId scopeId, KapuaId rolePermissionId)
             throws KapuaException {
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(rolePermissionId, "rolePermissionId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(rolePermissionId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
@@ -153,28 +163,42 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.ROLE_DOMAIN, Actions.read, scopeId));
 
-        return entityManagerSession.onResult(em -> RolePermissionDAO.find(em, scopeId, rolePermissionId));
+        return entityManagerSession.doAction(EntityManagerContainer.<RolePermission>create().onResultHandler(em -> RolePermissionDAO.find(em, scopeId, rolePermissionId))
+                .onBeforeHandler(() -> (RolePermission) entityCache.get(scopeId, rolePermissionId))
+                .onAfterHandler((entity) -> entityCache.put(entity)));
     }
 
     @Override
     public RolePermissionListResult findByRoleId(KapuaId scopeId, KapuaId roleId)
             throws KapuaException {
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(roleId, "roleId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(roleId, KapuaEntityAttributes.ENTITY_ID);
 
         //
-        // Build query
-        RolePermissionQuery query = new RolePermissionQueryImpl(scopeId);
-        query.setPredicate(query.attributePredicate(RolePermissionAttributes.ROLE_ID, roleId));
+        // Check Access
+        KapuaLocator locator = KapuaLocator.getInstance();
+        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
+        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
+        authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.ROLE_DOMAIN, Actions.read, scopeId));
 
-        return query(query);
+        RolePermissionListResult listResult = (RolePermissionListResult) entityCache.getList(scopeId, roleId);
+        if (listResult == null) {
+
+            //
+            // Build query
+            RolePermissionQuery query = new RolePermissionQueryImpl(scopeId);
+            query.setPredicate(query.attributePredicate(RolePermissionAttributes.ROLE_ID, roleId));
+
+            listResult = query(query);
+            entityCache.putList(scopeId, roleId, listResult);
+        }
+        return listResult;
     }
 
     @Override
-    public RolePermissionListResult query(KapuaQuery<RolePermission> query)
+    public RolePermissionListResult query(KapuaQuery query)
             throws KapuaException {
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -183,14 +207,13 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.ROLE_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> RolePermissionDAO.query(em, query));
+        return entityManagerSession.doAction(EntityManagerContainer.<RolePermissionListResult>create().onResultHandler(em -> RolePermissionDAO.query(em, query)));
     }
 
     @Override
-    public long count(KapuaQuery<RolePermission> query)
+    public long count(KapuaQuery query)
             throws KapuaException {
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -199,6 +222,6 @@ public class RolePermissionServiceImpl extends AbstractKapuaService implements R
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.ROLE_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> RolePermissionDAO.count(em, query));
+        return entityManagerSession.doAction(EntityManagerContainer.<Long>create().onResultHandler(em -> RolePermissionDAO.count(em, query)));
     }
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -39,7 +40,6 @@ import com.extjs.gxt.ui.client.widget.toolbar.ToolBar;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-
 import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
 import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
@@ -57,7 +57,7 @@ import org.eclipse.kapua.app.console.module.api.shared.service.GwtSecurityTokenS
 import org.eclipse.kapua.app.console.module.device.client.device.DeviceView;
 import org.eclipse.kapua.app.console.module.device.client.messages.ConsoleDeviceMessages;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDevice;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.bundles.GwtBundle;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.bundles.GwtBundle;
 import org.eclipse.kapua.app.console.module.device.shared.model.permission.DeviceManagementSessionPermission;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceManagementService;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceManagementServiceAsync;
@@ -222,7 +222,7 @@ public class DeviceTabBundles extends KapuaTabItem<GwtDevice> {
                                         public void onSuccess(Void result) {
                                             doRefresh();
                                         }
-                                   });
+                                    });
                         }
                     });
                 } else {
@@ -421,11 +421,11 @@ public class DeviceTabBundles extends KapuaTabItem<GwtDevice> {
         @Override
         public void loaderLoadException(LoadEvent le) {
 
-                if (le.exception != null && le.exception instanceof GwtKapuaException) {
-                    FailureHandler.handle(le.exception);
-                } else {
-                    ConsoleInfo.display(MSGS.popupError(), DEVICE_MSGS.deviceConnectionError());
-                }
+            if (le.exception != null && le.exception instanceof GwtKapuaException) {
+                FailureHandler.handle(le.exception);
+            } else {
+                ConsoleInfo.display(MSGS.popupError(), DEVICE_MSGS.deviceConnectionError());
+            }
 
             startButton.disable();
             stopButton.disable();

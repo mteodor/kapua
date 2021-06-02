@@ -1,34 +1,32 @@
 <?xml version="1.0"?>
 <!--
-    Copyright (c) 2017 Red Hat Inc and others
+    Copyright (c) 2017, 2021 Red Hat Inc and others
 
-    All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
-    which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
 
     Contributors:
         Red Hat Inc - initial API and implementation
+        Eurotech
  -->
 
-<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN" "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<!DOCTYPE suppressions PUBLIC
+        "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-    <!-- ignore headers in package-info.java files -->
+    <!-- Ignore headers in package-info.java files -->
     <suppress checks="RegexpHeader" files="package-info\.java"/>
 
-    <!-- ignore all files in target/ folder -->
+    <!-- Ignore all files in target/ folder -->
     <suppress checks=".*" files=".*[\\\/]?target[\\\/].+\.java"/>
 
-    <!-- ignore .repository folder for Jenkins build -->
-    <suppress checks=".*" files="\.repository[\\\/]?.*" />
+    <!-- Ignore .repository folder for Jenkins build -->
+    <suppress checks=".*" files="\.repository[\\\/]?.*"/>
 
-    <!-- ignore the about.html file -->
+    <!-- Ignore the about.html file -->
     <suppress checks="FileTabCharacter" files="about\.html"/>
-
-    <!-- ignore backport of SLF4J logging from EclipseLink -->
-    <suppress checks=".*" files="org.eclipse.persistence.logging.slf4j.*" />
-
-    <!-- ignore console-v2 folder -->
-    <suppress checks=".*" files="console-v2[\\\/]?.*" />
 </suppressions>

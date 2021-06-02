@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -65,6 +66,8 @@ public class GwtTagServiceImpl extends KapuaRemoteServiceServlet implements GwtT
 
     final UserService userService = locator.getService(UserService.class);
     final UserFactory userFactory = locator.getFactory(UserFactory.class);
+
+    private static final String ENTITY_INFO = "entityInfo";
 
     @Override
     public GwtTag create(GwtTagCreator gwtTagCreator) throws GwtKapuaException {
@@ -130,7 +133,7 @@ public class GwtTagServiceImpl extends KapuaRemoteServiceServlet implements GwtT
             TagQuery tagQuery = GwtKapuaTagModelConverter.convertTagQuery(loadConfig, gwtTagQuery);
 
             TagListResult tags = tagService.query(tagQuery);
-            totalLength = (int) tagService.count(tagQuery);
+            totalLength = tags.getTotalCount().intValue();
 
             if (!tags.isEmpty()) {
                 UserListResult userListResult = KapuaSecurityUtils.doPrivileged(new Callable<UserListResult>() {
@@ -200,10 +203,10 @@ public class GwtTagServiceImpl extends KapuaRemoteServiceServlet implements GwtT
                 // Id", KapuaGwtCommonsModelConverter.convertKapuaId(tag.getScopeId())));
                 gwtTagDescription.add(new GwtGroupedNVPair("tagInfo", "tagName", tag.getName()));
                 gwtTagDescription.add(new GwtGroupedNVPair("tagInfo", "tagDescription", tag.getDescription()));
-                gwtTagDescription.add(new GwtGroupedNVPair("entityInfo", "tagModifiedOn", tag.getModifiedOn()));
-                gwtTagDescription.add(new GwtGroupedNVPair("entityInfo", "tagModifiedBy", tag.getModifiedBy() != null ? usernameMap.get(tag.getModifiedBy().toCompactId()) : null));
-                gwtTagDescription.add(new GwtGroupedNVPair("entityInfo", "tagCreatedOn", tag.getCreatedOn()));
-                gwtTagDescription.add(new GwtGroupedNVPair("entityInfo", "tagCreatedBy", tag.getCreatedBy() != null ? usernameMap.get(tag.getCreatedBy().toCompactId()) : null));
+                gwtTagDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "tagModifiedOn", tag.getModifiedOn()));
+                gwtTagDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "tagModifiedBy", tag.getModifiedBy() != null ? usernameMap.get(tag.getModifiedBy().toCompactId()) : null));
+                gwtTagDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "tagCreatedOn", tag.getCreatedOn()));
+                gwtTagDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "tagCreatedBy", tag.getCreatedBy() != null ? usernameMap.get(tag.getCreatedBy().toCompactId()) : null));
 
             }
         } catch (Exception e) {

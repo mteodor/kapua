@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -95,16 +96,6 @@ public class DeviceAddDialog extends EntityAddEditDialog {
         NO_GROUP.setId(null);
     }
 
-    // protected TextField<String> username;
-    // protected TextField<String> password;
-    // protected TextField<String> confirmPassword;
-    // protected TextField<String> displayName;
-    // protected TextField<String> email;
-    // protected TextField<String> phoneNumber;
-    // protected SimpleComboBox<GwtUser.GwtUserStatus> userStatus;
-    // protected DateField expirationDate;
-    // protected NumberField optlock;
-
     public DeviceAddDialog(GwtSession currentSession) {
         super(currentSession);
 
@@ -128,10 +119,7 @@ public class DeviceAddDialog extends EntityAddEditDialog {
         formPanel.setFrame(false);
         formPanel.setBodyBorder(false);
         formPanel.setHeaderVisible(false);
-        // formPanel.setWidth(310);
         formPanel.setScrollMode(Scroll.AUTOY);
-        // formPanel.setStyleAttribute("padding-bottom", "0px");
-        // formPanel.setLayout(new FlowLayout());
 
         Listener<BaseEvent> comboBoxListener = new Listener<BaseEvent>() {
 
@@ -188,6 +176,7 @@ public class DeviceAddDialog extends EntityAddEditDialog {
         statusCombo.setEmptyText(DEVICE_MSGS.deviceFilteringPanelStatusEmptyText());
         statusCombo.add(GwtDeviceQueryPredicates.GwtDeviceStatus.ENABLED);
         statusCombo.add(GwtDeviceQueryPredicates.GwtDeviceStatus.DISABLED);
+        statusCombo.setSimpleValue(GwtDeviceStatus.ENABLED);
 
         fieldSet.add(statusCombo, formData);
 
@@ -204,6 +193,7 @@ public class DeviceAddDialog extends EntityAddEditDialog {
         groupCombo.setTemplate("<tpl for=\".\"><div role=\"listitem\" class=\"x-combo-list-item\" title={groupName}>{groupName}</div></tpl>");
         groupCombo.setValueField("id");
         groupCombo.setEmptyText(DEVICE_MSGS.deviceFilteringPanelGroupEmptyText());
+
         if (currentSession.hasPermission(GroupSessionPermission.read())) {
             groupCombo.addListener(Events.Select, comboBoxListener);
 
@@ -230,7 +220,9 @@ public class DeviceAddDialog extends EntityAddEditDialog {
                             return group1.getGroupName().compareTo(group2.getGroupName());
                         }
                     });
+
                     groupCombo.getStore().add(result);
+                    groupCombo.setValue(NO_GROUP);
                 }
             });
             fieldSet.add(groupCombo, formData);

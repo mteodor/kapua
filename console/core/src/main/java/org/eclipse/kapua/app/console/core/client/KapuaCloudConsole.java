@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -37,14 +38,16 @@ import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimplePanel;
 import org.eclipse.kapua.app.console.core.client.messages.ConsoleCoreMessages;
-import org.eclipse.kapua.app.console.core.client.util.Logout;
+import org.eclipse.kapua.app.console.core.client.util.TokenCleaner;
 import org.eclipse.kapua.app.console.core.shared.model.GwtProductInformation;
 import org.eclipse.kapua.app.console.core.shared.model.authentication.GwtJwtCredential;
+import org.eclipse.kapua.app.console.core.shared.model.authentication.GwtJwtIdToken;
 import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationService;
 import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationServiceAsync;
 import org.eclipse.kapua.app.console.core.shared.service.GwtSettingsService;
@@ -55,6 +58,7 @@ import org.eclipse.kapua.app.console.module.api.client.ui.panel.ContentPanel;
 import org.eclipse.kapua.app.console.module.api.client.ui.panel.EntityFilterPanel;
 import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractEntityView;
 import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
+import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.client.util.UserAgentUtils;
 import org.eclipse.kapua.app.console.module.api.client.util.Years;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtEntityModel;
@@ -71,6 +75,15 @@ public class KapuaCloudConsole implements EntryPoint {
     private static final ConsoleMessages MSGS = GWT.create(ConsoleMessages.class);
     private static final ConsoleCoreMessages CORE_MSGS = GWT.create(ConsoleCoreMessages.class);
     private static final Logger logger = Logger.getLogger(KapuaCloudConsole.class.getName());
+
+    // OpenID Connect single sign-on parameters
+    public static final String OPENID_ACCESS_TOKEN_PARAM = "access_token";
+    public static final String OPENID_ID_TOKEN_PARAM = "id_token";
+    public static final String OPENID_ERROR_PARAM = "error";
+    public static final String OPENID_ERROR_DESC_PARAM = "error_description";
+
+    // time parameters
+    public static final int OPENID_FAILURE_WAIT_TIME = 3000;
 
     private GwtAuthorizationServiceAsync gwtAuthorizationService = GWT.create(GwtAuthorizationService.class);
 
@@ -346,13 +359,22 @@ public class KapuaCloudConsole implements EntryPoint {
         genericNote.setHtml(productInformation.getInformationSnippet());
         creditLabel.setText(productInformation.getBackgroundCredits());
 
-        // Check if coming from SSO login
-        String accessToken = Window.Location.getParameter(Logout.PARAMETER_ACCESS_TOKEN);
+        // Check if coming from OpenID Connect ssingle sign-on login
+        String accessToken = Window.Location.getParameter(OPENID_ACCESS_TOKEN_PARAM);
+        String idToken = Window.Location.getParameter(OPENID_ID_TOKEN_PARAM);
 
-        if (accessToken != null && !accessToken.isEmpty()) {
-            logger.info("Performing SSO login");
-            performSsoLogin(viewport, accessToken);
+        if (accessToken != null && !accessToken.isEmpty() && idToken != null && !idToken.isEmpty()) {
+            logger.info("Performing OpenID Connect login");
+            performOpenIDLogin(viewport, accessToken, idToken);
         } else {
+
+            String error = Window.Location.getParameter(OPENID_ERROR_PARAM);
+
+            // Check if coming from failed OpenID Connect login (the user exists but she does not have the authorizations)
+            if (error != null && !error.isEmpty() && error.equals("access_denied")) {
+                logger.info("Access denied, OpenID Connect login failed");
+                ConsoleInfo.display(CORE_MSGS.loginSsoLoginError(), CORE_MSGS.ssoClientAuthenticationFailed());
+            }
             showLoginDialog(viewport);
         }
     }
@@ -386,10 +408,9 @@ public class KapuaCloudConsole implements EntryPoint {
         loginDialog.show();
     }
 
-    private void performSsoLogin(final Viewport viewport, String authToken) {
+    private void performOpenIDLogin(final Viewport viewport, String authToken, String idToken) {
 
         // show wait dialog
-
         final Dialog dlg = new Dialog();
         dlg.setHeading(MSGS.ssoWaitDialog_title());
         dlg.setButtons("");
@@ -405,21 +426,58 @@ public class KapuaCloudConsole implements EntryPoint {
         dlg.center();
 
         // start login process
-
-        GwtJwtCredential credentials = new GwtJwtCredential(authToken);
-        gwtAuthorizationService.login(credentials, new AsyncCallback<GwtSession>() {
+        final GwtJwtIdToken gwtIdToken = new GwtJwtIdToken(idToken);
+        final GwtJwtCredential credentials = new GwtJwtCredential(authToken);
+        gwtAuthorizationService.login(credentials, gwtIdToken, new AsyncCallback<GwtSession>() {
 
             @Override
             public void onFailure(Throwable caught) {
                 dlg.hide();
-                ConsoleInfo.display(CORE_MSGS.loginError(), caught.getLocalizedMessage());
+                logger.info("OpenID Connect login failed.");
+                ConsoleInfo.display(CORE_MSGS.loginSsoLoginError(), caught.getLocalizedMessage());
 
-                Logout.logout();
+                // Invalidating the OpenID IdToken. We must use the OpenID logout here, since we don't have the KapuSession set yet, so we don't have the
+                // openIDidToken set inside. This means we cannot realy on the OpenIDLogoutListener to invalidate the OpenID session, instead we must do that
+                // as a 'real' user initiated logout.
+                gwtSettingService.getOpenIDLogoutUri(gwtIdToken.getIdToken(), new AsyncCallback<String>() {
+
+                    @Override
+                    public void onFailure(Throwable caught) {
+                        logger.info("Failed to get the logout endpoint.");
+                        FailureHandler.handle(caught);
+                    }
+
+                    @Override
+                    public void onSuccess(final String result) {
+                        if (!result.isEmpty()) {
+                            logger.info("Waiting for logout.");
+
+                            // this timer is needed to give time to the ConsoleInfo.display method (called above) to show
+                            // the message to the user (otherwise the Window.location.assign would reload the page,
+                            // giving no time to the user to read the message).
+                            Timer timer = new Timer() {
+                                @Override
+                                public void run() {
+                                    Window.Location.assign(result);
+                                }
+                            };
+                            timer.schedule(OPENID_FAILURE_WAIT_TIME);
+                        } else {
+                            // result is empty, thus the OpenID logout is disabled
+                            TokenCleaner.cleanToken();  // removes the access_token from the URL, however it forces the page reload
+                        }
+                    }
+                });
             }
 
             @Override
             public void onSuccess(GwtSession gwtSession) {
+                logger.info("OpenID login success, now rendering screen.");
                 logger.fine("User: " + gwtSession.getUserId());
+
+                // This is needed to remove tokens from the URL, however it forces the page reload
+                TokenCleaner.cleanToken();
+
                 dlg.hide();
                 renderMainScreen(viewport, gwtSession);
             }

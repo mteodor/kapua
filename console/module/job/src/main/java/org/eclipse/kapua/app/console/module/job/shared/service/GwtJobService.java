@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -36,8 +37,7 @@ public interface GwtJobService extends RemoteService {
      * @return
      * @throws GwtKapuaException
      */
-    GwtJob create(GwtXSRFToken xsrfToken, GwtJobCreator gwtJobCreator)
-            throws GwtKapuaException;
+    GwtJob create(GwtXSRFToken xsrfToken, GwtJobCreator gwtJobCreator) throws GwtKapuaException;
 
     /**
      * Returns a Job by its Id or null if a job with such Id does not exist.
@@ -46,8 +46,7 @@ public interface GwtJobService extends RemoteService {
      * @return
      * @throws GwtKapuaException
      */
-    GwtJob find(String accountId, String jobId)
-            throws GwtKapuaException;
+    GwtJob find(String accountId, String jobId) throws GwtKapuaException;
 
     /**
      * Updates a Job in the database and returns the refreshed/reloaded entity instance.
@@ -56,8 +55,7 @@ public interface GwtJobService extends RemoteService {
      * @return
      * @throws GwtKapuaException
      */
-    GwtJob update(GwtXSRFToken xsrfToken, GwtJob gwtJob)
-            throws GwtKapuaException;
+    GwtJob update(GwtXSRFToken xsrfToken, GwtJob gwtJob) throws GwtKapuaException;
 
     /**
      * Delete the supplied Job.
@@ -65,9 +63,16 @@ public interface GwtJobService extends RemoteService {
      * @param gwtJobId
      * @throws GwtKapuaException
      */
-    void delete(GwtXSRFToken xsfrToken, String accountId, String gwtJobId)
-            throws GwtKapuaException;
+    void delete(GwtXSRFToken xsfrToken, String accountId, String gwtJobId) throws GwtKapuaException;
 
-    ListLoadResult<GwtGroupedNVPair> findJobDescription(String gwtScopeId, String gwtJobId)
-            throws GwtKapuaException;
+    /**
+     * Delete the supplied Job forcibly.
+     *
+     * @param gwtJobId
+     * @throws GwtKapuaException
+     */
+    void deleteForced(GwtXSRFToken xsfrToken, String accountId, String gwtJobId) throws GwtKapuaException;
+
+
+    ListLoadResult<GwtGroupedNVPair> findJobDescription(String gwtScopeId, String gwtJobId) throws GwtKapuaException;
 }

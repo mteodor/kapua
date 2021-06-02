@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -17,7 +18,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
-import org.eclipse.kapua.app.console.module.api.client.ui.button.Button;
+import org.eclipse.kapua.app.console.module.api.client.ui.button.KapuaButton;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.EntityCRUDToolbar;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.job.client.messages.ConsoleJobMessages;
@@ -29,7 +30,8 @@ public class JobTabExecutionsToolbar extends EntityCRUDToolbar<GwtJobExecution> 
 
     private String jobId;
 
-    private Button stopJobButton;
+    private KapuaButton stopJobButton;
+    private KapuaButton logExecutionButton;
 
     public JobTabExecutionsToolbar(GwtSession currentSession) {
         super(currentSession, true);
@@ -47,7 +49,7 @@ public class JobTabExecutionsToolbar extends EntityCRUDToolbar<GwtJobExecution> 
     @Override
     protected void onRender(Element target, int index) {
 
-        stopJobButton = new Button(JOB_MSGS.jobStopButton(), new KapuaIcon(IconSet.STOP), new SelectionListener<ButtonEvent>() {
+        stopJobButton = new KapuaButton(JOB_MSGS.jobStopButton(), new KapuaIcon(IconSet.STOP), new SelectionListener<ButtonEvent>() {
 
             @Override
             public void componentSelected(ButtonEvent buttonEvent) {
@@ -57,6 +59,15 @@ public class JobTabExecutionsToolbar extends EntityCRUDToolbar<GwtJobExecution> 
         });
         stopJobButton.disable();
         addExtraButton(stopJobButton);
+
+        logExecutionButton = new JobExecutionLogButton(new SelectionListener<ButtonEvent>() {
+            @Override
+            public void componentSelected(ButtonEvent buttonEvent) {
+                JobExecutionLogDialog logDialog = new JobExecutionLogDialog(gridSelectionModel.getSelectedItem());
+                logDialog.show();
+            }
+        });
+        addExtraButton(logExecutionButton);
 
         super.onRender(target, index);
 
@@ -77,6 +88,10 @@ public class JobTabExecutionsToolbar extends EntityCRUDToolbar<GwtJobExecution> 
 
         if (stopJobButton != null) {
             stopJobButton.setEnabled(gridSelectionModel != null && gridSelectionModel.getSelectedItem() != null && gridSelectionModel.getSelectedItem().getEndedOn() == null);
+        }
+
+        if (logExecutionButton != null) {
+            logExecutionButton.setEnabled(gridSelectionModel != null && gridSelectionModel.getSelectedItem() != null);
         }
     }
 

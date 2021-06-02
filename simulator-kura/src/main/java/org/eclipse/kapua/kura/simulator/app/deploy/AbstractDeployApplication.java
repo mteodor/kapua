@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Red Hat Inc and others
+ * Copyright (c) 2017, 2021 Red Hat Inc and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat Inc - initial API and implementation
@@ -31,6 +32,8 @@ import java.util.function.Function;
 public abstract class AbstractDeployApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractDeployApplication.class);
+
+    private static final String VERSION = "version";
 
     @Resource
     public void getBundles(final Request request) throws Exception {
@@ -168,7 +171,7 @@ public abstract class AbstractDeployApplication {
             ps.appendChild(p);
 
             addValue(p, "name", dp.getSymbolicName());
-            addValue(p, "version", dp.getVersion());
+            addValue(p, VERSION, dp.getVersion());
 
             final Element bs = doc.createElement("bundles");
             p.appendChild(bs);
@@ -178,7 +181,7 @@ public abstract class AbstractDeployApplication {
                 bs.appendChild(b);
 
                 addValue(b, "name", bi.getSymbolicName());
-                addValue(b, "version", bi.getVersion());
+                addValue(b, VERSION, bi.getVersion());
             }
         }
     }
@@ -195,7 +198,7 @@ public abstract class AbstractDeployApplication {
             final Element b = doc.createElement("bundle");
             bs.appendChild(b);
             addValue(b, "name", bi.getSymbolicName());
-            addValue(b, "version", bi.getVersion());
+            addValue(b, VERSION, bi.getVersion());
             addValue(b, "id", Long.toString(bi.getId()));
             addValue(b, "state", bi.getStateString());
         }

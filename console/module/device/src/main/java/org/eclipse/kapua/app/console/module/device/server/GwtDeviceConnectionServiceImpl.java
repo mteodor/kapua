@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,9 +22,9 @@ import org.eclipse.kapua.app.console.module.api.server.KapuaRemoteServiceServlet
 import org.eclipse.kapua.app.console.module.api.server.util.KapuaExceptionHandler;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtGroupedNVPair;
 import org.eclipse.kapua.app.console.module.api.shared.util.GwtKapuaCommonsModelConverter;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnection;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnection.GwtConnectionUserCouplingMode;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnectionQuery;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnection;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnection.GwtConnectionUserCouplingMode;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionQuery;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceConnectionService;
 import org.eclipse.kapua.app.console.module.device.shared.util.GwtKapuaDeviceModelConverter;
 import org.eclipse.kapua.app.console.module.device.shared.util.KapuaGwtDeviceModelConverter;
@@ -67,6 +68,9 @@ public class GwtDeviceConnectionServiceImpl extends KapuaRemoteServiceServlet im
     private static final UserService USER_SERVICE = LOCATOR.getService(UserService.class);
     private static final UserFactory USER_FACTORY = LOCATOR.getFactory(UserFactory.class);
 
+    private static final String CONNECTION_INFO = "connectionInfo";
+    private static final String CONNECTION_USER_COUPLING_MODE_INFO = "connectionUserCouplingModeInfo";
+
     @Override
     public PagingLoadResult<GwtDeviceConnection> query(PagingLoadConfig loadConfig, GwtDeviceConnectionQuery gwtDeviceConnectionQuery) throws GwtKapuaException {
 
@@ -76,7 +80,7 @@ public class GwtDeviceConnectionServiceImpl extends KapuaRemoteServiceServlet im
             DeviceConnectionQuery query = GwtKapuaDeviceModelConverter.convertConnectionQuery(loadConfig, gwtDeviceConnectionQuery);
 
             KapuaListResult<DeviceConnection> deviceConnections = DEVICE_CONNECTION_SERVICE.query(query);
-            totalLength = (int) DEVICE_CONNECTION_SERVICE.count(query);
+            totalLength = deviceConnections.getTotalCount().intValue();
 
             if (!deviceConnections.isEmpty()) {
                 Map<String, String> users = new HashMap<String, String>();
@@ -172,26 +176,26 @@ public class GwtDeviceConnectionServiceImpl extends KapuaRemoteServiceServlet im
                 reservedUser = null;
             }
 
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionStatus", deviceConnection.getStatus().toString()));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionModifiedOn", deviceConnection.getModifiedOn()));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionModifiedBy", modifiedUser != null ? modifiedUser.getName() : null));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionProtocol", deviceConnection.getProtocol()));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionClientId", deviceConnection.getClientId()));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionUser", connectionUser != null ? connectionUser.getName() : null));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionClientIp", deviceConnection.getClientIp()));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionServerIp", deviceConnection.getServerIp()));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionStatus", deviceConnection.getStatus().toString()));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionModifiedOn", deviceConnection.getModifiedOn()));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionModifiedBy", modifiedUser != null ? modifiedUser.getName() : null));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionProtocol", deviceConnection.getProtocol()));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionClientId", deviceConnection.getClientId()));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionUser", connectionUser != null ? connectionUser.getName() : null));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionClientIp", deviceConnection.getClientIp()));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionServerIp", deviceConnection.getServerIp()));
             GwtConnectionUserCouplingMode gwtConnectionUserCouplingMode = null;
             if (deviceConnection.getUserCouplingMode() != null) {
                 gwtConnectionUserCouplingMode = GwtConnectionUserCouplingMode.valueOf(deviceConnection.getUserCouplingMode().name());
             }
             deviceConnectionPropertiesPairs
-                    .add(new GwtGroupedNVPair("connectionUserCouplingModeInfo", "connectionUserCouplingMode", gwtConnectionUserCouplingMode != null ? gwtConnectionUserCouplingMode.getLabel() : null));
+                    .add(new GwtGroupedNVPair(CONNECTION_USER_COUPLING_MODE_INFO, "connectionUserCouplingMode", gwtConnectionUserCouplingMode != null ? gwtConnectionUserCouplingMode.getLabel() : null));
             if (AUTHORIZATION_SERVICE.isPermitted(PERMISSION_FACTORY.newPermission(new UserDomain(), Actions.read, scopeId))) {
-                deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionUserCouplingModeInfo", "connectionReservedUser", reservedUser != null ? reservedUser.getName() : null));
-                deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionUserCouplingModeInfo", "allowUserChange", deviceConnection.getAllowUserChange()));
+                deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_USER_COUPLING_MODE_INFO, "connectionReservedUser", reservedUser != null ? reservedUser.getName() : null));
+                deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_USER_COUPLING_MODE_INFO, "allowUserChange", deviceConnection.getAllowUserChange()));
             }
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionFirstEstablishedOn", deviceConnection.getCreatedOn()));
-            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair("connectionInfo", "connectionFirstEstablishedBy", createdUser != null ? createdUser.getName() : null));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionFirstEstablishedOn", deviceConnection.getCreatedOn()));
+            deviceConnectionPropertiesPairs.add(new GwtGroupedNVPair(CONNECTION_INFO, "connectionFirstEstablishedBy", createdUser != null ? createdUser.getName() : null));
 
         } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);

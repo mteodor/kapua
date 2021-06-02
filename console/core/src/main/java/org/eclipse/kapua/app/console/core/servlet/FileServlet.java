@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,16 +13,17 @@
 package org.eclipse.kapua.app.console.core.servlet;
 
 import org.apache.commons.fileupload.FileItem;
-import org.eclipse.kapua.DeviceMenagementException;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.CharEncoding;
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaIllegalAccessException;
 import org.eclipse.kapua.KapuaIllegalArgumentException;
 import org.eclipse.kapua.KapuaUnauthenticatedException;
+import org.eclipse.kapua.app.console.core.shared.model.KapuaFormFields;
 import org.eclipse.kapua.app.console.module.api.server.KapuaRemoteServiceServlet;
 import org.eclipse.kapua.app.console.module.api.setting.ConsoleSetting;
 import org.eclipse.kapua.app.console.module.api.setting.ConsoleSettingKeys;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtXSRFToken;
-import org.eclipse.kapua.app.console.core.shared.model.KapuaFormFields;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.service.device.management.command.DeviceCommandFactory;
@@ -29,8 +31,7 @@ import org.eclipse.kapua.service.device.management.command.DeviceCommandInput;
 import org.eclipse.kapua.service.device.management.command.DeviceCommandManagementService;
 import org.eclipse.kapua.service.device.management.command.DeviceCommandOutput;
 import org.eclipse.kapua.service.device.management.configuration.DeviceConfigurationManagementService;
-
-import org.apache.commons.io.IOUtils;
+import org.eclipse.kapua.service.device.management.exception.DeviceManagementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +50,14 @@ public class FileServlet extends KapuaHttpServlet {
     private static final long serialVersionUID = -5016170117606322129L;
     private static final Logger logger = LoggerFactory.getLogger(FileServlet.class);
 
+    private static final String SCOPE_ID_STRING = "scopeIdString";
+    private static final String DEVICE_ID_STRING = "deviceIdString";
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("text/html");
-        resp.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding(CharEncoding.UTF_8);
 
         String reqPathInfo = req.getPathInfo();
         if (reqPathInfo == null) {
@@ -77,7 +81,6 @@ public class FileServlet extends KapuaHttpServlet {
             doPostConfigurationSnapshot(kapuaFormFields, resp);
         } else {
             resp.sendError(404);
-            return;
         }
     }
 
@@ -85,15 +88,15 @@ public class FileServlet extends KapuaHttpServlet {
             throws IOException {
         try {
             List<FileItem> fileItems = kapuaFormFields.getFileItems();
-            String scopeIdString = kapuaFormFields.get("scopeIdString");
-            String deviceIdString = kapuaFormFields.get("deviceIdString");
+            String scopeIdString = kapuaFormFields.get(SCOPE_ID_STRING);
+            String deviceIdString = kapuaFormFields.get(DEVICE_ID_STRING);
 
             if (scopeIdString == null || scopeIdString.isEmpty()) {
-                throw new IllegalArgumentException("scopeIdString");
+                throw new IllegalArgumentException(SCOPE_ID_STRING);
             }
 
             if (deviceIdString == null || deviceIdString.isEmpty()) {
-                throw new IllegalArgumentException("deviceIdString");
+                throw new IllegalArgumentException(DEVICE_ID_STRING);
             }
 
             if (fileItems == null || fileItems.size() != 1) {
@@ -105,7 +108,7 @@ public class FileServlet extends KapuaHttpServlet {
 
             FileItem fileItem = fileItems.get(0);
             byte[] data = fileItem.get();
-            String xmlConfigurationString = new String(data, "UTF-8");
+            String xmlConfigurationString = new String(data, CharEncoding.UTF_8);
 
             deviceConfigurationManagementService.put(KapuaEid.parseCompactId(scopeIdString),
                     KapuaEid.parseCompactId(deviceIdString),
@@ -114,28 +117,21 @@ public class FileServlet extends KapuaHttpServlet {
 
         } catch (IllegalArgumentException iae) {
             resp.sendError(400, "Illegal value for query parameter: " + iae.getMessage());
-            return;
         } catch (KapuaEntityNotFoundException eenfe) {
             resp.sendError(400, eenfe.getMessage());
-            return;
         } catch (KapuaUnauthenticatedException eiae) {
             resp.sendError(401, eiae.getMessage());
-            return;
         } catch (KapuaIllegalAccessException eiae) {
             resp.sendError(403, eiae.getMessage());
-            return;
-        } catch (DeviceMenagementException edme) {
-            logger.error("Device menagement exception", edme);
+        } catch (DeviceManagementException edme) {
+            logger.error("Device management exception", edme);
             resp.sendError(404, edme.getMessage());
-            return;
         } catch (KapuaIllegalArgumentException kiae) {
             logger.error("Illegal argument exception", kiae);
             resp.sendError(400, kiae.getArgumentName());
-            return;
         } catch (Exception e) {
-            logger.error("Generic error", e);
+            logger.error("Generic error: {}", e.getMessage(), e);
             resp.sendError(500, e.getMessage());
-            return;
         }
     }
 
@@ -144,8 +140,8 @@ public class FileServlet extends KapuaHttpServlet {
         try {
             List<FileItem> fileItems = kapuaFormFields.getFileItems();
 
-            final String scopeIdString = kapuaFormFields.get("scopeIdString");
-            final String deviceIdString = kapuaFormFields.get("deviceIdString");
+            final String scopeIdString = kapuaFormFields.get(SCOPE_ID_STRING);
+            final String deviceIdString = kapuaFormFields.get(DEVICE_ID_STRING);
             final String command = kapuaFormFields.get("command");
             final String password = kapuaFormFields.get("password");
             final String timeoutString = kapuaFormFields.get("timeout");
@@ -168,18 +164,14 @@ public class FileServlet extends KapuaHttpServlet {
 
             Integer timeout = null;
             if (timeoutString != null && !timeoutString.isEmpty()) {
-                try {
-                    timeout = Integer.parseInt(timeoutString);
-                } catch (NumberFormatException nfe) {
-                    throw new IllegalArgumentException("timeout");
-                }
+                timeout = Integer.parseInt(timeoutString);
             }
 
             KapuaLocator locator = KapuaLocator.getInstance();
             DeviceCommandManagementService deviceService = locator.getService(DeviceCommandManagementService.class);
 
             // FIXME: set a max size on the MQtt payload
-            byte[] data = fileItems.size() == 0 ? null : fileItems.get(0).get();
+            byte[] data = fileItems.isEmpty() ? null : fileItems.get(0).get();
 
             DeviceCommandFactory deviceCommandFactory = locator.getFactory(DeviceCommandFactory.class);
             DeviceCommandInput commandInput = deviceCommandFactory.newCommandInput();
@@ -190,7 +182,10 @@ public class FileServlet extends KapuaHttpServlet {
             String cmd = count > 0 ? st.nextToken() : null;
             String[] args = count > 1 ? new String[count - 1] : null;
             int i = 0;
-            while (st.hasMoreTokens()) {
+            /* if count == 0 args is null but st will have no tokens so the while loop won't trigger
+             Sonar complains that args may not be null: in fact it will never be, but let's make him happy and test
+             for args != null as well */
+            while (st.hasMoreTokens() && args != null) {
                 args[i++] = st.nextToken();
             }
 
@@ -221,31 +216,30 @@ public class FileServlet extends KapuaHttpServlet {
 
         } catch (IllegalArgumentException iae) {
             resp.sendError(400, "Illegal value for query parameter: " + iae.getMessage());
-            return;
         } catch (KapuaEntityNotFoundException eenfe) {
             resp.sendError(400, eenfe.getMessage());
-            return;
         } catch (KapuaUnauthenticatedException eiae) {
             resp.sendError(401, eiae.getMessage());
-            return;
         } catch (KapuaIllegalAccessException eiae) {
             resp.sendError(403, eiae.getMessage());
-            return;
-        } catch (DeviceMenagementException edme) {
-            logger.error("Device menagement exception", edme);
+        } catch (DeviceManagementException edme) {
+            logger.error("Device management exception", edme);
             resp.sendError(404, edme.getMessage());
-            return;
         } catch (Exception e) {
-            logger.error("Generic error", e);
+            logger.error("Generic error: {}", e.getMessage(), e);
             resp.sendError(500, e.getMessage());
-            return;
         }
     }
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         String reqPathInfo = request.getPathInfo();
+
+        if (reqPathInfo == null) {
+            response.sendError(404);
+            return;
+        }
 
         if (reqPathInfo.startsWith("/icons")) {
             doGetIconResource(request, response);
@@ -255,7 +249,7 @@ public class FileServlet extends KapuaHttpServlet {
     }
 
     private void doGetIconResource(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws IOException {
         final String id = request.getParameter("id");
 
         if (id == null || id.isEmpty()) {
@@ -286,9 +280,8 @@ public class FileServlet extends KapuaHttpServlet {
         }
 
         response.setContentType("application/octet-stream");
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding(CharEncoding.UTF_8);
         OutputStream out = response.getOutputStream();
         IOUtils.copy(new FileInputStream(requestedFile), out);
     }
 }
-

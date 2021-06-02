@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,23 +15,26 @@ package org.eclipse.kapua.service.device.management.command;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.KapuaService;
+import org.eclipse.kapua.service.device.management.DeviceManagementService;
+import org.eclipse.kapua.service.device.registry.Device;
 
 /**
- * Device bundle service definition.
+ * {@link DeviceCommand} {@link KapuaService} definition.
  *
- * @since 1.0
+ * @since 1.0.0
  */
-public interface DeviceCommandManagementService extends KapuaService {
+public interface DeviceCommandManagementService extends DeviceManagementService {
 
     /**
-     * Execute the given device command with the provided options
+     * Executes the given {@link DeviceCommandInput} on the target {@link Device}.
      *
-     * @param scopeId
-     * @param deviceId
-     * @param commandInput
-     * @param timeout      command timeout
-     * @return
+     * @param scopeId      The {@link Device#getScopeId()}.
+     * @param deviceId     The {@link Device#getId()}.
+     * @param commandInput The {@link DeviceCommandInput} to be executed.
+     * @param timeout      The time to wait the {@link Device} response.
+     * @return The {@link DeviceCommandOutput} containing the execution result.
      * @throws KapuaException
+     * @since 1.0.0
      */
     DeviceCommandOutput exec(KapuaId scopeId, KapuaId deviceId, DeviceCommandInput commandInput, Long timeout) throws KapuaException;
 }

@@ -1,25 +1,26 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.device.shared.model;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-
+import com.google.gwt.user.client.rpc.IsSerializable;
 import org.eclipse.kapua.app.console.module.api.client.util.DateUtils;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtUpdatableEntityModel;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceQueryPredicates.GwtGroupDevice;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionStatus;
 
-import com.google.gwt.user.client.rpc.IsSerializable;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
 public class GwtDevice extends GwtUpdatableEntityModel implements Serializable {
 
@@ -31,6 +32,7 @@ public class GwtDevice extends GwtUpdatableEntityModel implements Serializable {
     private static final String CUSTOM_ATTRIBUTE_3 = "customAttribute3";
     private static final String CUSTOM_ATTRIBUTE_4 = "customAttribute4";
     private static final String CUSTOM_ATTRIBUTE_5 = "customAttribute5";
+    private static final long serialVersionUID = -7294466782978445365L;
 
     public enum GwtDeviceApplication implements IsSerializable {
 
@@ -38,11 +40,12 @@ public class GwtDevice extends GwtUpdatableEntityModel implements Serializable {
         APP_COMMAND("CMD-V1"), //
         APP_DEPLOY_V1("DEPLOY-V1"), //
         APP_DEPLOY_V2("DEPLOY-V2"), //
+        APP_INVENTORY_V1("INVENTORY-V1"), //
         APP_PROV_V1("PROV-V1"), //
         APP_PROV_V2("PROV-V2"), //
         APP_PROV_V3("PROV-V3"), //
         APP_VPN_CLIENT("VPNCLIENT-V1"), //
-        APP_CERTIFICATES("CERT-V1"), // 
+        APP_CERTIFICATES("CERT-V1"), //
         APP_ASSET_V1("ASSET-V1");
 
         private final String appId;
@@ -57,7 +60,6 @@ public class GwtDevice extends GwtUpdatableEntityModel implements Serializable {
     }
 
     @Override
-    @SuppressWarnings({ "unchecked" })
     public <X> X get(String property) {
         if ("lastEventOnFormatted".equals(property)) {
             Date lastEventOn = getLastEventOn();
@@ -548,7 +550,7 @@ public class GwtDevice extends GwtUpdatableEntityModel implements Serializable {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof GwtDevice) {
-            return ((GwtDevice)obj).getId().equals(getId());
+            return ((GwtDevice) obj).getId().equals(getId());
         }
         return false;
     }

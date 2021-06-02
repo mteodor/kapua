@@ -1,17 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.commons.model;
 
-import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.model.KapuaNamedEntity;
 import org.eclipse.kapua.model.KapuaUpdatableEntity;
 import org.eclipse.kapua.model.id.KapuaId;
@@ -40,7 +40,7 @@ public abstract class AbstractKapuaNamedEntity extends AbstractKapuaUpdatableEnt
     protected String description;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @since 1.0.0
      */
@@ -49,7 +49,7 @@ public abstract class AbstractKapuaNamedEntity extends AbstractKapuaUpdatableEnt
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param scopeId The scope {@link KapuaId}.
      * @since 1.0.0
@@ -59,10 +59,10 @@ public abstract class AbstractKapuaNamedEntity extends AbstractKapuaUpdatableEnt
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param scopeId The scope {@link KapuaId}.
-     * @param name    The name of this {@link org.eclipse.kapua.model.KapuaEntity}
+     * @param name    The name of this {@link org.eclipse.kapua.model.KapuaEntity}.
      * @since 1.0.0
      */
     public AbstractKapuaNamedEntity(KapuaId scopeId, String name) {
@@ -74,12 +74,11 @@ public abstract class AbstractKapuaNamedEntity extends AbstractKapuaUpdatableEnt
     /**
      * Constructor.
      * <p>
-     * It can be used to clone the {@link KapuaUpdatableEntity}
+     * It can be used to clone the {@link KapuaUpdatableEntity}.
      *
-     * @throws KapuaException if {@link KapuaUpdatableEntity#getEntityAttributes()} and/or {@link KapuaUpdatableEntity#getEntityProperties()} cannot be parsed.
      * @since 1.0.0
      */
-    protected AbstractKapuaNamedEntity(KapuaNamedEntity kapuaNamedEntity) throws KapuaException {
+    protected AbstractKapuaNamedEntity(KapuaNamedEntity kapuaNamedEntity) {
         super(kapuaNamedEntity);
 
         setName(kapuaNamedEntity.getName());

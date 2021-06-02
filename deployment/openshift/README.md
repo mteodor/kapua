@@ -61,19 +61,19 @@ After this command, you'll need to run again `./openshift-initialize.sh` if you 
 #### Setting the Kapua version
 Other than the default deployment it is possible to run other versions of Kapua.
 
-By default the `latest` version of Kapua will be brought up. 
+By default the `latest` version of Kapua will be brought up.
 You can change the version of Kapua by exporting the environment variable `IMAGE_VERSION`.
 
 Example:
 ```bash
-export IMAGE_VERSION=1.0.0
+export IMAGE_VERSION=1.4.0
 ``` 
 
 #### Passing additional JAVA_OPTS
 If you want to pass to the JVM additional optional parameters you can set the `JAVA_OPTS_EXTRA` environment variable.<br>
 Example:
 ```bash
-export JAVA_OPTS_EXTRA="-Drequest.timeout=60000"
+export JAVA_OPTS_EXTRA="-Ddevice.management.request.timeout=60000"
 ``` 
 
 #### Building containers from scratch
@@ -81,13 +81,11 @@ If you want to build containers from the code, you'll need to build the whole Ka
 
 From the project root directory, run:
 ```bash
-mvn clean install -f external/pom.xml
 mvn clean install -Pdocker
 ```
 
 To build also the Admin Web Console container, which is excluded by default, add the `console` profile:
 ```bash
-mvn clean install -f external/pom.xml
 mvn clean install -Pconsole,docker
 ```
 

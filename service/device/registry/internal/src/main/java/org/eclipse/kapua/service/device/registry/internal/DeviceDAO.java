@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -67,6 +68,7 @@ public class DeviceDAO extends ServiceDAO {
         device.setCustomAttribute3(deviceCreator.getCustomAttribute3());
         device.setCustomAttribute4(deviceCreator.getCustomAttribute4());
         device.setCustomAttribute5(deviceCreator.getCustomAttribute5());
+        device.setExtendedProperties(deviceCreator.getExtendedProperties());
 
         device.setConnectionId(deviceCreator.getConnectionId());
         device.setLastEventId(deviceCreator.getLastEventId());
@@ -107,7 +109,7 @@ public class DeviceDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static DeviceListResult query(EntityManager em, KapuaQuery<Device> query)
+    public static DeviceListResult query(EntityManager em, KapuaQuery query)
             throws KapuaException {
 
         handleKapuaQueryGroupPredicate(query, DeviceDomains.DEVICE_DOMAIN, DeviceAttributes.GROUP_ID);
@@ -118,13 +120,13 @@ public class DeviceDAO extends ServiceDAO {
         List<String> fetchAttributes = query.getFetchAttributes();
 
         boolean deviceConnectionFetchAdded = false;
-        if (fetchAttributes == null || !fetchAttributes.contains(DeviceAttributes.CONNECTION)) {
+        if (!fetchAttributes.contains(DeviceAttributes.CONNECTION)) {
             deviceConnectionFetchAdded = true;
             query.addFetchAttributes(DeviceAttributes.CONNECTION);
         }
 
         boolean deviceLastEventFetchAdded = false;
-        if (fetchAttributes == null || !fetchAttributes.contains(DeviceAttributes.LAST_EVENT)) {
+        if (!fetchAttributes.contains(DeviceAttributes.LAST_EVENT)) {
             deviceLastEventFetchAdded = true;
             query.addFetchAttributes(DeviceAttributes.LAST_EVENT);
         }
@@ -156,7 +158,7 @@ public class DeviceDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<Device> query)
+    public static long count(EntityManager em, KapuaQuery query)
             throws KapuaException {
         handleKapuaQueryGroupPredicate(query, DeviceDomains.DEVICE_DOMAIN, DeviceAttributes.GROUP_ID);
 
@@ -169,9 +171,10 @@ public class DeviceDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param deviceId
+     * @return the deleted {@link Device}
      * @throws KapuaEntityNotFoundException If {@link Device} is not found.
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId deviceId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, DeviceImpl.class, scopeId, deviceId);
+    public static Device delete(EntityManager em, KapuaId scopeId, KapuaId deviceId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, DeviceImpl.class, scopeId, deviceId);
     }
 }

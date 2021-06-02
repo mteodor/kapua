@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -88,7 +89,7 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
             }
         }
 
-        return entityManagerSession.onTransactedResult(em -> {
+        return entityManagerSession.doTransactedAction(em -> {
             if (DeviceConnectionOptionDAO.find(em, deviceConnectionOptions.getScopeId(), deviceConnectionOptions.getId()) == null) {
                 throw new KapuaEntityNotFoundException(DeviceConnectionOption.TYPE, deviceConnectionOptions.getId());
             }
@@ -112,16 +113,15 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_CONNECTION_DOMAIN, Actions.read, scopeId));
 
-        return entityManagerSession.onResult(em -> DeviceConnectionOptionDAO.find(em, scopeId, entityId));
+        return entityManagerSession.doAction(em -> DeviceConnectionOptionDAO.find(em, scopeId, entityId));
     }
 
     @Override
-    public DeviceConnectionOptionListResult query(KapuaQuery<DeviceConnectionOption> query)
+    public DeviceConnectionOptionListResult query(KapuaQuery query)
             throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -130,16 +130,15 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_CONNECTION_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> DeviceConnectionOptionDAO.query(em, query));
+        return entityManagerSession.doAction(em -> DeviceConnectionOptionDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<DeviceConnectionOption> query)
+    public long count(KapuaQuery query)
             throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -148,7 +147,7 @@ public class DeviceConnectionOptionServiceImpl extends AbstractKapuaService impl
         PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_CONNECTION_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> DeviceConnectionOptionDAO.count(em, query));
+        return entityManagerSession.doAction(em -> DeviceConnectionOptionDAO.count(em, query));
     }
 
     @Override

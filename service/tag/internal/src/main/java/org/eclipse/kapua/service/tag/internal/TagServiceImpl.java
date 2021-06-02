@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -17,7 +18,6 @@ import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.KapuaMaxNumberOfItemsReachedException;
 import org.eclipse.kapua.commons.configuration.AbstractKapuaConfigurableResourceLimitedService;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
@@ -34,6 +34,10 @@ import org.eclipse.kapua.service.tag.TagListResult;
 import org.eclipse.kapua.service.tag.TagQuery;
 import org.eclipse.kapua.service.tag.TagService;
 
+import javax.inject.Inject;
+
+//import org.eclipse.kapua.locator.KapuaLocator;
+
 /**
  * {@link TagService} implementation.
  *
@@ -42,10 +46,11 @@ import org.eclipse.kapua.service.tag.TagService;
 @KapuaProvider
 public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedService<Tag, TagCreator, TagService, TagListResult, TagQuery, TagFactory> implements TagService {
 
-    private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
+    @Inject
+    private AuthorizationService authorizationService;
 
-    private static final AuthorizationService AUTHORIZATION_SERVICE = LOCATOR.getService(AuthorizationService.class);
-    private static final PermissionFactory PERMISSION_FACTORY = LOCATOR.getFactory(PermissionFactory.class);
+    @Inject
+    private PermissionFactory permissionFactory;
 
     public TagServiceImpl() {
         super(TagService.class.getName(), TagDomains.TAG_DOMAIN, TagEntityManagerFactory.getInstance(), TagService.class, TagFactory.class);
@@ -57,11 +62,11 @@ public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
         // Argument validation
         ArgumentValidator.notNull(tagCreator, "tagCreator");
         ArgumentValidator.notNull(tagCreator.getScopeId(), "tagCreator.scopeId");
-        ArgumentValidator.notEmptyOrNull(tagCreator.getName(), "tagCreator.name");
+        ArgumentValidator.validateEntityName(tagCreator.getName(), "tagCreator.name");
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(TagDomains.TAG_DOMAIN, Actions.write, tagCreator.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(TagDomains.TAG_DOMAIN, Actions.write, tagCreator.getScopeId()));
 
         //
         // Check limit
@@ -80,7 +85,7 @@ public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
 
         //
         // Do create
-        return entityManagerSession.onTransactedInsert(em -> TagDAO.create(em, tagCreator));
+        return entityManagerSession.doTransactedAction(em -> TagDAO.create(em, tagCreator));
     }
 
     @Override
@@ -88,13 +93,13 @@ public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
         //
         // Argument validation
         ArgumentValidator.notNull(tag, "tag");
-        ArgumentValidator.notNull(tag.getScopeId(), "tag.scopeId");
         ArgumentValidator.notNull(tag.getId(), "tag.id");
-        ArgumentValidator.notEmptyOrNull(tag.getName(), "tag.name");
+        ArgumentValidator.notNull(tag.getScopeId(), "tag.scopeId");
+        ArgumentValidator.validateEntityName(tag.getName(), "tag.name");
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(TagDomains.TAG_DOMAIN, Actions.write, tag.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(TagDomains.TAG_DOMAIN, Actions.write, tag.getScopeId()));
 
         //
         // Check existence
@@ -118,7 +123,7 @@ public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
 
         //
         // Do Update
-        return entityManagerSession.onTransactedResult(em -> TagDAO.update(em, tag));
+        return entityManagerSession.doTransactedAction(em -> TagDAO.update(em, tag));
     }
 
     @Override
@@ -130,7 +135,7 @@ public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(TagDomains.TAG_DOMAIN, Actions.delete, scopeId));
+        authorizationService.checkPermission(permissionFactory.newPermission(TagDomains.TAG_DOMAIN, Actions.delete, scopeId));
 
         //
         // Check existence
@@ -140,7 +145,7 @@ public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
 
         //
         //
-        entityManagerSession.onTransactedAction(em -> TagDAO.delete(em, scopeId, tagId));
+        entityManagerSession.doTransactedAction(em -> TagDAO.delete(em, scopeId, tagId));
     }
 
     @Override
@@ -152,42 +157,40 @@ public class TagServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(TagDomains.TAG_DOMAIN, Actions.read, scopeId));
+        authorizationService.checkPermission(permissionFactory.newPermission(TagDomains.TAG_DOMAIN, Actions.read, scopeId));
 
         //
         // Do find
-        return entityManagerSession.onResult(em -> TagDAO.find(em, scopeId, tagId));
+        return entityManagerSession.doAction(em -> TagDAO.find(em, scopeId, tagId));
     }
 
     @Override
-    public TagListResult query(KapuaQuery<Tag> query) throws KapuaException {
+    public TagListResult query(KapuaQuery query) throws KapuaException {
         //
         // Argument validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(TagDomains.TAG_DOMAIN, Actions.read, query.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(TagDomains.TAG_DOMAIN, Actions.read, query.getScopeId()));
 
         //
         // Do query
-        return entityManagerSession.onResult(em -> TagDAO.query(em, query));
+        return entityManagerSession.doAction(em -> TagDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<Tag> query) throws KapuaException {
+    public long count(KapuaQuery query) throws KapuaException {
         //
         // Argument validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(TagDomains.TAG_DOMAIN, Actions.read, query.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(TagDomains.TAG_DOMAIN, Actions.read, query.getScopeId()));
 
         //
         // Do count
-        return entityManagerSession.onResult(em -> TagDAO.count(em, query));
+        return entityManagerSession.doAction(em -> TagDAO.count(em, query));
     }
 }

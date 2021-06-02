@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -22,10 +23,9 @@ import org.eclipse.kapua.service.scheduler.trigger.TriggerCreator;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerListResult;
 
 /**
- * Trigger DAO
- * 
- * @since 1.0
+ * {@link Trigger} DAO.
  *
+ * @since 1.0.0
  */
 public class TriggerDAO {
 
@@ -33,38 +33,34 @@ public class TriggerDAO {
     }
 
     /**
-     * Creates and return new Trigger
-     * 
-     * @param em
-     * @param triggerCreator
-     * @return
-     * @throws KapuaException
+     * Creates and return new {@link Trigger}
+     *
+     * @param em             The {@link EntityManager} that owns the transaction.
+     * @param triggerCreator The {@link TriggerCreator} to persist.
+     * @return The newly created {@link Trigger}.
+     * @since 1.0.0
      */
-    public static Trigger create(EntityManager em, TriggerCreator triggerCreator)
-            throws KapuaException {
-        //
-        // Create Trigger
+    public static Trigger create(EntityManager em, TriggerCreator triggerCreator) {
         TriggerImpl triggerImpl = new TriggerImpl(triggerCreator.getScopeId());
         triggerImpl.setName(triggerCreator.getName());
         triggerImpl.setStartsOn(triggerCreator.getStartsOn());
         triggerImpl.setEndsOn(triggerCreator.getEndsOn());
-        triggerImpl.setCronScheduling(triggerCreator.getCronScheduling());
-        triggerImpl.setRetryInterval(triggerCreator.getRetryInterval());
+        triggerImpl.setTriggerDefinitionId(triggerCreator.getTriggerDefinitionId());
         triggerImpl.setTriggerProperties(triggerCreator.getTriggerProperties());
 
         return ServiceDAO.create(em, triggerImpl);
     }
 
     /**
-     * Updates the provided trigger
-     * 
-     * @param em
-     * @param trigger
-     * @return
-     * @throws KapuaException
+     * Updates the provided {@link Trigger}
+     *
+     * @param em      The {@link EntityManager} that owns the transaction.
+     * @param trigger The {@link Trigger} to update.
+     * @return The updated {@link Trigger}.
+     * @throws KapuaException if error occurs while updating.
+     * @since 1.0.0
      */
-    public static Trigger update(EntityManager em, Trigger trigger)
-            throws KapuaException {
+    public static Trigger update(EntityManager em, Trigger trigger) throws KapuaException {
         //
         // Update trigger
         TriggerImpl triggerImpl = (TriggerImpl) trigger;
@@ -75,10 +71,11 @@ public class TriggerDAO {
     /**
      * Finds the trigger by trigger identifier
      *
-     * @param em
-     * @param scopeId
-     * @param triggerId
-     * @return
+     * @param em        The {@link EntityManager} that owns the transaction
+     * @param scopeId   The {@link Trigger#getScopeId()}.
+     * @param triggerId The {@link Trigger#getId()}.
+     * @return The found {@link Trigger} or {@code null}.
+     * @since 1.0.0
      */
     public static Trigger find(EntityManager em, KapuaId scopeId, KapuaId triggerId) {
         return ServiceDAO.find(em, TriggerImpl.class, scopeId, triggerId);
@@ -87,12 +84,13 @@ public class TriggerDAO {
     /**
      * Returns the trigger list matching the provided query
      *
-     * @param em
-     * @param triggerQuery
-     * @return
-     * @throws KapuaException
+     * @param em           The {@link EntityManager} that owns the transaction.
+     * @param triggerQuery The {@link org.eclipse.kapua.service.scheduler.trigger.TriggerQuery} to perform
+     * @return The {@link TriggerListResult} matching the given query.
+     * @throws KapuaException if error occurs while quering.
+     * @since 1.0.0
      */
-    public static TriggerListResult query(EntityManager em, KapuaQuery<Trigger> triggerQuery)
+    public static TriggerListResult query(EntityManager em, KapuaQuery triggerQuery)
             throws KapuaException {
         return ServiceDAO.query(em, Trigger.class, TriggerImpl.class, new TriggerListResultImpl(), triggerQuery);
     }
@@ -100,12 +98,13 @@ public class TriggerDAO {
     /**
      * Returns the trigger count matching the provided query
      *
-     * @param em
-     * @param triggerQuery
-     * @return
-     * @throws KapuaException
+     * @param em           The {@link EntityManager} that owns the transaction.
+     * @param triggerQuery The {@link org.eclipse.kapua.service.scheduler.trigger.TriggerQuery} to perform
+     * @return The {@link TriggerListResult} matching the given query.
+     * @throws KapuaException if error occurs while counting.
+     * @since 1.0.0
      */
-    public static long count(EntityManager em, KapuaQuery<Trigger> triggerQuery)
+    public static long count(EntityManager em, KapuaQuery triggerQuery)
             throws KapuaException {
         return ServiceDAO.count(em, Trigger.class, TriggerImpl.class, triggerQuery);
     }
@@ -113,14 +112,15 @@ public class TriggerDAO {
     /**
      * Deletes the trigger by trigger identifier
      *
-     * @param em
-     * @param scopeId
-     * @param triggerId
-     * @throws KapuaEntityNotFoundException
-     *             If the {@link Trigger} is not found
+     * @param em        The {@link EntityManager} that owns the transaction.
+     * @param scopeId   The {@link Trigger#getScopeId()}.
+     * @param triggerId The {@link Trigger#getId()}
+     * @return deleted entity
+     * @throws KapuaEntityNotFoundException If the {@link Trigger} is not found
+     * @since 1.0.0
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId triggerId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, TriggerImpl.class, scopeId, triggerId);
+    public static Trigger delete(EntityManager em, KapuaId scopeId, KapuaId triggerId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, TriggerImpl.class, scopeId, triggerId);
     }
 
 }

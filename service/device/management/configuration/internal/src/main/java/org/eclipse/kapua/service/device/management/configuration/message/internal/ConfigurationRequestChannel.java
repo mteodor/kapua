@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,49 +13,57 @@
 package org.eclipse.kapua.service.device.management.configuration.message.internal;
 
 import org.eclipse.kapua.service.device.management.commons.message.request.KapuaRequestChannelImpl;
+import org.eclipse.kapua.service.device.management.configuration.DeviceComponentConfiguration;
+import org.eclipse.kapua.service.device.management.configuration.DeviceConfiguration;
+import org.eclipse.kapua.service.device.management.message.request.KapuaRequestChannel;
 
 /**
- * Device configuration request channel.
- * 
- * @since 1.0
- * 
+ * {@link DeviceConfiguration} {@link KapuaRequestChannel} implementation.
+ *
+ * @since 1.0.0
  */
-public class ConfigurationRequestChannel extends KapuaRequestChannelImpl {
+public class ConfigurationRequestChannel extends KapuaRequestChannelImpl implements KapuaRequestChannel {
+
+    private static final long serialVersionUID = 4679870909531884966L;
 
     private String configurationId;
     private String componentId;
 
     /**
-     * Get the device configuration identifier
-     * 
-     * @return
+     * Gets the {@link DeviceConfiguration} identifier.
+     *
+     * @return The {@link DeviceConfiguration} identifier.
+     * @since 1.0.0
      */
     public String getConfigurationId() {
         return configurationId;
     }
 
     /**
-     * Set the device configuration identifier
-     * 
-     * @param configurationId
+     * Sets the {@link DeviceConfiguration} identifier.
+     *
+     * @param configurationId The {@link DeviceConfiguration} identifier.
+     * @since 1.0.0
      */
     public void setConfigurationId(String configurationId) {
         this.configurationId = configurationId;
     }
 
     /**
-     * Get the device configuration component identifier
-     * 
-     * @return
+     * Gets the {@link DeviceComponentConfiguration#getId()}.
+     *
+     * @return The {@link DeviceComponentConfiguration#getId()}.
+     * @since 1.0.0
      */
     public String getComponentId() {
         return componentId;
     }
 
     /**
-     * Set the device configuration component identifier
-     * 
-     * @param componentId
+     * Sets the {@link DeviceComponentConfiguration#getId()}.
+     *
+     * @param componentId The {@link DeviceComponentConfiguration#getId()}.
+     * @since 1.0.0
      */
     public void setComponentId(String componentId) {
         this.componentId = componentId;

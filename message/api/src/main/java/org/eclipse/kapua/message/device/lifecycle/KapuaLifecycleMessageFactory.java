@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2019, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -115,29 +116,4 @@ public interface KapuaLifecycleMessageFactory extends KapuaObjectFactory {
      * @since 1.1.0
      */
     KapuaMissingPayload newKapuaMissingPayload();
-
-    /**
-     * Creates a new {@link KapuaUnmatchedMessage}
-     *
-     * @return the new {@link KapuaUnmatchedMessage}
-     * @since 1.1.0
-     */
-    KapuaUnmatchedMessage newKapuaUnmatchedMessage();
-
-    /**
-     * Creates a new {@link KapuaUnmatchedChannel}
-     *
-     * @return the new {@link KapuaUnmatchedChannel}
-     * @since 1.1.0
-     */
-    KapuaUnmatchedChannel newKapuaUnmatchedChannel();
-
-    /**
-     * Creates a new {@link KapuaUnmatchedPayload}.
-     *
-     * @return the new {@link KapuaUnmatchedPayload}.
-     * @since 1.1.0
-     */
-    KapuaUnmatchedPayload newKapuaUnmatchedPayload();
-
 }

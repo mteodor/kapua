@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,29 +13,35 @@
 package org.eclipse.kapua.service.device.management.snapshot.message.internal;
 
 import org.eclipse.kapua.service.device.management.commons.message.request.KapuaRequestChannelImpl;
+import org.eclipse.kapua.service.device.management.message.request.KapuaRequestChannel;
+import org.eclipse.kapua.service.device.management.snapshot.DeviceSnapshot;
 
 /**
- * Device snapshot request channel.
+ * {@link DeviceSnapshot} {@link KapuaRequestChannel} implementation.
  *
- * @since 1.0
+ * @since 1.0.0
  */
-public class SnapshotRequestChannel extends KapuaRequestChannelImpl {
+public class SnapshotRequestChannel extends KapuaRequestChannelImpl implements KapuaRequestChannel {
+
+    private static final long serialVersionUID = 7526183410364623630L;
 
     private String snapshotId;
 
     /**
-     * Get the snapshot identifier
+     * Gets the {@link DeviceSnapshot#getId()}.
      *
-     * @return
+     * @return The {@link DeviceSnapshot#getId()}.
+     * @since 1.0.0
      */
     public String getSnapshotId() {
         return snapshotId;
     }
 
     /**
-     * Set the snapshot identifier
+     * Sets the {@link DeviceSnapshot#getId()}.
      *
-     * @param snapshotId
+     * @param snapshotId The {@link DeviceSnapshot#getId()}.
+     * @since 1.0.0
      */
     public void setSnapshotId(String snapshotId) {
         this.snapshotId = snapshotId;

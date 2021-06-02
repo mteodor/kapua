@@ -1,29 +1,33 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.model.id;
 
+import org.eclipse.kapua.KapuaSerializable;
+import org.eclipse.kapua.model.KapuaEntity;
+
 import javax.xml.bind.annotation.XmlTransient;
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Base64;
 
 /**
- * Kapua identifier object.<br>
- * This object it's used to identify each entity.<br>
+ * {@link KapuaEntity} identifier definition.
+ * <p>
+ * This object it's used to identify each entity.
  * <b>It should be unique within the same entity.</b>
  *
  * @since 1.0.0
  */
-public interface KapuaId extends Serializable {
+public interface KapuaId extends KapuaSerializable {
 
     @XmlTransient
     KapuaId ANY = new KapuaIdStatic(BigInteger.ONE.negate());

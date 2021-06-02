@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,6 +22,8 @@ import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.job.engine.JobEngineService;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
+import org.eclipse.kapua.model.KapuaEntityAttributes;
+import org.eclipse.kapua.model.KapuaNamedEntityAttributes;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
@@ -29,7 +32,6 @@ import org.eclipse.kapua.model.query.predicate.AttributePredicate.Operator;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
 import org.eclipse.kapua.service.authorization.permission.PermissionFactory;
 import org.eclipse.kapua.service.job.Job;
-import org.eclipse.kapua.service.job.JobAttributes;
 import org.eclipse.kapua.service.job.JobCreator;
 import org.eclipse.kapua.service.job.JobDomains;
 import org.eclipse.kapua.service.job.JobFactory;
@@ -42,6 +44,10 @@ import org.eclipse.kapua.service.scheduler.trigger.TriggerFactory;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerListResult;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerQuery;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 
 /**
  * {@link JobService} implementation
@@ -51,13 +57,22 @@ import org.eclipse.kapua.service.scheduler.trigger.TriggerService;
 @KapuaProvider
 public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedService<Job, JobCreator, JobService, JobListResult, JobQuery, JobFactory> implements JobService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(JobServiceImpl.class);
+
     private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
 
-    private static final AuthorizationService AUTHORIZATION_SERVICE = LOCATOR.getService(AuthorizationService.class);
-    private static final PermissionFactory PERMISSION_FACTORY = LOCATOR.getFactory(PermissionFactory.class);
+    @Inject
+    private AuthorizationService authorizationService;
+    @Inject
+    private PermissionFactory permissionFactory;
+
     private final JobEngineService jobEngineService = LOCATOR.getService(JobEngineService.class);
-    private final TriggerService triggerService = LOCATOR.getService(TriggerService.class);
-    private final TriggerFactory triggerFactory = LOCATOR.getFactory(TriggerFactory.class);
+
+    @Inject
+    private TriggerService triggerService;
+
+    @Inject
+    private TriggerFactory triggerFactory;
 
     public JobServiceImpl() {
         super(JobService.class.getName(), JobDomains.JOB_DOMAIN, JobEntityManagerFactory.getInstance(), JobService.class, JobFactory.class);
@@ -69,11 +84,11 @@ public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
         // Argument validation
         ArgumentValidator.notNull(creator, "jobCreator");
         ArgumentValidator.notNull(creator.getScopeId(), "jobCreator.scopeId");
-        ArgumentValidator.notNull(creator.getName(), "jobCreator.name");
+        ArgumentValidator.validateEntityName(creator.getName(), "jobCreator.name");
 
         //
         // Check access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.write, creator.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(JobDomains.JOB_DOMAIN, Actions.write, creator.getScopeId()));
 
         //
         // Check limits
@@ -84,14 +99,14 @@ public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
         //
         // Check duplicate name
         JobQuery query = new JobQueryImpl(creator.getScopeId());
-        query.setPredicate(query.attributePredicate(JobAttributes.NAME, creator.getName()));
+        query.setPredicate(query.attributePredicate(KapuaNamedEntityAttributes.NAME, creator.getName()));
         if (count(query) > 0) {
             throw new KapuaDuplicateNameException(creator.getName());
         }
 
         //
         // Do create
-        return entityManagerSession.onTransactedInsert(em -> JobDAO.create(em, creator));
+        return entityManagerSession.doTransactedAction(em -> JobDAO.create(em, creator));
     }
 
     @Override
@@ -100,11 +115,11 @@ public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
         // Argument Validation
         ArgumentValidator.notNull(job, "job");
         ArgumentValidator.notNull(job.getScopeId(), "job.scopeId");
-        ArgumentValidator.notNull(job.getName(), "job.name");
+        ArgumentValidator.validateEntityName(job.getName(), "job.name");
 
         //
         // Check access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.write, job.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(JobDomains.JOB_DOMAIN, Actions.write, job.getScopeId()));
 
         //
         // Check existence
@@ -117,8 +132,8 @@ public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
         JobQuery query = new JobQueryImpl(job.getScopeId());
         query.setPredicate(
                 query.andPredicate(
-                        query.attributePredicate(JobAttributes.NAME, job.getName()),
-                        query.attributePredicate(JobAttributes.ENTITY_ID, job.getId(), Operator.NOT_EQUAL)
+                        query.attributePredicate(KapuaNamedEntityAttributes.NAME, job.getName()),
+                        query.attributePredicate(KapuaEntityAttributes.ENTITY_ID, job.getId(), Operator.NOT_EQUAL)
                 )
         );
 
@@ -128,7 +143,7 @@ public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
 
         //
         // Do update
-        return entityManagerSession.onTransactedResult(em -> JobDAO.update(em, job));
+        return entityManagerSession.doTransactedAction(em -> JobDAO.update(em, job));
     }
 
     @Override
@@ -136,59 +151,83 @@ public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
         //
         // Argument Validation
         ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.read, scopeId));
+        authorizationService.checkPermission(permissionFactory.newPermission(JobDomains.JOB_DOMAIN, Actions.read, scopeId));
 
         //
         // Do find
-        return entityManagerSession.onResult(em -> JobDAO.find(em, scopeId, jobId));
+        return entityManagerSession.doAction(em -> JobDAO.find(em, scopeId, jobId));
     }
 
     @Override
-    public JobListResult query(KapuaQuery<Job> query) throws KapuaException {
+    public JobListResult query(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.read, query.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(JobDomains.JOB_DOMAIN, Actions.read, query.getScopeId()));
 
         //
         // Do query
-        return entityManagerSession.onResult(em -> JobDAO.query(em, query));
+        return entityManagerSession.doAction(em -> JobDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<Job> query) throws KapuaException {
+    public long count(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.read, query.getScopeId()));
+        authorizationService.checkPermission(permissionFactory.newPermission(JobDomains.JOB_DOMAIN, Actions.read, query.getScopeId()));
 
         //
         // Do query
-        return entityManagerSession.onResult(em -> JobDAO.count(em, query));
+        return entityManagerSession.doAction(em -> JobDAO.count(em, query));
     }
 
     @Override
     public void delete(KapuaId scopeId, KapuaId jobId) throws KapuaException {
+        deleteInternal(scopeId, jobId, false);
+    }
+
+    @Override
+    public void deleteForced(KapuaId scopeId, KapuaId jobId) throws KapuaException {
+        deleteInternal(scopeId, jobId, true);
+    }
+
+    //
+    // Private methods
+    //
+
+    /**
+     * Deletes the {@link Job} like {@link #delete(KapuaId, KapuaId)}.
+     * <p>
+     * If {@code forced} is {@code true} {@link org.eclipse.kapua.service.authorization.permission.Permission} checked will be {@code job:delete:null},
+     * and when invoking {@link JobEngineService#cleanJobData(KapuaId, KapuaId)} any exception is logged and ignored.
+     *
+     * @param scopeId The {@link KapuaId} scopeId of the {@link Job}.
+     * @param jobId   The {@link KapuaId} of the {@link Job}.
+     * @param forced  Whether or not the {@link Job} must be forcibly deleted.
+     * @throws KapuaException In case something bad happens.
+     * @since 1.1.0
+     */
+    private void deleteInternal(KapuaId scopeId, KapuaId jobId, boolean forced) throws KapuaException {
+
         //
         // Argument Validation
         ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.delete, scopeId));
+        authorizationService.checkPermission(permissionFactory.newPermission(JobDomains.JOB_DOMAIN, Actions.delete, forced ? null : scopeId));
 
         //
         // Check existence
@@ -218,8 +257,17 @@ public class JobServiceImpl extends AbstractKapuaConfigurableResourceLimitedServ
 
         //
         // Do delete
-        KapuaSecurityUtils.doPrivileged(() -> jobEngineService.cleanJobData(scopeId, jobId));
-        entityManagerSession.onTransactedAction(em -> JobDAO.delete(em, scopeId, jobId));
-    }
+        try {
+            KapuaSecurityUtils.doPrivileged(() -> jobEngineService.cleanJobData(scopeId, jobId));
+        } catch (Exception e) {
+            if (forced) {
+                LOG.warn("Error while cleaning Job data. Ignoring exception since delete is forced! Error: {}", e.getMessage());
+                LOG.debug("Error while cleaning Job data. Ignoring exception since delete is forced!", e);
+            } else {
+                throw e;
+            }
+        }
 
+        entityManagerSession.doTransactedAction(em -> JobDAO.delete(em, scopeId, jobId));
+    }
 }

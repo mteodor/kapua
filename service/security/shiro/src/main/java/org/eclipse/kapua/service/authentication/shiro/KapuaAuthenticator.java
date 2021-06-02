@@ -1,19 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.authentication.shiro;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.authc.AuthenticationException;
@@ -25,13 +22,18 @@ import org.apache.shiro.realm.Realm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
- * Kapua Shiro Authenticator.<br>
+ * Kapua Shiro Authenticator.
+ * <p>
  * This authenticator provide more significantly exception message in a multi-realm configuration.<br>
- * The code is derived from the original {@link ModularRealmAuthenticator} because the <b>default Shiro implementation doesn't support detailed messages in a multirealm configuration.</b>
+ * The code is derived from the original {@link ModularRealmAuthenticator} because the
+ * <b>default Shiro implementation doesn't support detailed messages in a multirealm configuration.</b>
  *
- * since 1.0
- * 
+ * @since 1.0.0
  */
 public class KapuaAuthenticator extends ModularRealmAuthenticator {
 
@@ -44,6 +46,7 @@ public class KapuaAuthenticator extends ModularRealmAuthenticator {
         if (logger.isTraceEnabled()) {
             logger.trace("Iterating through {} realms for PAM authentication", realms.size());
         }
+
         List<Throwable> exceptionList = new ArrayList<>();
         boolean loginSucceeded = false;
         boolean supportedRealmFound = false;
@@ -60,9 +63,7 @@ public class KapuaAuthenticator extends ModularRealmAuthenticator {
                 } catch (Exception exception) {
                     t = exception;
                     if (logger.isDebugEnabled()) {
-                        String msg = "Realm [" + realm
-                                + "] threw an exception during a multi-realm authentication attempt:";
-                        logger.debug(msg, t);
+                        logger.debug("Realm [{}] threw an exception during a multi-realm authentication attempt:", realm, t);
                     }
                 }
                 aggregate = strategy.afterAttempt(realm, token, info, aggregate, t);
@@ -79,6 +80,7 @@ public class KapuaAuthenticator extends ModularRealmAuthenticator {
                 // TODO move the error message to the message bundle
                 throw new ShiroException("Internal Error!");
             }
+
             if (exceptionList.get(0) instanceof AuthenticationException) {
                 throw (AuthenticationException) exceptionList.get(0);
             } else {

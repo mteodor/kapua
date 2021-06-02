@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -17,11 +18,13 @@ public class GwtStringListItem extends KapuaBaseModel implements Serializable {
 
     private static final long serialVersionUID = -9095667239285215364L;
 
+    private static final String VALUE = "value";
+
     public GwtStringListItem() {
     }
 
     public GwtStringListItem(String value) {
-        set("value", value);
+        set(VALUE, value);
     }
 
     public void setId(String id) {
@@ -33,11 +36,11 @@ public class GwtStringListItem extends KapuaBaseModel implements Serializable {
     }
 
     public void setValue(String value) {
-        set("value", value);
+        set(VALUE, value);
     }
 
     public String getValue() {
-        return (String) get("value");
+        return (String) get(VALUE);
     }
 
     @Override

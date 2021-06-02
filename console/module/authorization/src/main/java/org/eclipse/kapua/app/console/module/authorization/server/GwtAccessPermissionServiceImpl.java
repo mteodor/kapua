@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -26,8 +27,8 @@ import org.eclipse.kapua.app.console.module.authorization.shared.model.GwtAccess
 import org.eclipse.kapua.app.console.module.authorization.shared.service.GwtAccessPermissionService;
 import org.eclipse.kapua.app.console.module.authorization.shared.util.GwtKapuaAuthorizationModelConverter;
 import org.eclipse.kapua.app.console.module.authorization.shared.util.KapuaGwtAuthorizationModelConverter;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria.SortOrder;
+import org.eclipse.kapua.model.query.FieldSortCriteria;
+import org.eclipse.kapua.model.query.SortOrder;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.KapuaEntityAttributes;
@@ -138,17 +139,19 @@ public class GwtAccessPermissionServiceImpl extends KapuaRemoteServiceServlet im
                     query.setPredicate(query.attributePredicate(AccessPermissionAttributes.ACCESS_INFO_ID, accessInfo.getId()));
                     query.setLimit(loadConfig.getLimit());
                     query.setOffset(loadConfig.getOffset());
+                    query.setAskTotalCount(true);
 
                     String sortField = StringUtils.isEmpty(loadConfig.getSortField()) ? KapuaEntityAttributes.CREATED_ON : loadConfig.getSortField();
                     if (sortField.equals("createdOnFormatted")) {
                         sortField = AccessPermissionAttributes.CREATED_ON;
                     }
                     SortOrder sortOrder = loadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-                    FieldSortCriteria sortCriteria = new FieldSortCriteria(sortField, sortOrder);
+                    FieldSortCriteria sortCriteria = query.fieldSortCriteria(sortField, sortOrder);
+                    query.setAskTotalCount(true);
                     query.setSortCriteria(sortCriteria);
 
                     AccessPermissionListResult accessPermissionList = ACCESS_PERMISSION_SERVICE.query(query);
-                    totalLength = (int) ACCESS_PERMISSION_SERVICE.count(query);
+                    totalLength = accessPermissionList.getTotalCount().intValue();
 
                     if (!accessPermissionList.isEmpty()) {
                         for (final AccessPermission accessPermission : accessPermissionList.getItems()) {

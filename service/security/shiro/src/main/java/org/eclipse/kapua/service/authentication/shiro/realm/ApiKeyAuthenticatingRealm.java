@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -24,6 +25,7 @@ import org.apache.shiro.realm.AuthenticatingRealm;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.KapuaIllegalArgumentException;
 import org.eclipse.kapua.KapuaRuntimeException;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
@@ -39,17 +41,21 @@ import org.eclipse.kapua.service.authentication.shiro.exceptions.TemporaryLocked
 import org.eclipse.kapua.service.user.User;
 import org.eclipse.kapua.service.user.UserService;
 import org.eclipse.kapua.service.user.UserStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Map;
 
 /**
  * {@link ApiKeyCredentials} based {@link AuthenticatingRealm} implementation.
- * 
+ *
  * since 1.0
- * 
+ *
  */
 public class ApiKeyAuthenticatingRealm extends AuthenticatingRealm {
+
+    private static final Logger logger = LoggerFactory.getLogger(ApiKeyAuthenticatingRealm.class);
 
     private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
 
@@ -60,7 +66,7 @@ public class ApiKeyAuthenticatingRealm extends AuthenticatingRealm {
 
     /**
      * Constructor
-     * 
+     *
      * @throws KapuaException
      */
     public ApiKeyAuthenticatingRealm() throws KapuaException {
@@ -95,11 +101,13 @@ public class ApiKeyAuthenticatingRealm extends AuthenticatingRealm {
         //
         // Find credentials
         // FIXME: manage multiple credentials and multiple credentials type
-        final Credential credential;
+        Credential credential = null;
         try {
             credential = KapuaSecurityUtils.doPrivileged(() -> credentialService.findByApiKey(tokenApiKey));
         } catch (AuthenticationException ae) {
             throw ae;
+        } catch (KapuaIllegalArgumentException kiae) {
+            logger.warn("Api Key value is not valid");
         } catch (Exception e) {
             throw new ShiroException("Error while find credentials!", e);
         }
@@ -123,7 +131,8 @@ public class ApiKeyAuthenticatingRealm extends AuthenticatingRealm {
         // Get the associated user by name
         final User user;
         try {
-            user = KapuaSecurityUtils.doPrivileged(() -> userService.find(credential.getScopeId(), credential.getUserId()));
+            Credential finalCredential = credential;
+            user = KapuaSecurityUtils.doPrivileged(() -> userService.find(finalCredential.getScopeId(), finalCredential.getUserId()));
         } catch (AuthenticationException ae) {
             throw ae;
         } catch (Exception e) {

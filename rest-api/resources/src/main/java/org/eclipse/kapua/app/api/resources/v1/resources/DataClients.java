@@ -1,15 +1,34 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.api.resources.v1.resources;
+
+import com.google.common.base.Strings;
+import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.app.api.core.resources.AbstractKapuaResource;
+import org.eclipse.kapua.app.api.core.model.CountResult;
+import org.eclipse.kapua.app.api.core.model.ScopeId;
+import org.eclipse.kapua.app.api.core.model.StorableEntityId;
+import org.eclipse.kapua.locator.KapuaLocator;
+import org.eclipse.kapua.service.KapuaService;
+import org.eclipse.kapua.service.datastore.ClientInfoFactory;
+import org.eclipse.kapua.service.datastore.ClientInfoRegistryService;
+import org.eclipse.kapua.service.datastore.internal.mediator.ClientInfoField;
+import org.eclipse.kapua.service.datastore.model.ClientInfo;
+import org.eclipse.kapua.service.datastore.model.ClientInfoListResult;
+import org.eclipse.kapua.service.datastore.model.query.ClientInfoQuery;
+import org.eclipse.kapua.service.datastore.model.query.predicate.DatastorePredicateFactory;
+import org.eclipse.kapua.service.storable.model.query.predicate.AndPredicate;
+import org.eclipse.kapua.service.storable.model.query.predicate.TermPredicate;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -21,72 +40,39 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import io.swagger.annotations.Authorization;
-
-import org.eclipse.kapua.app.api.resources.v1.resources.model.CountResult;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.ScopeId;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.StorableEntityId;
-import org.eclipse.kapua.locator.KapuaLocator;
-import org.eclipse.kapua.service.KapuaService;
-import org.eclipse.kapua.service.datastore.ClientInfoRegistryService;
-import org.eclipse.kapua.service.datastore.DatastoreObjectFactory;
-import org.eclipse.kapua.service.datastore.internal.mediator.ClientInfoField;
-import org.eclipse.kapua.service.datastore.model.ClientInfo;
-import org.eclipse.kapua.service.datastore.model.ClientInfoListResult;
-import org.eclipse.kapua.service.datastore.model.query.AndPredicate;
-import org.eclipse.kapua.service.datastore.model.query.ClientInfoQuery;
-import org.eclipse.kapua.service.datastore.model.query.StorablePredicateFactory;
-import org.eclipse.kapua.service.datastore.model.query.TermPredicate;
-
-import com.google.common.base.Strings;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-
-@Api(value = "Data Clients", authorizations = { @Authorization(value = "kapuaAccessToken") })
 @Path("{scopeId}/data/clients")
 public class DataClients extends AbstractKapuaResource {
 
     private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
     private static final ClientInfoRegistryService CLIENT_INFO_REGISTRY_SERVICE = LOCATOR.getService(ClientInfoRegistryService.class);
-    private static final DatastoreObjectFactory DATASTORE_OBJECT_FACTORY = LOCATOR.getFactory(DatastoreObjectFactory.class);
-    private static final StorablePredicateFactory STORABLE_PREDICATE_FACTORY = LOCATOR.getFactory(StorablePredicateFactory.class);
+    private static final ClientInfoFactory CLIENT_INFO_FACTORY = LOCATOR.getFactory(ClientInfoFactory.class);
+    private static final DatastorePredicateFactory DATASTORE_PREDICATE_FACTORY = LOCATOR.getFactory(DatastorePredicateFactory.class);
 
     /**
      * Gets the {@link ClientInfo} list in the scope.
      *
-     * @param scopeId
-     *            The {@link ScopeId} in which to search results.
-     * @param clientId
-     *            The client id to filter results
-     * @param offset
-     *            The result set offset.
-     * @param limit
-     *            The result set limit.
+     * @param scopeId  The {@link ScopeId} in which to search results.
+     * @param clientId The client id to filter results
+     * @param offset   The result set offset.
+     * @param limit    The result set limit.
      * @return The {@link ClientInfoListResult} of all the clientInfos associated to the current selected scope.
-     * @throws Exception
-     *             Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "dataClientSimpleQuery",
-            value = "Gets the ClientInfo list in the scope", //
-            notes = "Returns the list of all the clientInfos associated to the current selected scope.", //
-            response = ClientInfoListResult.class)
     @GET
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    public ClientInfoListResult simpleQuery( //
-            @ApiParam(value = "The ScopeId in which to search results", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,//
-            @ApiParam(value = "The client id to filter results") @QueryParam("clientId") String clientId, //
-            @ApiParam(value = "The result set offset", defaultValue = "0") @QueryParam("offset") @DefaultValue("0") int offset,//
-            @ApiParam(value = "The result set limit", defaultValue = "50") @QueryParam("limit") @DefaultValue("50") int limit) throws Exception {
-        AndPredicate andPredicate = STORABLE_PREDICATE_FACTORY.newAndPredicate();
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public ClientInfoListResult simpleQuery(@PathParam("scopeId") ScopeId scopeId,
+                                            @QueryParam("clientId") String clientId,
+                                            @QueryParam("offset") @DefaultValue("0") int offset,
+                                            @QueryParam("limit") @DefaultValue("50") int limit)
+            throws KapuaException {
+        AndPredicate andPredicate = DATASTORE_PREDICATE_FACTORY.newAndPredicate();
         if (!Strings.isNullOrEmpty(clientId)) {
-            TermPredicate clientIdPredicate = STORABLE_PREDICATE_FACTORY.newTermPredicate(ClientInfoField.CLIENT_ID, clientId);
+            TermPredicate clientIdPredicate = DATASTORE_PREDICATE_FACTORY.newTermPredicate(ClientInfoField.CLIENT_ID, clientId);
             andPredicate.getPredicates().add(clientIdPredicate);
         }
 
-        ClientInfoQuery query = DATASTORE_OBJECT_FACTORY.newClientInfoQuery(scopeId);
+        ClientInfoQuery query = CLIENT_INFO_FACTORY.newQuery(scopeId);
 
         query.setPredicate(andPredicate);
 
@@ -99,26 +85,19 @@ public class DataClients extends AbstractKapuaResource {
     /**
      * Queries the results with the given {@link ClientInfoQuery} parameter.
      *
-     * @param scopeId
-     *            The {@link ScopeId} in which to search results.
-     * @param query
-     *            The {@link ClientInfoQuery} to used to filter results.
+     * @param scopeId The {@link ScopeId} in which to search results.
+     * @param query   The {@link ClientInfoQuery} to used to filter results.
      * @return The {@link ClientInfoListResult} of all the result matching the given {@link ClientInfoQuery} parameter.
-     * @throws Exception
-     *             Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
     @POST
     @Path("_query")
-    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    @ApiOperation(nickname = "dataClientQuery",
-            value = "Queries the ClientInfos", //
-            notes = "Queries the ClientInfos with the given ClientInfoQuery parameter returning all matching ClientInfos",  //
-            response = ClientInfoListResult.class)  //
-    public ClientInfoListResult query( //
-            @ApiParam(value = "The ScopeId in which to search results", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId, //
-            @ApiParam(value = "The ClientInfoQuery to use to filter results", required = true) ClientInfoQuery query) throws Exception {
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public ClientInfoListResult query(@PathParam("scopeId") ScopeId scopeId,
+                                      ClientInfoQuery query)
+            throws KapuaException {
         query.setScopeId(scopeId);
         query.addFetchAttributes(ClientInfoField.TIMESTAMP.field());
         return CLIENT_INFO_REGISTRY_SERVICE.query(query);
@@ -127,26 +106,19 @@ public class DataClients extends AbstractKapuaResource {
     /**
      * Counts the results with the given {@link ClientInfoQuery} parameter.
      *
-     * @param scopeId
-     *            The {@link ScopeId} in which to search results.
-     * @param query
-     *            The {@link ClientInfoQuery} to used to filter results.
+     * @param scopeId The {@link ScopeId} in which to search results.
+     * @param query   The {@link ClientInfoQuery} to used to filter results.
      * @return The count of all the result matching the given {@link ClientInfoQuery} parameter.
-     * @throws Exception
-     *             Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
     @POST
     @Path("_count")
-    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-    @ApiOperation(nickname = "dataClientCount",
-            value = "Counts the ClientInfos", //
-            notes = "Counts the ClientInfos with the given ClientInfoQuery parameter returning the number of matching ClientInfos", //
-            response = CountResult.class)
-    public CountResult count( //
-            @ApiParam(value = "The ScopeId in which to search results", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId, //
-            @ApiParam(value = "The ClientInfoQuery to use to filter count results", required = true) ClientInfoQuery query) throws Exception {
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public CountResult count(@PathParam("scopeId") ScopeId scopeId,
+                             ClientInfoQuery query)
+            throws KapuaException {
         query.setScopeId(scopeId);
 
         return new CountResult(CLIENT_INFO_REGISTRY_SERVICE.count(query));
@@ -155,23 +127,17 @@ public class DataClients extends AbstractKapuaResource {
     /**
      * Returns the ClientInfo specified by the "clientInfoId" path parameter.
      *
-     * @param clientInfoId
-     *            The id of the requested ClientInfo.
+     * @param clientInfoId The id of the requested ClientInfo.
      * @return The requested ClientInfo object.
-     * @throws Exception
-     *             Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
     @GET
     @Path("{clientInfoId}")
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-    @ApiOperation(nickname = "dataClientFind",
-            value = "Gets an ClientInfo", //
-            notes = "Gets the ClientInfo specified by the clientInfoId path parameter", //
-            response = ClientInfo.class)
-    public ClientInfo find( //
-            @ApiParam(value = "The ScopeId of the requested ClientInfo.", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId, //
-            @ApiParam(value = "The id of the requested ClientInfo", required = true) @PathParam("clientInfoId") StorableEntityId clientInfoId) throws Exception {
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public ClientInfo find(@PathParam("scopeId") ScopeId scopeId,
+                           @PathParam("clientInfoId") StorableEntityId clientInfoId)
+            throws KapuaException {
         ClientInfo clientInfo = CLIENT_INFO_REGISTRY_SERVICE.find(scopeId, clientInfoId);
 
         return returnNotNullEntity(clientInfo);

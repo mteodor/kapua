@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -32,6 +33,7 @@ public enum KapuaAuthenticationSettingKeys implements SettingKey {
 
     AUTHENTICATION_CREDENTIAL_USERPASS_CACHE_ENABLE("authentication.credential.userpass.cache.enabled"), //
     AUTHENTICATION_CREDENTIAL_USERPASS_CACHE_CACHE_TTL("authentication.credential.userpass.cache.ttl"), //
+    AUTHENTICATION_CREDENTIAL_USERPASS_PASSWORD_MINLENGTH("authentication.credential.userpass.password.minlength"), //
 
     AUTHENTICATION_CREDENTIAL_AUDIENCE_ALLOWED("authentication.credential.jwt.audience.allowed"), //
     AUTHENTICATION_CREDENTIAL_JWT_CACHE_ENABLE("authentication.credential.jwt.cache.enabled"), //
@@ -45,7 +47,17 @@ public enum KapuaAuthenticationSettingKeys implements SettingKey {
     AUTHENTICATION_CREDENTIAL_APIKEY_CACHE_TTL("authentication.credential.apiKey.cache.ttl"), //
 
     //event queues
-    AUTHENTICATION_EVENT_ADDRESS("authentication.eventAddress");
+    AUTHENTICATION_EVENT_ADDRESS("authentication.eventAddress"),
+
+    // to enable the registration service
+    AUTHENTICATION_REGISTRATION_SERVICE_ENABLED("authentication.registration.service.enabled"),
+
+    // mfa authenticator service configuration
+    AUTHENTICATION_MFA_TIME_STEP_SIZE("authentication.mfa.time.step.size"),  // the time step size, in seconds, min > 0
+    AUTHENTICATION_MFA_WINDOW_SIZE("authentication.mfa.window.size"),  // number of windows of size timeStepSizeInMillis checked during the validation, min > 0
+    AUTHENTICATION_MFA_SCRATCH_CODES_NUMBER("authentication.mfa.scratch.codes.number"),  // number of scratch codes, min is 0 max is 1000
+    AUTHENTICATION_MFA_CODE_DIGITS_NUMBER("authentication.mfa.code.digits.number"),  // the number of digits in the generated code, min is 6 max is 8
+    AUTHENTICATION_MFA_TRUST_KEY_DURATION("authentication.mfa.trust.key.duration");  // machine trust key duration in days
 
     private String key;
 
@@ -53,6 +65,7 @@ public enum KapuaAuthenticationSettingKeys implements SettingKey {
         this.key = key;
     }
 
+    @Override
     public String key() {
         return key;
     }

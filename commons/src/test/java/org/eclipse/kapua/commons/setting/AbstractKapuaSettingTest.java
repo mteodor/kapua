@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -13,15 +14,25 @@
 package org.eclipse.kapua.commons.setting;
 
 import org.assertj.core.api.Assertions;
-import org.eclipse.kapua.test.junit.JUnitTests;
+import org.eclipse.kapua.qa.markers.junit.JUnitTests;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 @Category(JUnitTests.class)
-public class AbstractKapuaSettingTest {
+public class AbstractKapuaSettingTest extends Assertions {
+
+    private class IncorrectConfigResourceName extends AbstractKapuaSetting<TestSettingKey> {
+        protected IncorrectConfigResourceName() {
+            super("incorrect.properties");
+        }
+    }
+
+    @Test(expected = ExceptionInInitializerError.class)
+    public void abstractKapuaSettingIncorrectConfigResourceNameTest() {
+        AbstractKapuaSetting abstractKapuaSetting = new IncorrectConfigResourceName();
+    }
 
     private static class TestSettingKey implements SettingKey {
-
         private String key;
 
         @SuppressWarnings("unused")
@@ -36,28 +47,21 @@ public class AbstractKapuaSettingTest {
     }
 
     @Test
-    public void shouldReadPathFromEnv() {
-        // When
+    public void shouldReadPathFromEnvTest() {
         String path = new TestSetting().property("PATH");
 
-        // Then
-        Assertions.assertThat(path).isNotEmpty();
+        assertThat(path).isNotEmpty();
     }
 
     @Test
-    public void shouldReadEnvUsingDotNotation() {
-        // Given
+    public void shouldReadEnvUsingDotNotationTest() {
         System.setProperty("FOO_BAR_BAZ", "qux");
-
-        // When
         String path = new TestSetting().property("foo.bar.baz");
 
-        // Then
-        Assertions.assertThat(path).isEqualTo("qux");
+        assertThat(path).isEqualTo("qux");
     }
 
     static class TestSetting extends AbstractKapuaSetting<TestSettingKey> {
-
         String property(String key) {
             return config.getString(key);
         }
@@ -65,7 +69,5 @@ public class AbstractKapuaSettingTest {
         protected TestSetting() {
             super("test.properties");
         }
-
     }
-
 }

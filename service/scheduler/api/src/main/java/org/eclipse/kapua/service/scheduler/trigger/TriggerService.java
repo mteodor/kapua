@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,18 +16,16 @@ import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.KapuaEntityService;
 import org.eclipse.kapua.service.KapuaUpdatableEntityService;
-import org.eclipse.kapua.service.config.KapuaConfigurableService;
 
 /**
- * {@link TriggerService} exposes APIs to manage Trigger objects.<br>
- * It includes APIs to create, update, find, list and delete Triggers.<br>
- * Instances of the TriggerService can be acquired through the ServiceLocator object.
+ * {@link Trigger} {@link KapuaEntityService} definition.
  *
- * @since 1.0
+ * @see KapuaEntityService
+ * @see KapuaUpdatableEntityService
+ * @since 1.0.0
  */
 public interface TriggerService extends KapuaEntityService<Trigger, TriggerCreator>,
-        KapuaUpdatableEntityService<Trigger>,
-        KapuaConfigurableService {
+        KapuaUpdatableEntityService<Trigger> {
 
     /**
      * Returns the {@link TriggerListResult} with elements matching the provided query.
@@ -37,6 +36,6 @@ public interface TriggerService extends KapuaEntityService<Trigger, TriggerCreat
      * @since 1.0.0
      */
     @Override
-    TriggerListResult query(KapuaQuery<Trigger> query) throws KapuaException;
+    TriggerListResult query(KapuaQuery query) throws KapuaException;
 
 }

@@ -1,62 +1,29 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.datastore;
 
-import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.KapuaService;
-import org.eclipse.kapua.service.config.KapuaConfigurableService;
 import org.eclipse.kapua.service.datastore.model.ChannelInfo;
 import org.eclipse.kapua.service.datastore.model.ChannelInfoListResult;
-import org.eclipse.kapua.service.datastore.model.StorableId;
 import org.eclipse.kapua.service.datastore.model.query.ChannelInfoQuery;
+import org.eclipse.kapua.service.storable.StorableService;
 
 /**
- * Channel information registry service definition.<br>
- * The channel information binds information about the channels and the devices that published on these channels.
+ * {@link ChannelInfoRegistryService} definition.
+ * <p>
+ * {@link StorableService} for {@link ChannelInfo}
  *
  * @since 1.0.0
  */
-public interface ChannelInfoRegistryService extends KapuaService,
-        KapuaConfigurableService {
-
-    /**
-     * Find channel information by identifier
-     *
-     * @param scopeId
-     * @param id
-     * @return
-     * @throws KapuaException
-     * @since 1.0.0
-     */
-    ChannelInfo find(KapuaId scopeId, StorableId id) throws KapuaException;
-
-    /**
-     * Query for channels informations objects matching the given query
-     *
-     * @param query
-     * @return
-     * @throws KapuaException
-     * @since 1.0.0
-     */
-    ChannelInfoListResult query(ChannelInfoQuery query) throws KapuaException;
-
-    /**
-     * Get the channels informations count matching the given query
-     *
-     * @param query
-     * @return
-     * @throws KapuaException
-     * @since 1.0.0
-     */
-    long count(ChannelInfoQuery query) throws KapuaException;
+public interface ChannelInfoRegistryService extends KapuaService, StorableService<ChannelInfo, ChannelInfoListResult, ChannelInfoQuery> {
 }

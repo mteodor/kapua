@@ -1,16 +1,18 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.job.engine.commons.operation;
 
+import org.eclipse.kapua.KapuaOptimisticLockingException;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.job.engine.commons.logger.JobLogger;
 import org.eclipse.kapua.job.engine.commons.wrappers.JobContextWrapper;
@@ -67,9 +69,15 @@ public class DefaultTargetWriter extends AbstractItemWriter implements TargetWri
 
             JobTarget jobTarget = KapuaSecurityUtils.doPrivileged(() -> JOB_TARGET_SERVICE.find(processedJobTarget.getScopeId(), processedJobTarget.getId()));
 
+            if (jobTarget == null) {
+                jobLogger.warn("Target {} has not been found. Likely the target or job has been deleted when it was running... Status was: {}", processedJobTarget.getId(), processedJobTarget.getStatus());
+                continue;
+            }
+
             jobTarget.setStepIndex(stepContextWrapper.getStepIndex());
             jobTarget.setStatus(processedJobTarget.getStatus());
             jobTarget.setStatusMessage(processedWrappedJobTarget.getProcessingException() != null ? processedWrappedJobTarget.getProcessingException().getMessage() : null);
+            jobTarget.setOptlock(processedJobTarget.getOptlock());
 
             if (JobTargetStatus.PROCESS_OK.equals(jobTarget.getStatus())) {
 
@@ -81,9 +89,13 @@ public class DefaultTargetWriter extends AbstractItemWriter implements TargetWri
                 }
             }
 
-            KapuaSecurityUtils.doPrivileged(() -> JOB_TARGET_SERVICE.update(jobTarget));
+            try {
+                KapuaSecurityUtils.doPrivileged(() -> JOB_TARGET_SERVICE.update(jobTarget));
+            } catch (KapuaOptimisticLockingException kole) {
+                LOG.warn("Target {} has been updated by another component! Status was: {}. Error: {}", jobTarget.getId(), jobTarget.getStatus(), kole.getMessage());
+            }
         }
 
-        jobLogger.info("Writing items... Done!");
+        jobLogger.info("Writing items... DONE!");
     }
 }

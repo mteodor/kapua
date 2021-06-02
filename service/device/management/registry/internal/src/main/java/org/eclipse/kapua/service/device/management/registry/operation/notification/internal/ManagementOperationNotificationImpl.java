@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -56,6 +57,10 @@ public class ManagementOperationNotificationImpl extends AbstractKapuaEntity imp
     @Column(name = "progress", nullable = false, updatable = false)
     private Integer progress;
 
+    @Basic
+    @Column(name = "message", nullable = true, updatable = false)
+    private String message;
+
     /**
      * Constructor.
      *
@@ -68,7 +73,7 @@ public class ManagementOperationNotificationImpl extends AbstractKapuaEntity imp
     /**
      * Constructor.
      *
-     * @param scopeId
+     * @param scopeId The scope {@link KapuaId}.
      * @since 1.0.0
      */
     public ManagementOperationNotificationImpl(KapuaId scopeId) {
@@ -78,7 +83,7 @@ public class ManagementOperationNotificationImpl extends AbstractKapuaEntity imp
     /**
      * Clone constructor.
      *
-     * @param managementOperationNotification
+     * @param managementOperationNotification The {@link ManagementOperationNotification} to clone.
      * @since 1.1.0
      */
     public ManagementOperationNotificationImpl(ManagementOperationNotification managementOperationNotification) {
@@ -89,6 +94,7 @@ public class ManagementOperationNotificationImpl extends AbstractKapuaEntity imp
         setStatus(managementOperationNotification.getStatus());
         setResource(managementOperationNotification.getResource());
         setProgress(managementOperationNotification.getProgress());
+        setMessage(managementOperationNotification.getMessage());
     }
 
     @Override
@@ -139,5 +145,15 @@ public class ManagementOperationNotificationImpl extends AbstractKapuaEntity imp
     @Override
     public void setProgress(Integer progress) {
         this.progress = progress;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
+
+    @Override
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

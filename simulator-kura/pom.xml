@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2017, 2018 Red Hat Inc and others
+    Copyright (c) 2017, 2021 Red Hat Inc and others
 
-    All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
-    which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
 
     Contributors:
         Red Hat Inc - initial API and implementation
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.eclipse.kapua</groupId>
         <artifactId>kapua</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.5.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
@@ -27,6 +29,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <docker.account>kapua</docker.account>
+        <osgi.version>6.0.0</osgi.version>
     </properties>
 
     <dependencies>
@@ -37,7 +40,6 @@
         <dependency>
             <groupId>org.eclipse.neoscada.utils</groupId>
             <artifactId>org.eclipse.scada.utils</artifactId>
-            <version>0.4.0</version>
         </dependency>
 
         <dependency>
@@ -68,7 +70,7 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>6.0.0</version>
+            <version>${osgi.version}</version>
         </dependency>
 
         <dependency>
@@ -79,7 +81,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>${slf4j.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -107,7 +108,7 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.kapua</groupId>
-            <artifactId>marker-api</artifactId>
+            <artifactId>kapua-qa-markers</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -124,7 +125,7 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <protocVersion>2.6.1</protocVersion>
+                            <protocVersion>${protobuf.version}</protocVersion>
                             <includeStdTypes>true</includeStdTypes>
                             <inputDirectories>
                                 <include>src/main/protobuf</include>
@@ -138,8 +139,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <configuration>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                    </transformer>
                     <shadedArtifactAttached>true</shadedArtifactAttached>
                     <filters>
                         <filter>

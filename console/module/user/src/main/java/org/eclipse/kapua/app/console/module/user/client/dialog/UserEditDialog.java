@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -17,6 +18,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import org.eclipse.kapua.app.console.module.api.client.GwtKapuaErrorCode;
 import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
+import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.ui.dialog.InfoDialog;
 import org.eclipse.kapua.app.console.module.api.client.ui.dialog.InfoDialog.InfoDialogType;
 import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
@@ -36,6 +38,8 @@ public class UserEditDialog extends UserAddDialog {
     private boolean isChanged;
 
     private GwtUserServiceAsync gwtUserService = GWT.create(GwtUserService.class);
+    private static final ConsoleMessages CMSGS = GWT.create(ConsoleMessages.class);
+
     public static final int MAX_LINE_LENGTH = 30;
     public static final int MAX_TOOLTIP_WIDTH = 300;
 
@@ -79,11 +83,11 @@ public class UserEditDialog extends UserAddDialog {
     @Override
     public void validateUser() {
         if (!email.isValid()) {
-            ConsoleInfo.display("Error", email.getErrorMessage());
+            ConsoleInfo.display(CMSGS.error(), email.getErrorMessage());
         } else if (!phoneNumber.isValid()) {
-            ConsoleInfo.display("Error", phoneNumber.getErrorMessage());
+            ConsoleInfo.display(CMSGS.error(), phoneNumber.getErrorMessage());
         } else if (!expirationDate.isValid()) {
-            ConsoleInfo.display("Error", KapuaSafeHtmlUtils.htmlUnescape(expirationDate.getErrorMessage()));
+            ConsoleInfo.display(CMSGS.error(), KapuaSafeHtmlUtils.htmlUnescape(expirationDate.getErrorMessage()));
         }
     }
 
@@ -139,7 +143,8 @@ public class UserEditDialog extends UserAddDialog {
                         } else if (gwtCause.getCode().equals(GwtKapuaErrorCode.OPERATION_NOT_ALLOWED_ON_ADMIN_USER)) {
                             if (userStatus.getValue().getValue().equals(GwtUserStatus.DISABLED)) {
                                 userStatus.markInvalid(USER_MSGS.dialogEditAdminUserStatusError());
-                            } if (expirationDate.getValue() != null) {
+                            }
+                            if (expirationDate.getValue() != null) {
                                 expirationDate.markInvalid(USER_MSGS.dialogEditAdminExpirationDateError());
                             }
                         }
@@ -169,26 +174,62 @@ public class UserEditDialog extends UserAddDialog {
         String toolTipText = SplitTooltipStringUtil.splitTooltipString(gwtUser.getUsername(), MAX_LINE_LENGTH);
         toolTipConfig.setText(toolTipText);
 
-            usernameLabel.setValue(gwtUser.getUsername());
-            usernameLabel.setStyleAttribute("white-space", "nowrap");
-            usernameLabel.setStyleAttribute("text-overflow", "ellipsis");
-            usernameLabel.setStyleAttribute("overflow", "hidden");
-            usernameLabel.setToolTip(toolTipConfig);
+        usernameLabel.setValue(gwtUser.getUsername());
+        usernameLabel.setStyleAttribute("white-space", "nowrap");
+        usernameLabel.setStyleAttribute("text-overflow", "ellipsis");
+        usernameLabel.setStyleAttribute("overflow", "hidden");
+        usernameLabel.setToolTip(toolTipConfig);
 
-        if (password != null) {
-            password.setVisible(false);
-            password.setAllowBlank(true);
-            password.setValidator(null);
+        infoFieldSet.remove(externalId);
+        infoFieldSet.remove(userRadioGroup);
+
+        if (currentSession.isSsoEnabled() && gwtUser.getUserTypeEnum() == GwtUser.GwtUserType.EXTERNAL) {
+            externalIdLabel.setVisible(true);
+            externalId.setVisible(false);
+            ToolTipConfig externalIdToolTipConfig = new ToolTipConfig();
+            externalIdToolTipConfig.setMaxWidth(MAX_TOOLTIP_WIDTH);
+            String externalIdToolTipText = SplitTooltipStringUtil.splitTooltipString(gwtUser.getExternalId(), MAX_LINE_LENGTH);
+            externalIdToolTipConfig.setText(externalIdToolTipText);
+
+            externalIdLabel.setValue(gwtUser.getExternalId());
+            externalIdLabel.setStyleAttribute("white-space", "nowrap");
+            externalIdLabel.setStyleAttribute("text-overflow", "ellipsis");
+            externalIdLabel.setStyleAttribute("overflow", "hidden");
+            externalIdLabel.setToolTip(externalIdToolTipConfig);
         }
-        if (confirmPassword != null) {
-            confirmPassword.setVisible(false);
-            confirmPassword.setAllowBlank(true);
-            confirmPassword.setValidator(null);
-        }
-        if (passwordTooltip != null) {
+
+        //userRadioGroup.hide();
+
+        if (gwtUser.getUserTypeEnum() == GwtUser.GwtUserType.INTERNAL) {
+            if (password != null) {
+                password.setVisible(false);
+                password.setAllowBlank(true);
+                password.setValidator(null);
+                password.disable();
+            }
+            if (confirmPassword != null) {
+                confirmPassword.setVisible(false);
+                confirmPassword.setAllowBlank(true);
+                confirmPassword.setValidator(null);
+                confirmPassword.disable();
+            }
+            if (passwordTooltip != null) {
+                passwordTooltip.hide();
+                passwordTooltip.disable();
+            }
+        } else {
+            password.hide();
+            password.disable();
+            confirmPassword.hide();
+            confirmPassword.disable();
             passwordTooltip.hide();
+            passwordTooltip.disable();
         }
+
         username.setValue(gwtUser.getUsername());
+        if (currentSession.isSsoEnabled() && gwtUser.getUserTypeEnum()== GwtUser.GwtUserType.EXTERNAL) {
+            externalId.setValue(gwtUser.getExternalId());
+        }
         displayName.setValue(gwtUser.getUnescapedDisplayName());
         email.setValue(gwtUser.getEmail());
         phoneNumber.setValue(gwtUser.getPhoneNumber());

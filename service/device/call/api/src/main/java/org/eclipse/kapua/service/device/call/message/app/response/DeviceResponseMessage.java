@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,11 +15,12 @@ package org.eclipse.kapua.service.device.call.message.app.response;
 import org.eclipse.kapua.service.device.call.message.app.DeviceAppMessage;
 
 /**
- * Device response message definition.<br>
- * It is used to get a response (to a previous request) from a device.
+ * {@link DeviceResponseMessage} definition.
  *
- * @since 1.0
+ * @param <C> The {@link DeviceResponseChannel} type.
+ * @param <P> The {@link DeviceResponsePayload} type.
+ * @since 1.0.0
  */
-public interface DeviceResponseMessage<D extends DeviceResponseChannel, P extends DeviceResponsePayload> extends DeviceAppMessage<D, P> {
+public interface DeviceResponseMessage<C extends DeviceResponseChannel, P extends DeviceResponsePayload> extends DeviceAppMessage<C, P> {
 
 }

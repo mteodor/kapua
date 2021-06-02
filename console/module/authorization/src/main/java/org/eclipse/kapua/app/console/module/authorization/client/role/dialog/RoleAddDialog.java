@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -50,7 +51,7 @@ public class RoleAddDialog extends EntityAddEditDialog {
     public void validateRoles() {
         if (roleNameField.getValue() == null) {
             ConsoleInfo.display("Error", CONSOLE_MSGS.allFieldsRequired());
-        } 
+        }
     }
 
     @Override
@@ -117,9 +118,10 @@ public class RoleAddDialog extends EntityAddEditDialog {
         // Name
         roleNameField = new KapuaTextField<String>();
         roleNameField.setAllowBlank(false);
+        roleNameField.setMinLength(3);
         roleNameField.setMaxLength(255);
         roleNameField.setFieldLabel("* " + MSGS.dialogAddFieldName());
-        roleNameField.setValidator(new TextFieldValidator(roleNameField, FieldType.NAME));
+        roleNameField.setValidator(new TextFieldValidator(roleNameField, FieldType.NAME_SPACE));
         roleNameField.setToolTip(MSGS.dialogAddFieldNameTooltip());
         roleFormPanel.add(roleNameField);
 

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -53,10 +54,11 @@ public class JobAddDialog extends EntityAddEditDialog {
 
         name = new KapuaTextField<String>();
         name.setAllowBlank(false);
+        name.setMinLength(3);
         name.setMaxLength(255);
         name.setName("name");
         name.setFieldLabel("* " + JOB_MSGS.dialogAddFieldName());
-        name.setValidator(new TextFieldValidator(name, FieldType.NAME));
+        name.setValidator(new TextFieldValidator(name, FieldType.NAME_SPACE));
         name.setToolTip(JOB_MSGS.dialogAddFieldNameTooltip());
         jobFormPanel.add(name);
 
@@ -74,7 +76,7 @@ public class JobAddDialog extends EntityAddEditDialog {
     public void validateJob() {
         if (name.getValue() == null) {
             ConsoleInfo.display("Error", CONSOLE_MSGS.allFieldsRequired());
-        } 
+        }
     }
 
     @Override

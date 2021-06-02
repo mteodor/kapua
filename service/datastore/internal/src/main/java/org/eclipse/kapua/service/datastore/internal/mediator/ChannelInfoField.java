@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,34 +16,47 @@ import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.datastore.internal.schema.ChannelInfoSchema;
 import org.eclipse.kapua.service.datastore.model.ChannelInfo;
 import org.eclipse.kapua.service.datastore.model.ChannelInfoCreator;
-import org.eclipse.kapua.service.datastore.model.StorableId;
-import org.eclipse.kapua.service.datastore.model.query.StorableField;
+import org.eclipse.kapua.service.storable.model.id.StorableId;
+import org.eclipse.kapua.service.storable.model.query.StorableField;
 
 /**
  * This enumeration defines the fields names used in the {@link ChannelInfo} client schema
- * 
- * @since 1.0
  *
+ * @since 1.0.0
  */
 public enum ChannelInfoField implements StorableField {
     /**
      * Channel
+     *
+     * @since 1.0.0
      */
     CHANNEL(ChannelInfoSchema.CHANNEL_NAME),
+
     /**
      * Client identifier
+     *
+     * @since 1.0.0
      */
     CLIENT_ID(ChannelInfoSchema.CHANNEL_CLIENT_ID),
+
     /**
      * Scope id
+     *
+     * @since 1.0.0
      */
     SCOPE_ID(ChannelInfoSchema.CHANNEL_SCOPE_ID),
+
     /**
      * Timestamp
+     *
+     * @since 1.0.0
      */
     TIMESTAMP(ChannelInfoSchema.CHANNEL_TIMESTAMP),
+
     /**
      * Message identifier
+     *
+     * @since 1.0.0
      */
     MESSAGE_ID(ChannelInfoSchema.CHANNEL_MESSAGE_ID);
 
@@ -60,7 +74,7 @@ public enum ChannelInfoField implements StorableField {
     /**
      * Get the channel identifier (combining accountName clientId and c).<br>
      * <b>If the id is null then it is generated</b>
-     * 
+     *
      * @param id
      * @param scopeId
      * @param clientId
@@ -77,7 +91,7 @@ public enum ChannelInfoField implements StorableField {
 
     /**
      * Get the channel identifier getting parameters from the metricInfoCreator. Then it calls {@link ChannelInfoField#getOrDeriveId(StorableId id, KapuaId scopeId, String clientId, String channel)}
-     * 
+     *
      * @param id
      * @param channelInfoCreator
      * @return
@@ -91,7 +105,7 @@ public enum ChannelInfoField implements StorableField {
 
     /**
      * Get the channel identifier getting parameters from the channelInfo. Then it calls {@link ChannelInfoField#getOrDeriveId(StorableId id, KapuaId scopeId, String clientId, String channel)}
-     * 
+     *
      * @param id
      * @param channelInfo
      * @return

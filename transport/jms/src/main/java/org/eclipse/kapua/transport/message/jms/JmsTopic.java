@@ -1,19 +1,24 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.transport.message.jms;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.eclipse.kapua.transport.jms.setting.JmsClientSetting;
 import org.eclipse.kapua.transport.jms.setting.JmsClientSettingKeys;
 import org.eclipse.kapua.transport.message.TransportChannel;
+
+import java.util.regex.Pattern;
 
 /**
  * Implementation of {@link TransportChannel} API for JMS transport facade
@@ -28,6 +33,13 @@ public class JmsTopic implements TransportChannel {
      * @since 1.0.0
      */
     private static final String TOPIC_SEPARATOR = JmsClientSetting.getInstance().getString(JmsClientSettingKeys.TRANSPORT_TOPIC_SEPARATOR);
+
+    /**
+     * {@link Pattern} used to optimize {@link String#split(String)} of the {@link #topic}
+     *
+     * @since 1.2.0
+     */
+    private static final Pattern SPLIT_PATTERN = Pattern.compile("\\" + TOPIC_SEPARATOR);
 
     /**
      * The full topic.
@@ -60,13 +72,7 @@ public class JmsTopic implements TransportChannel {
         //
         // Concatenate topic parts
         if (topicParts != null) {
-            StringBuilder sb = new StringBuilder();
-            for (String s : topicParts) {
-                sb.append(s)
-                        .append(TOPIC_SEPARATOR);
-            }
-            sb.deleteCharAt(sb.length() - TOPIC_SEPARATOR.length());
-            setTopic(sb.toString());
+            setTopic(String.join(TOPIC_SEPARATOR, Lists.newArrayList(topicParts)));
         }
     }
 
@@ -93,13 +99,25 @@ public class JmsTopic implements TransportChannel {
     /**
      * Gets the topic split-ed by the topic separator configured in {@link JmsClientSetting}.{@link JmsClientSettingKeys#TRANSPORT_TOPIC_SEPARATOR}
      *
-     * @return The topic tokens or {@code null} if full topic has been set to {@code null}
+     * @return The topic tokens. Empty {@code String[]} is return in case of {@code topic == null}.
      * @since 1.0.0
      */
     public String[] getSplittedTopic() {
-        if (topic == null) {
-            return null;
+        if (Strings.isNullOrEmpty(getTopic())) {
+            return new String[0];
         }
-        return topic.split("\\" + TOPIC_SEPARATOR);
+
+        return SPLIT_PATTERN.split(getTopic());
+    }
+
+    /**
+     * Gets {@link #getTopic()} for a more user-friendly output.
+     *
+     * @return The {@link #getTopic()}
+     * @since 1.2.0
+     */
+    @Override
+    public String toString() {
+        return getTopic();
     }
 }

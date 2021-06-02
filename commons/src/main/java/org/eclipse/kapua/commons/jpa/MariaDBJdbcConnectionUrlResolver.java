@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat
@@ -14,6 +15,8 @@ package org.eclipse.kapua.commons.jpa;
 
 import org.eclipse.kapua.commons.setting.system.SystemSetting;
 import org.eclipse.kapua.commons.setting.system.SystemSettingKey;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * MariaDB Jdbc url connection resolver implementation
@@ -31,6 +34,10 @@ public class MariaDBJdbcConnectionUrlResolver implements JdbcConnectionUrlResolv
         String dbConnectionScheme = config.getString(SystemSettingKey.DB_CONNECTION_SCHEME);
         String dbConnectionHost = config.getString(SystemSettingKey.DB_CONNECTION_HOST);
         String dbConnectionPort = config.getString(SystemSettingKey.DB_CONNECTION_PORT);
+        boolean useSsl = config.getBoolean(SystemSettingKey.DB_CONNECTION_USE_SSL, Boolean.FALSE);
+        String trustStore = config.getString(SystemSettingKey.DB_CONNECTION_TRUSTSTORE_URL);
+        String trustStorePwd = config.getString(SystemSettingKey.DB_CONNECTION_TRUSTSTORE_PWD);
+        String additionalOptions = config.getString(SystemSettingKey.DB_CONNECTION_ADDITIONAL_OPTIONS);
 
         StringBuilder dbConnectionString = new StringBuilder().append(dbConnectionScheme)
                 .append("://")
@@ -67,6 +74,34 @@ public class MariaDBJdbcConnectionUrlResolver implements JdbcConnectionUrlResolv
         if (characterEncoding != null) {
             dbConnectionString.append("characterEncoding=")
                     .append(characterEncoding)
+                    .append("&");
+        }
+
+        dbConnectionString.append("useSSL=")
+                .append(useSsl)
+                .append("&");
+
+        String enabledSslProtocolSuites = config.getString(SystemSettingKey.DB_CONNECTION_ENABLED_SSL_PROTOCOL_SUITES);
+        if (enabledSslProtocolSuites != null) {
+            dbConnectionString.append("enabledSslProtocolSuites=")
+                    .append(enabledSslProtocolSuites)
+                    .append("&");
+        }
+
+        if (StringUtils.isNotBlank(trustStore)) {
+            dbConnectionString.append("trustStore=")
+                    .append(trustStore)
+                    .append("&");
+        }
+
+        if (StringUtils.isNotBlank(trustStorePwd)) {
+            dbConnectionString.append("trustStorePassword=")
+                    .append(trustStorePwd)
+                    .append("&");
+        }
+
+        if (StringUtils.isNotBlank(additionalOptions)) {
+            dbConnectionString.append(additionalOptions)
                     .append("&");
         }
 

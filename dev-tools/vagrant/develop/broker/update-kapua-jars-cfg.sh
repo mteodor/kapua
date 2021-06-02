@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 #*******************************************************************************
-# Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+# Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
 #
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     Eurotech - initial API and implementation
 #*******************************************************************************
 
 BROKER_ASSEMBLY_DIR="/kapua/assembly/broker";
-BROKER_CORE_DEPENDENCY_DIR="/kapua/broker-core/target/dependency";
+BROKER_CORE_DEPENDENCY_DIR="/kapua/broker/core/target/dependency";
 BROKER_INSTALLATION_DIR="/usr/local/activemq";
+
+VAGRANT_DEPENDENCY_DIR="/kapua/dev-tools/vagrant/target/dependency";
 
 echo "Cleanup the symbolic links to Kapua jars..."
 for name in $(find lib/extra -type l);
@@ -33,8 +36,16 @@ for name in $(ls  ${BROKER_CORE_DEPENDENCY_DIR} | grep -Ev 'qa|jaxb-|activemq-|k
     done;
 echo "    Copy dependencies for broker-core... DONE!"
 
+echo "    Copy additional dependencies for broker-core..."
+for name in $(ls  ${VAGRANT_DEPENDENCY_DIR});
+    do
+        echo "        Create symbolic link from ./lib/extra/${name}  ${VAGRANT_DEPENDENCY_DIR}/${name}";
+        ln -s  ${VAGRANT_DEPENDENCY_DIR}/${name} ./lib/extra/${name};
+    done;
+echo "    Copy additional dependencies for broker-core... DONE!"
+
 echo '    Copy Kapua modules...'
-for name in $(find /kapua -name 'kapua-*.jar' | grep target | grep -Ev 'qa|bin|test|console|WEB-INF|dependency|mysql|assembly|dev-tool|job|scheduler');
+for name in $(find /kapua -name 'kapua-*.jar' | grep target | grep -Ev 'qa|bin|test|console|WEB-INF|dependency|mysql|assembly|dev-tools');
     do
         jar_name=$(echo - ${name} - ${name} | awk -F"/" '{print $NF}');
         echo "        Create symbolic link from ./lib/extra/${jar_name} ${name}";

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+    Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
 
-    All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
-    which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
 
     Contributors:
         Eurotech - initial API and implementation
@@ -13,12 +14,12 @@
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.eclipse.kapua</groupId>
         <artifactId>kapua</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.5.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>kapua-console</artifactId>
@@ -34,6 +35,7 @@
         <com.google.gwt.version>2.4.0</com.google.gwt.version>
         <com.extjs.gxt.version>2.2.5</com.extjs.gxt.version>
         <com.allen-sauer.gwt.log.version>3.1.8</com.allen-sauer.gwt.log.version>
+        <sanselan.version>0.97-incubator</sanselan.version>
     </properties>
 
     <repositories>
@@ -46,12 +48,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.eclipse.kapua</groupId>
-                <artifactId>kapua-console-web</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.eclipse.kapua</groupId>
                 <artifactId>kapua-console-core</artifactId>
@@ -152,6 +148,18 @@
 
             <dependency>
                 <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-console-module-endpoint</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
+                <artifactId>kapua-console-module-endpoint</artifactId>
+                <version>${project.version}</version>
+                <classifier>sources</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>org.eclipse.kapua</groupId>
                 <artifactId>kapua-console-module-job</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -222,6 +230,19 @@
                 <artifactId>gwt-log</artifactId>
                 <version>${com.allen-sauer.gwt.log.version}</version>
             </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>${commons-fileupload.versison}</version>
+            </dependency>
+            <dependency>
+                <!-- Imaging utils used to handle device component configuration  icons -->
+                <!-- Former commons-imaging changed because the 1.0-FINAL was not contined/supported in maven -->
+                <groupId>org.apache.sanselan</groupId>
+                <artifactId>sanselan</artifactId>
+                <version>${sanselan.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -260,7 +281,7 @@
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
+                    <version>${eclipse-lifecycle-mapping.version}</version>
                     <configuration>
                         <lifecycleMappingMetadata>
                             <pluginExecutions>

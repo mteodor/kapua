@@ -1,18 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.event;
 
-import java.io.Serializable;
-import java.util.Date;
+import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.model.id.KapuaIdAdapter;
+import org.eclipse.kapua.model.xml.DateXmlAdapter;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -20,14 +22,12 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
-import org.eclipse.kapua.model.id.KapuaId;
-import org.eclipse.kapua.model.id.KapuaIdAdapter;
-import org.eclipse.kapua.model.xml.DateXmlAdapter;
+import java.io.Serializable;
+import java.util.Date;
 
 @XmlRootElement(name = "serviceEvent")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(propOrder = { "id",
+@XmlType(propOrder = {"id",
         "contextId",
         "timestamp",
         "userId",
@@ -44,7 +44,7 @@ import org.eclipse.kapua.model.xml.DateXmlAdapter;
 })
 /**
  * Service event bus event object
- * 
+ *
  * @since 1.0
  *
  */
@@ -54,7 +54,6 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Event status
-     *
      */
     public enum EventStatus {
         /**
@@ -120,7 +119,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the event id
-     * 
+     *
      * @return
      */
     public String getId() {
@@ -129,7 +128,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the event id
-     * 
+     *
      * @param id
      */
     public void setId(String id) {
@@ -138,7 +137,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the context id
-     * 
+     *
      * @return
      */
     public String getContextId() {
@@ -147,7 +146,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the context id
-     * 
+     *
      * @param contextId
      */
     public void setContextId(String contextId) {
@@ -156,7 +155,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the event timestamp (event triggered)
-     * 
+     *
      * @return
      */
     public Date getTimestamp() {
@@ -165,7 +164,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the event timestamp (event triggered)
-     * 
+     *
      * @param timestamp
      */
     public void setTimestamp(Date timestamp) {
@@ -174,7 +173,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the user id that fired the event
-     * 
+     *
      * @return
      */
     public KapuaId getUserId() {
@@ -183,7 +182,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the user id that fired the event
-     * 
+     *
      * @param userId
      */
     public void setUserId(KapuaId userId) {
@@ -192,7 +191,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the service name that fired the event
-     * 
+     *
      * @return
      */
     public String getService() {
@@ -201,7 +200,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the service name that fired the event
-     * 
+     *
      * @param service
      */
     public void setService(String service) {
@@ -210,7 +209,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the entity type related to the fired event
-     * 
+     *
      * @return
      */
     public String getEntityType() {
@@ -219,7 +218,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the entity type related to the fired event
-     * 
+     *
      * @param entityType
      */
     public void setEntityType(String entityType) {
@@ -228,7 +227,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the scope id of the user that fired the event
-     * 
+     *
      * @return
      */
     public KapuaId getScopeId() {
@@ -237,7 +236,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the scope id of the user that fired the event
-     * 
+     *
      * @param scopeId
      */
     public void setScopeId(KapuaId scopeId) {
@@ -246,7 +245,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the entity scope id related to the fired event
-     * 
+     *
      * @return
      */
     public KapuaId getEntityScopeId() {
@@ -255,8 +254,8 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the entity scope id related to the fired event
-     * 
-     * @param entityId
+     *
+     * @param entityScopeId
      */
     public void setEntityScopeId(KapuaId entityScopeId) {
         this.entityScopeId = entityScopeId;
@@ -264,7 +263,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the entity id related to the fired event
-     * 
+     *
      * @return
      */
     public KapuaId getEntityId() {
@@ -273,7 +272,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the entity id related to the fired event
-     * 
+     *
      * @param entityId
      */
     public void setEntityId(KapuaId entityId) {
@@ -282,7 +281,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the operation that fired the event
-     * 
+     *
      * @return
      */
     public String getOperation() {
@@ -291,7 +290,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the operation that fired the event
-     * 
+     *
      * @param operation
      */
     public void setOperation(String operation) {
@@ -300,7 +299,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the inputs
-     * 
+     *
      * @return
      */
     public String getInputs() {
@@ -309,7 +308,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the inputs
-     * 
+     *
      * @param inputs
      */
     public void setInputs(String inputs) {
@@ -318,7 +317,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the outputs
-     * 
+     *
      * @return
      */
     public String getOutputs() {
@@ -327,7 +326,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the outputs
-     * 
+     *
      * @param outputs
      */
     public void setOutputs(String outputs) {
@@ -336,7 +335,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the event status
-     * 
+     *
      * @return
      */
     public EventStatus getStatus() {
@@ -345,7 +344,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the event status
-     * 
+     *
      * @param status
      */
     public void setStatus(EventStatus status) {
@@ -354,7 +353,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Get the notes
-     * 
+     *
      * @return
      */
     public String getNote() {
@@ -363,7 +362,7 @@ public class ServiceEvent implements Serializable {
 
     /**
      * Set the notes
-     * 
+     *
      * @param note
      */
     public void setNote(String note) {

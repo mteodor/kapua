@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,7 +15,7 @@ package org.eclipse.kapua.message.internal.device.lifecycle;
 import org.eclipse.kapua.message.device.lifecycle.KapuaBirthChannel;
 import org.eclipse.kapua.message.device.lifecycle.KapuaBirthMessage;
 import org.eclipse.kapua.message.device.lifecycle.KapuaBirthPayload;
-import org.eclipse.kapua.test.junit.JUnitTests;
+import org.eclipse.kapua.qa.markers.junit.JUnitTests;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -35,6 +36,7 @@ public class KapuaBirthMessageTest extends Assert {
             "~~containerFramework=containerFramework" +
             "~~containerFrameworkVersion=containerFrameworkV-1" +
             "~~displayName=Display Name" +
+            "~~extendedProperties=" + "{\n  \"version\": \"1.0\",\n  \"properties\": {\n    \"GroupName\": {\n      \"propertyName\": \"propertyValue\"\n    }\n  }\n}" +
             "~~firmware=firmware-1" +
             "~~firmwareVersion=firmwareV-1" +
             "~~jvm=Oracle HotSpot" +
@@ -85,6 +87,7 @@ public class KapuaBirthMessageTest extends Assert {
         assertEquals("49-015420-323751", kapuaBirthPayload.getModemImei());
         assertEquals("359881234567890", kapuaBirthPayload.getModemImsi());
         assertEquals("8991101200003204510", kapuaBirthPayload.getModemIccid());
+        assertEquals("{\n  \"version\": \"1.0\",\n  \"properties\": {\n    \"GroupName\": {\n      \"propertyName\": \"propertyValue\"\n    }\n  }\n}", kapuaBirthPayload.getExtendedProperties());
     }
 
     @Test
@@ -153,7 +156,15 @@ public class KapuaBirthMessageTest extends Assert {
                 "Linux x86",
                 "49-015420-323751",
                 "359881234567890",
-                "8991101200003204510"
+                "8991101200003204510",
+                "{\n" +
+                        "  \"version\": \"1.0\",\n" +
+                        "  \"properties\": {\n" +
+                        "    \"GroupName\": {\n" +
+                        "      \"propertyName\": \"propertyValue\"\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
         );
     }
 }

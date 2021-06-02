@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -17,13 +18,13 @@ import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
 import org.eclipse.kapua.app.console.module.api.client.ui.tab.KapuaTabItem;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.EntityCRUDToolbar;
+import org.eclipse.kapua.app.console.module.api.client.util.CssLiterals;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.user.shared.model.GwtUser;
 
 public class AccountChildUserTab extends KapuaTabItem<GwtAccount> {
 
     protected AccountChildUserGrid userGrid;
-    protected GwtSession currentSession;
 
     public AccountChildUserTab(GwtSession currentSession) {
         super(currentSession, "Users", new KapuaIcon(IconSet.USERS));
@@ -36,11 +37,7 @@ public class AccountChildUserTab extends KapuaTabItem<GwtAccount> {
     @Override
     public void setEntity(GwtAccount t) {
         super.setEntity(t);
-        if (t != null) {
-            setEnabled(true);
-        } else {
-            setEnabled(false);
-        }
+        setEnabled(t != null);
         userGrid.setSelectedAccount(t);
     }
 
@@ -51,9 +48,9 @@ public class AccountChildUserTab extends KapuaTabItem<GwtAccount> {
         EntityCRUDToolbar<GwtUser> toolBar = userGrid.getToolbar();
 
         layout(true);
-        toolBar.setStyleAttribute("border-top", "0px none");
-        toolBar.setStyleAttribute("border-left", "0px none");
-        toolBar.setStyleAttribute("border-right", "0px none");
+        toolBar.setStyleAttribute("border-top", CssLiterals.BORDER_0PX_NONE);
+        toolBar.setStyleAttribute("border-left", CssLiterals.BORDER_0PX_NONE);
+        toolBar.setStyleAttribute("border-right", CssLiterals.BORDER_0PX_NONE);
         toolBar.setStyleAttribute("border-bottom", "1px solid rgb(208, 208, 208)");
     }
 

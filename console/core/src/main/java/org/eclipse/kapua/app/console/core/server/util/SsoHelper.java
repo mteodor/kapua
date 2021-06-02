@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,8 +16,11 @@ import java.net.URI;
 
 import org.eclipse.kapua.app.console.module.api.setting.ConsoleSetting;
 import org.eclipse.kapua.app.console.module.api.setting.ConsoleSettingKeys;
+import org.eclipse.kapua.plugin.sso.openid.exception.uri.OpenIDIllegalUriException;
 
 public final class SsoHelper {
+
+    private static final String ILLEGAL_STATE_MESSAGE = "Unable to lookup OpenID redirect URL";
 
     private SsoHelper() {
     }
@@ -25,21 +29,27 @@ public final class SsoHelper {
         return ConsoleSetting.getInstance();
     }
 
-    public static String getHomeUri() {
-        return getSettings().getString(ConsoleSettingKeys.SITE_HOME_URI);
+    public static String getHomeUri() throws OpenIDIllegalUriException {
+        String homeUri = getSettings().getString(ConsoleSettingKeys.SSO_OPENID_CONSOLE_HOME_URI);
+        if (homeUri == null || homeUri.isEmpty()) {
+            throw new OpenIDIllegalUriException(ConsoleSettingKeys.SSO_OPENID_CONSOLE_HOME_URI.key(), null);
+        }
+        return homeUri;
     }
 
     public static URI getRedirectUri() {
-        String result = getSettings().getString(ConsoleSettingKeys.SSO_REDIRECT_URI);
+        String result = getSettings().getString(ConsoleSettingKeys.SSO_OPENID_REDIRECT_URI);
         if (result != null && !result.isEmpty()) {
             return URI.create(result);
         }
 
-        result = getHomeUri();
-        if (result != null && !result.isEmpty()) {
-            return URI.create(result + "/sso/callback");
+        try {
+            result = getHomeUri();
+            return URI.create(result + "/openid/callback");
+        } catch (OpenIDIllegalUriException e) {
+            throw new IllegalStateException(ILLEGAL_STATE_MESSAGE, e);
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException(ILLEGAL_STATE_MESSAGE, e);
         }
-
-        throw new IllegalStateException("Unable to lookup SSO redirect URL");
     }
 }

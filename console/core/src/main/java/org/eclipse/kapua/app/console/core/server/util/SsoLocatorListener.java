@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,18 +16,18 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.eclipse.kapua.sso.SingleSignOnLocator;
-import org.eclipse.kapua.sso.provider.ProviderSingleSignOnLocator;
+import org.eclipse.kapua.plugin.sso.openid.OpenIDLocator;
+import org.eclipse.kapua.plugin.sso.openid.provider.ProviderOpenIDLocator;
 
 public class SsoLocatorListener implements ServletContextListener {
 
     private static final String SSO_CONTEXT_KEY = "ssoLocatorListener";
 
-    private ProviderSingleSignOnLocator context;
+    private ProviderOpenIDLocator context;
 
     @Override
     public void contextInitialized(final ServletContextEvent event) {
-        this.context = new ProviderSingleSignOnLocator();
+        this.context = new ProviderOpenIDLocator();
         event.getServletContext().setAttribute(SSO_CONTEXT_KEY, this);
     }
 
@@ -40,7 +41,7 @@ public class SsoLocatorListener implements ServletContextListener {
         }
     }
 
-    static SingleSignOnLocator getLocator(final ServletContext context) {
+    static OpenIDLocator getLocator(final ServletContext context) {
         return ((SsoLocatorListener) context.getAttribute(SSO_CONTEXT_KEY)).context;
     }
 

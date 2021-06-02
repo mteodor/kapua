@@ -1,15 +1,42 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.core.client;
+
+import java.util.List;
+
+import org.eclipse.kapua.app.console.core.client.util.TokenCleaner;
+import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationService;
+import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationServiceAsync;
+import org.eclipse.kapua.app.console.core.shared.service.GwtSettingsService;
+import org.eclipse.kapua.app.console.core.shared.service.GwtSettingsServiceAsync;
+import org.eclipse.kapua.app.console.module.account.shared.model.GwtAccount;
+import org.eclipse.kapua.app.console.module.account.shared.model.permission.AccountSessionPermission;
+import org.eclipse.kapua.app.console.module.account.shared.service.GwtAccountService;
+import org.eclipse.kapua.app.console.module.account.shared.service.GwtAccountServiceAsync;
+import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
+import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
+import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractView;
+import org.eclipse.kapua.app.console.module.api.client.ui.view.descriptor.MainViewDescriptor;
+import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaMenuItem;
+import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
+import org.eclipse.kapua.app.console.module.api.client.util.UserAgentUtils;
+import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
+import org.eclipse.kapua.app.console.module.api.shared.service.GwtConsoleService;
+import org.eclipse.kapua.app.console.module.api.shared.service.GwtConsoleServiceAsync;
+import org.eclipse.kapua.app.console.module.authentication.client.messages.ConsoleCredentialMessages;
+import org.eclipse.kapua.app.console.module.authentication.shared.model.GwtMfaCredentialOptions;
+import org.eclipse.kapua.app.console.module.authentication.shared.service.GwtMfaCredentialOptionsService;
+import org.eclipse.kapua.app.console.module.authentication.shared.service.GwtMfaCredentialOptionsServiceAsync;
 
 import com.extjs.gxt.ui.client.Style;
 import com.extjs.gxt.ui.client.event.BaseEvent;
@@ -17,6 +44,7 @@ import com.extjs.gxt.ui.client.event.Events;
 import com.extjs.gxt.ui.client.event.Listener;
 import com.extjs.gxt.ui.client.event.MenuEvent;
 import com.extjs.gxt.ui.client.event.SelectionListener;
+import com.extjs.gxt.ui.client.util.Point;
 import com.extjs.gxt.ui.client.widget.ContentPanel;
 import com.extjs.gxt.ui.client.widget.LayoutContainer;
 import com.extjs.gxt.ui.client.widget.button.Button;
@@ -27,36 +55,20 @@ import com.extjs.gxt.ui.client.widget.menu.MenuItem;
 import com.extjs.gxt.ui.client.widget.menu.SeparatorMenuItem;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Element;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
-import org.eclipse.kapua.app.console.core.client.util.Logout;
-import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationService;
-import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationServiceAsync;
-import org.eclipse.kapua.app.console.module.account.shared.model.GwtAccount;
-import org.eclipse.kapua.app.console.module.account.shared.model.permission.AccountSessionPermission;
-import org.eclipse.kapua.app.console.module.account.shared.service.GwtAccountService;
-import org.eclipse.kapua.app.console.module.account.shared.service.GwtAccountServiceAsync;
-import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
-import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
-import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractView;
-import org.eclipse.kapua.app.console.module.api.client.ui.view.descriptor.MainViewDescriptor;
-import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaMenuItem;
-import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
-import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
-import org.eclipse.kapua.app.console.module.api.client.util.UserAgentUtils;
-import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
-import org.eclipse.kapua.app.console.module.api.shared.service.GwtConsoleService;
-import org.eclipse.kapua.app.console.module.api.shared.service.GwtConsoleServiceAsync;
-
-import java.util.List;
 
 public class NorthView extends LayoutContainer {
 
     private static final ConsoleMessages MSGS = GWT.create(ConsoleMessages.class);
+    private static final ConsoleCredentialMessages CREDENTIAL_MSGS = GWT.create(ConsoleCredentialMessages.class);
     private final GwtAuthorizationServiceAsync gwtAuthorizationService = GWT.create(GwtAuthorizationService.class);
     private final GwtAccountServiceAsync gwtAccountService = GWT.create(GwtAccountService.class);
     private final GwtConsoleServiceAsync gwtConsoleService = GWT.create(GwtConsoleService.class);
+    private final GwtSettingsServiceAsync gwtSettingService = GWT.create(GwtSettingsService.class);
+    private final GwtMfaCredentialOptionsServiceAsync gwtMfaCredentialOptionsService = GWT.create(GwtMfaCredentialOptionsService.class);
 
     // UI stuff
     private KapuaCloudConsole parent;
@@ -154,19 +166,48 @@ public class NorthView extends LayoutContainer {
                 }
 
                 // Change Password menu item
-                KapuaMenuItem changePassword = new KapuaMenuItem();
-                changePassword.setText(MSGS.changePassword());
-                changePassword.setIcon(IconSet.KEY);
-                changePassword.addSelectionListener(new SelectionListener<MenuEvent>() {
+                //  (only if the current user is an INTERNAL one; note that an INTERNAL user has no ssoIdToken)
+                if (currentSession.getOpenIDIdToken() == null) {
+                    KapuaMenuItem changePassword = new KapuaMenuItem();
+                    changePassword.setText(MSGS.changePassword());
+                    changePassword.setIcon(IconSet.KEY);
+                    changePassword.addSelectionListener(new SelectionListener<MenuEvent>() {
+
+                        @Override
+                        public void componentSelected(MenuEvent ce) {
+                            gwtMfaCredentialOptionsService.findByUserId(currentSession.getAccountId(), currentSession.getUserId(), true, new AsyncCallback<GwtMfaCredentialOptions>() {
+
+                                @Override
+                                public void onFailure(Throwable caught) {
+                                    FailureHandler.handle(caught);
+                                }
+
+                                @Override
+                                public void onSuccess(GwtMfaCredentialOptions gwtMfaCredentialOptions) {
+                                    ChangePasswordDialog changePasswordDialog = new ChangePasswordDialog(currentSession, gwtMfaCredentialOptions);
+                                    changePasswordDialog.show();
+                                }
+                            });
+                        }
+
+                    });
+                    userActionMenu.add(changePassword);
+                    userActionMenu.add(new SeparatorMenuItem());
+                }
+
+                KapuaMenuItem manageMfa = new KapuaMenuItem();
+                manageMfa.setText(CREDENTIAL_MSGS.manageMfaMenuItem());
+                manageMfa.setIcon(IconSet.LOCK);
+                manageMfa.addSelectionListener(new SelectionListener<MenuEvent>() {
 
                     @Override
                     public void componentSelected(MenuEvent ce) {
-                        ChangePasswordDialog changePasswordDialog = new ChangePasswordDialog(currentSession);
-                        changePasswordDialog.show();
+                        MfaManagementDialog mfaManagementDialog = new MfaManagementDialog(currentSession);
+                        mfaManagementDialog.show();
                     }
 
                 });
-                userActionMenu.add(changePassword);
+                userActionMenu.add(manageMfa);
                 userActionMenu.add(new SeparatorMenuItem());
 
                 //
@@ -187,10 +228,28 @@ public class NorthView extends LayoutContainer {
 
                             @Override
                             public void onSuccess(Void arg0) {
-                                ConsoleInfo.display("Info", "Logged out!");
-                                Logout.logout();
-                            }
+                                if (currentSession.isSsoEnabled() && currentSession.getOpenIDIdToken() != null) {
+                                    gwtSettingService.getOpenIDLogoutUri(currentSession.getOpenIDIdToken(), new AsyncCallback<String>() {
 
+                                        @Override
+                                        public void onFailure(Throwable caught) {
+                                            FailureHandler.handle(caught);
+                                        }
+
+                                        @Override
+                                        public void onSuccess(String result) {
+                                            if (!result.isEmpty()) {
+                                                Window.Location.assign(result);
+                                            } else {
+                                                // result is empty, thus the OpenID logout is disabled
+                                                TokenCleaner.cleanToken();
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    TokenCleaner.cleanToken();
+                                }
+                            }
                         });
                     }
 
@@ -224,6 +283,7 @@ public class NorthView extends LayoutContainer {
 
         subAccountMenu = new Menu();
         subAccountMenu.setAutoWidth(true);
+        subAccountMenu.setAutoHeight(true);
         subAccountMenu.add(rootAccountMenuItem);
         subAccountMenu.add(new SeparatorMenuItem());
 
@@ -245,6 +305,15 @@ public class NorthView extends LayoutContainer {
      * @param accountId the account of the current menu item.
      */
     private void populateNavigatorMenu(final Menu menu, String accountId) {
+        final KapuaMenuItem loadingChildAccounts;
+        loadingChildAccounts = new KapuaMenuItem(MSGS.accountSelectorLoadingChildAccounts());
+        loadingChildAccounts.setToolTip(MSGS.accountSelectorTooltipYourAccount());
+        loadingChildAccounts.setIcon(IconSet.USER_MD);
+        loadingChildAccounts.setId(rootAccountId);
+        loadingChildAccounts.disable();
+
+        menu.add(loadingChildAccounts);
+
         gwtAccountService.find(accountId, new AsyncCallback<GwtAccount>() {
 
             @Override
@@ -256,10 +325,12 @@ public class NorthView extends LayoutContainer {
             public void onSuccess(GwtAccount result) {
                 // If no children are found, add "No Child" label
                 if (result.getChildAccounts() != null && result.getChildAccounts().isEmpty()) {
+                    menu.remove(loadingChildAccounts);
                     MenuItem noChildMenuItem = new MenuItem(MSGS.accountSelectorItemNoChild());
                     noChildMenuItem.disable();
                     menu.add(noChildMenuItem);
                 } else {
+                    menu.remove(loadingChildAccounts);
                     // For each child found create a item menu and search for its children
                     for (GwtAccount childAccount : result.getChildAccounts()) {
                         // Add item menu entry
@@ -277,10 +348,16 @@ public class NorthView extends LayoutContainer {
                         if (!childAccount.getChildAccounts().isEmpty()) {
                             Menu childMenu = new Menu();
                             childMenu.setAutoWidth(true);
+                            childMenu.setAutoHeight(true);
                             childAccountMenuItem.setSubMenu(childMenu);
                             populateNavigatorMenu(childMenu, childAccount.getId());
                         }
                     }
+                }
+                // Force new show to include new child accounts
+                if (menu.isVisible()) {
+                    Point currentPosition = menu.getPosition(true);
+                    menu.showAt(currentPosition.x, currentPosition.y);
                 }
             }
         });
@@ -363,4 +440,5 @@ public class NorthView extends LayoutContainer {
 
         userActionButton.setText(MSGS.consoleHeaderUserActionButtonLabel(userDisplayName, accountName));
     }
+
 }

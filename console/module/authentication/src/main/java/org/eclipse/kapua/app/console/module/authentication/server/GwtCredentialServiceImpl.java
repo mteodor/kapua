@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -19,7 +20,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.eclipse.kapua.KapuaEntityNotFoundException;
+import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
+import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.server.KapuaRemoteServiceServlet;
 import org.eclipse.kapua.app.console.module.api.server.util.KapuaExceptionHandler;
 import org.eclipse.kapua.app.console.module.api.shared.model.GwtXSRFToken;
@@ -35,7 +38,7 @@ import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.authentication.AuthenticationService;
 import org.eclipse.kapua.service.authentication.CredentialsFactory;
-import org.eclipse.kapua.service.authentication.LoginCredentials;
+import org.eclipse.kapua.service.authentication.UsernamePasswordCredentials;
 import org.eclipse.kapua.service.authentication.credential.Credential;
 import org.eclipse.kapua.service.authentication.credential.CredentialCreator;
 import org.eclipse.kapua.service.authentication.credential.CredentialFactory;
@@ -84,7 +87,7 @@ public class GwtCredentialServiceImpl extends KapuaRemoteServiceServlet implemen
             // query
             CredentialListResult credentials = CREDENTIAL_SERVICE.query(credentialQuery);
             credentials.sort(credentialComparator);
-            totalLength = (int) CREDENTIAL_SERVICE.count(credentialQuery);
+            totalLength = credentials.getTotalCount().intValue();
 
             // If there are results
             if (!credentials.isEmpty()) {
@@ -200,7 +203,7 @@ public class GwtCredentialServiceImpl extends KapuaRemoteServiceServlet implemen
     }
 
     @Override
-    public void changePassword(GwtXSRFToken gwtXsrfToken, String oldPassword, final String newPassword, String stringUserId, String stringScopeId) throws GwtKapuaException {
+    public void changePassword(GwtXSRFToken gwtXsrfToken, String oldPassword, final String newPassword, String mfaCode, String stringUserId, String stringScopeId) throws GwtKapuaException {
         String username = null;
         try {
             final KapuaId scopeId = GwtKapuaCommonsModelConverter.convertKapuaId(stringScopeId);
@@ -220,8 +223,8 @@ public class GwtCredentialServiceImpl extends KapuaRemoteServiceServlet implemen
             }
             username = user.getName();
             final String finalUsername = username;
-            LoginCredentials loginCredentials = CREDENTIALS_FACTORY.newUsernamePasswordCredentials(finalUsername, oldPassword);
-
+            UsernamePasswordCredentials loginCredentials = CREDENTIALS_FACTORY.newUsernamePasswordCredentials(finalUsername, oldPassword);
+            loginCredentials.setAuthenticationCode(mfaCode);
             AUTHENTICATION_SERVICE.verifyCredentials(loginCredentials);
 
             KapuaSecurityUtils.doPrivileged(new Callable<Void>() {
@@ -276,6 +279,24 @@ public class GwtCredentialServiceImpl extends KapuaRemoteServiceServlet implemen
             CREDENTIAL_SERVICE.unlock(scopeId, credentialId);
         } catch (Throwable t) {
             KapuaExceptionHandler.handle(t);
+        }
+    }
+
+    @Override
+    public Integer getMinPasswordLength(final String scopeId) throws GwtKapuaException {
+        try {
+            // Do privileged because the request may come from a user with no permission who just wants to change his own password
+            return KapuaSecurityUtils.doPrivileged(new Callable<Integer>() {
+
+                @Override
+                public Integer call() throws Exception {
+                    return CREDENTIAL_SERVICE.getMinimumPasswordLength(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
+                }
+
+            });
+        } catch (KapuaException ex) {
+            FailureHandler.handle(ex);
+            return null;
         }
     }
 

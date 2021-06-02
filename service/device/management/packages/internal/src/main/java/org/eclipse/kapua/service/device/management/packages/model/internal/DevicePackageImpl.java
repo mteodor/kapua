@@ -1,36 +1,41 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.packages.model.internal;
 
-import java.util.Date;
-
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackage;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackageBundleInfos;
 
+import java.util.Date;
+
 /**
- * Device package.
- * 
- * @since 1.0
+ * {@link DevicePackage} implementation.
  *
+ * @since 1.0.0
  */
 public class DevicePackageImpl implements DevicePackage {
 
     private String name;
-
     private String version;
-
-    private DevicePackageBundleInfosImpl bundleInfos;
-
+    private DevicePackageBundleInfos bundleInfos;
     private Date installDate;
+
+    /**
+     * Constructor.
+     *
+     * @since 1.0.0
+     */
+    public DevicePackageImpl() {
+    }
 
     @Override
     public String getName() {
@@ -53,12 +58,17 @@ public class DevicePackageImpl implements DevicePackage {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public DevicePackageBundleInfosImpl getBundleInfos() {
+    public DevicePackageBundleInfos getBundleInfos() {
         if (bundleInfos == null) {
             bundleInfos = new DevicePackageBundleInfosImpl();
         }
+
         return bundleInfos;
+    }
+
+    @Override
+    public void setBundleInfos(DevicePackageBundleInfos bundleInfos) {
+        this.bundleInfos = bundleInfos;
     }
 
     @Override
@@ -69,10 +79,5 @@ public class DevicePackageImpl implements DevicePackage {
     @Override
     public void setInstallDate(Date installDate) {
         this.installDate = installDate;
-    }
-
-    @Override
-    public void setBundleInfos(DevicePackageBundleInfos bundleInfos) {
-        this.bundleInfos = (DevicePackageBundleInfosImpl) bundleInfos;
     }
 }

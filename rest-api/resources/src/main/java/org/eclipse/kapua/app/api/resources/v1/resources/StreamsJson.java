@@ -1,23 +1,22 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.api.resources.v1.resources;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.Authorization;
+import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.app.api.core.resources.AbstractKapuaResource;
 import org.eclipse.kapua.app.api.resources.v1.resources.marker.JsonSerializationFixed;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.ScopeId;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.data.JsonKapuaDataMessage;
+import org.eclipse.kapua.app.api.core.model.ScopeId;
+import org.eclipse.kapua.app.api.core.model.data.JsonKapuaDataMessage;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.message.device.data.KapuaDataMessage;
 import org.eclipse.kapua.message.device.data.KapuaDataMessageFactory;
@@ -35,7 +34,6 @@ import javax.ws.rs.core.Response;
 /**
  * @see JsonSerializationFixed
  */
-@Api(value = "Streams", authorizations = {@Authorization(value = "kapuaAccessToken")})
 @Path("{scopeId}/streams")
 public class StreamsJson extends AbstractKapuaResource implements JsonSerializationFixed {
 
@@ -89,16 +87,15 @@ public class StreamsJson extends AbstractKapuaResource implements JsonSerializat
      * @param timeout
      * @param jsonKapuaDataMessage
      * @return
-     * @throws Exception
+     * @throws KapuaException
      */
     @POST
     @Path("messages")
     @Consumes({MediaType.APPLICATION_JSON})
-    @ApiOperation(nickname = "streamPublish", value = "Publishes a fire-and-forget message", notes = "Publishes a fire-and-forget message to a topic composed of [account-name] / [client-id] / [semtantic-parts]")
     public Response publish(
-            @ApiParam(value = "The ScopeId of the device", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "The timeout of the request execution") @QueryParam("timeout") Long timeout,
-            @ApiParam(value = "The input request", required = true) JsonKapuaDataMessage jsonKapuaDataMessage) throws Exception {
+            @PathParam("scopeId") ScopeId scopeId,
+            @QueryParam("timeout") Long timeout,
+            JsonKapuaDataMessage jsonKapuaDataMessage) throws KapuaException {
 
         KapuaDataMessage kapuaDataMessage = KAPUA_DATA_MESSAGE_FACTORY.newKapuaDataMessage();
 
@@ -130,6 +127,6 @@ public class StreamsJson extends AbstractKapuaResource implements JsonSerializat
 
         STREAMS.publish(scopeId, timeout, kapuaDataMessage);
 
-        return Response.ok().build();
+        return returnNoContent();
     }
 }

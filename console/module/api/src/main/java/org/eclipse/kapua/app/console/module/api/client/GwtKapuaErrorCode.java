@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -18,6 +19,7 @@ public enum GwtKapuaErrorCode {
     CANNOT_REMOVE_LAST_ADMIN,
     CURRENT_ADMIN_PASSWORD_DOES_NOT_MATCH,
     DUPLICATE_NAME,
+    DUPLICATE_EXTERNAL_ID,
     DEVICE_NEVER_CONNECTED,
     DEVICE_NOT_CONNECTED,
     ENTITY_UNIQUENESS,
@@ -31,8 +33,11 @@ public enum GwtKapuaErrorCode {
     INVALID_XSRF_TOKEN,
     LOCKED_USER,
     OVER_RULE_LIMIT,
+    BUNDLE_GET_ERROR,
+    INVENTORY_GET_ERROR,
     REQUEST_BAD_METHOD,
     UNAUTHENTICATED,
+    SEND_ERROR,
     WARNING,
     XSRF_INVALID_TOKEN,
     PARENT_LIMIT_EXCEEDED_IN_CONFIG,
@@ -40,6 +45,7 @@ public enum GwtKapuaErrorCode {
     ENTITY_ALREADY_EXISTS,
     UNABLE_TO_PARSE_CRON_EXPRESSION,
     ENTITY_ALREADY_EXIST_IN_ANOTHER_ACCOUNT,
+    EXTERNAL_ID_ALREADY_EXIST_IN_ANOTHER_ACCOUNT,
     SELF_LIMIT_EXCEEDED_IN_CONFIG,
     MAX_NUMBER_OF_ITEMS_REACHED,
     OPERATION_NOT_ALLOWED_ON_ADMIN_USER,
@@ -51,5 +57,7 @@ public enum GwtKapuaErrorCode {
     TRIGGER_NEVER_FIRE,
     JOB_STARTING_ERROR,
     ADMIN_ROLE_DELETED_ERROR,
-    PERMISSION_DELETE_NOT_ALLOWED
+    PERMISSION_DELETE_NOT_ALLOWED,
+    JOB_STOPPING_ERROR,
+    REQUIRE_MFA_CODE,
 }

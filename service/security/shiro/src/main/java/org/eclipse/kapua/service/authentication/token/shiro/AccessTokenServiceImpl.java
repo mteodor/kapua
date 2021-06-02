@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -18,6 +19,7 @@ import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.event.ServiceEvent;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
+import org.eclipse.kapua.model.KapuaEntityAttributes;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
@@ -73,7 +75,7 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
         //
         // Do create
-        return entityManagerSession.onTransactedInsert(em -> AccessTokenDAO.create(em, accessTokenCreator));
+        return entityManagerSession.doTransactedAction(em -> AccessTokenDAO.create(em, accessTokenCreator));
     }
 
     @Override
@@ -98,15 +100,15 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
         //
         // Do update
-        return entityManagerSession.onTransactedResult(em -> AccessTokenDAO.update(em, accessToken));
+        return entityManagerSession.doTransactedAction(em -> AccessTokenDAO.update(em, accessToken));
     }
 
     @Override
     public AccessToken find(KapuaId scopeId, KapuaId accessTokenId) throws KapuaException {
         //
         // Validation of the fields
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(accessTokenId, "accessTokenId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(accessTokenId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
@@ -114,15 +116,14 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
         //
         // Do find
-        return entityManagerSession.onResult(em -> AccessTokenDAO.find(em, scopeId, accessTokenId));
+        return entityManagerSession.doAction(em -> AccessTokenDAO.find(em, scopeId, accessTokenId));
     }
 
     @Override
-    public AccessTokenListResult query(KapuaQuery<AccessToken> query) throws KapuaException {
+    public AccessTokenListResult query(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -130,15 +131,14 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
         //
         // Do query
-        return entityManagerSession.onResult(em -> AccessTokenDAO.query(em, query));
+        return entityManagerSession.doAction(em -> AccessTokenDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<AccessToken> query) throws KapuaException {
+    public long count(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -146,15 +146,15 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
         //
         // Do count
-        return entityManagerSession.onResult(em -> AccessTokenDAO.count(em, query));
+        return entityManagerSession.doAction(em -> AccessTokenDAO.count(em, query));
     }
 
     @Override
     public void delete(KapuaId scopeId, KapuaId accessTokenId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(accessTokenId, "accessTokenId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(accessTokenId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
@@ -168,14 +168,14 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
         //
         // Do delete
-        entityManagerSession.onTransactedAction(em -> AccessTokenDAO.delete(em, scopeId, accessTokenId));
+        entityManagerSession.doTransactedAction(em -> AccessTokenDAO.delete(em, scopeId, accessTokenId));
     }
 
     @Override
     public AccessTokenListResult findByUserId(KapuaId scopeId, KapuaId userId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
         ArgumentValidator.notNull(userId, "userId");
 
         //
@@ -200,7 +200,7 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
 
         //
         // Do find
-        AccessToken accessToken = entityManagerSession.onResult(em -> AccessTokenDAO.findByTokenId(em, tokenId));
+        AccessToken accessToken = entityManagerSession.doAction(em -> AccessTokenDAO.findByTokenId(em, tokenId));
 
         //
         // Check Access
@@ -215,16 +215,16 @@ public class AccessTokenServiceImpl extends AbstractKapuaService implements Acce
     public void invalidate(KapuaId scopeId, KapuaId accessTokenId) throws KapuaException {
         //
         // Validation of the fields
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(accessTokenId, "accessTokenId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(accessTokenId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(AuthenticationDomains.ACCESS_TOKEN_DOMAIN, Actions.read, scopeId));
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(AuthenticationDomains.ACCESS_TOKEN_DOMAIN, Actions.write, scopeId));
 
         //
         // Do find
-        entityManagerSession.onTransactedResult(em -> {
+        entityManagerSession.doTransactedAction(em -> {
             AccessToken accessToken = AccessTokenDAO.find(em, scopeId, accessTokenId);
             if (accessToken != null) {
                 accessToken.setInvalidatedOn(new Date());

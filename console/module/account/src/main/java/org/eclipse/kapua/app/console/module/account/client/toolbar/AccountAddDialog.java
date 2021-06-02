@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -60,7 +61,6 @@ public class AccountAddDialog extends EntityAddEditDialog {
     protected final LabelField accountNameLabel = new LabelField();
     protected final KapuaTextField<String> accountNameField = new KapuaTextField<String>();
     protected final KapuaTextField<String> accountPassword = new KapuaTextField<String>();
-    protected final KapuaTextField<String> confirmPassword = new KapuaTextField<String>();
     protected final KapuaDateField expirationDateField = new KapuaDateField(this);
 
     // broker cluster
@@ -289,13 +289,13 @@ public class AccountAddDialog extends EntityAddEditDialog {
 
     public void validateAccount() {
         if (accountNameField.getValue() == null || organizationName.getValue() == null || organizationEmail.getValue() == null) {
-            ConsoleInfo.display("Error", CMSGS.allFieldsRequired());
+            ConsoleInfo.display(CMSGS.error(), CMSGS.allFieldsRequired());
         } else if (!expirationDateField.isValid()) {
-            ConsoleInfo.display("Error", KapuaSafeHtmlUtils.htmlUnescape(expirationDateField.getErrorMessage()));
+            ConsoleInfo.display(CMSGS.error(), KapuaSafeHtmlUtils.htmlUnescape(expirationDateField.getErrorMessage()));
         } else if (!organizationEmail.isValid()) {
-            ConsoleInfo.display("Error", organizationEmail.getErrorMessage());
+            ConsoleInfo.display(CMSGS.error(), organizationEmail.getErrorMessage());
         } else if (!organizationPhoneNumber.isValid()) {
-            ConsoleInfo.display("Error", organizationPhoneNumber.getErrorMessage());
+            ConsoleInfo.display(CMSGS.error(), organizationPhoneNumber.getErrorMessage());
         }
     }
 

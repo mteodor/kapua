@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -23,7 +24,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = "usernamePasswordCredentials")
 @XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlType(propOrder = { "username", "password" }, factoryClass = AuthenticationXmlRegistry.class, factoryMethod = "newUsernamePasswordCredentials")
+@XmlType(propOrder = { "username", "password", "authenticationCode", "trustKey" }, factoryClass = AuthenticationXmlRegistry.class, factoryMethod = "newUsernamePasswordCredentials")
 public interface UsernamePasswordCredentials extends LoginCredentials {
 
     /**
@@ -53,4 +54,32 @@ public interface UsernamePasswordCredentials extends LoginCredentials {
      * @param password
      */
     void setPassword(String password);
+
+    /**
+     * return the authenticationCode
+     *
+     * @return
+     */
+    String getAuthenticationCode();
+
+    /**
+     * Set the authenticationCode
+     *
+     * @param authenticationCode
+     */
+    void setAuthenticationCode(String authenticationCode);
+
+    /**
+     * return the trustKey
+     *
+     * @return the trust key
+     */
+    String getTrustKey();
+
+    /**
+     * Set the trust key
+     *
+     * @param trustKey
+     */
+    void setTrustKey(String trustKey);
 }

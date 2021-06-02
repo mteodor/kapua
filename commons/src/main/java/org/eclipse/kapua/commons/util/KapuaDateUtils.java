@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -29,7 +30,16 @@ public final class KapuaDateUtils {
     private KapuaDateUtils() {
     }
 
-    public static final String ISO_DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"; // example 24/01/2017T11:22:10.999Z
+    /**
+     * {@literal uuuu} is used instead of {@literal yyyy} for the year because the latter is meant to be used together with the
+     * era of the date, while the former is the proleptic year. Also, {@literal X} is used at the end instead of {@literal 'Z'}
+     * because with {@literal 'Z'} we were blindly appending a Z at the end without actually relying on the timezone,
+     * while with {@literal X} Z is printed only if the time difference is 0 (i.e. the timezone is UTC)
+     *
+     * @see <a href=https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>DateTimeFormatter</a>
+     * @see <a href=https://stackoverflow.com/a/29014580/218901>Answer on StackOverflow</a>
+     */
+    public static final String ISO_DATE_PATTERN = "uuuu-MM-dd'T'HH:mm:ss.SSSX"; // example 2017-01-24T11:22:10.999Z
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter
             .ofPattern(ISO_DATE_PATTERN)

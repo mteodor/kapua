@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -89,11 +90,11 @@ public enum SystemSettingKey implements SettingKey {
     /**
      * Database use ssl connection
      */
-    DB_CONNECTION_USESSL("commons.db.connection.useSsl"),
+    DB_CONNECTION_USE_SSL("commons.db.connection.useSsl"),
     /**
-     * Database verify ssl connection (trust server/client certificates)
+     * Database TLS/SSL Protocol Version Selection (for MariaDB only)
      */
-    DB_CONNECTION_VERIFYSSL("commons.db.connection.sslVerify"),
+    DB_CONNECTION_ENABLED_SSL_PROTOCOL_SUITES("commons.db.connection.enabledSslProtocolSuites"),
     /**
      * Database truststore url
      */
@@ -102,7 +103,10 @@ public enum SystemSettingKey implements SettingKey {
      * Database truststore password
      */
     DB_CONNECTION_TRUSTSTORE_PWD("commons.db.connection.trust.store.pwd"),
-
+    /**
+     * Any additional option that can be passed to the JDBC connection string
+     */
+    DB_CONNECTION_ADDITIONAL_OPTIONS("commons.db.connection.additionalOptions"),
     /**
      * Database schema name
      */
@@ -173,9 +177,21 @@ public enum SystemSettingKey implements SettingKey {
      */
     BROKER_HOST("broker.host"),
     /**
-     * Broker port
+     * Broker internal port
      */
-    BROKER_PORT("broker.port"),
+    BROKER_INTERNAL_CONNECTOR_PORT("broker.connector.internal.port"),
+    /**
+     * Broker internal connector name
+     */
+    BROKER_INTERNAL_CONNECTOR_NAME("broker.connector.internal.name"),
+    /**
+     * Internal connector username
+     */
+    BROKER_INTERNAL_CONNECTOR_USERNAME("broker.connector.internal.username"),
+    /**
+     * Internal connector password
+     */
+    BROKER_INTERNAL_CONNECTOR_PASSWORD("broker.connector.internal.password"),
 
     /**
      * Metrics JMX disabled
@@ -257,7 +273,28 @@ public enum SystemSettingKey implements SettingKey {
     /**
      * Allow System Settings to be updatable at runtime via System.setProperty()
      */
-    SETTINGS_HOTSWAP("commons.settings.hotswap");
+    SETTINGS_HOTSWAP("commons.settings.hotswap"),
+
+    /**
+     * Provide the classname for the Cache Provider
+     */
+    CACHING_PROVIDER("commons.cache.provider.classname"),
+    /**
+     * Size of the local cache for the KapuaTmetadata
+     */
+    TMETADATA_LOCAL_CACHE_SIZE_MAXIMUM("commons.cache.local.tmetadata.maxsize"),
+    /**
+     * Provide the CacheManager config file URL
+     */
+    CACHE_CONFIG_URL("commons.cache.config.url"),
+    /**
+     * Provide the Cache TTL
+     */
+    CACHE_TTL("commons.cache.config.ttl"),
+    /**
+     * Provide the JCache Expiry Policy. Allowed values: MODIFIED, TOUCHED
+     */
+    JCACHE_EXPIRY_POLICY("commons.cache.config.expiryPolicy");
 
     private String key;
 

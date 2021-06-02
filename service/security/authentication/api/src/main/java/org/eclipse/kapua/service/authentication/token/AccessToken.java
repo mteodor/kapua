@@ -1,17 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.authentication.token;
 
-import io.swagger.annotations.ApiModelProperty;
 import org.eclipse.kapua.model.KapuaUpdatableEntity;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.id.KapuaIdAdapter;
@@ -40,7 +40,8 @@ import java.util.Date;
         "expiresOn", //
         "refreshToken", //
         "refreshExpiresOn", //
-        "invalidatedOn" //
+        "invalidatedOn", //
+        "trustKey" //
 }, //
         factoryClass = AccessTokenXmlRegistry.class, //
         factoryMethod = "newAccessToken")
@@ -78,7 +79,6 @@ public interface AccessToken extends KapuaUpdatableEntity, Serializable {
      */
     @XmlElement(name = "userId")
     @XmlJavaTypeAdapter(KapuaIdAdapter.class)
-    @ApiModelProperty(dataType = "string")
     KapuaId getUserId();
 
     /**
@@ -163,5 +163,22 @@ public interface AccessToken extends KapuaUpdatableEntity, Serializable {
      * @since 1.0.0
      */
     void setInvalidatedOn(Date invalidatedOn);
+
+    /**
+     * Gets the MFA trust key
+     *
+     * @return the value of the mfa trust key
+     * @since 1.4.0
+     */
+    @XmlElement(name = "trustKey")
+    String getTrustKey();
+
+    /**
+     * Sets the MFA trust key
+     *
+     * @param trustKey the mfa trust key to be set
+     * @since 1.4.0
+     */
+    void setTrustKey(String trustKey);
 
 }

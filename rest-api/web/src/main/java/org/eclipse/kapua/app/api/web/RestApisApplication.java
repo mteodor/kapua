@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -16,14 +17,11 @@ import java.util.HashMap;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBException;
 
-import org.eclipse.kapua.app.api.core.CORSResponseFilter;
 import org.eclipse.kapua.app.api.core.KapuaSerializableBodyWriter;
 import org.eclipse.kapua.app.api.core.ListBodyWriter;
 import org.eclipse.kapua.app.api.core.MoxyJsonConfigContextResolver;
-import org.eclipse.kapua.app.api.core.SwaggerDefinition;
 import org.eclipse.kapua.commons.util.xml.XmlUtil;
 
-import io.swagger.jaxrs.config.BeanConfig;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
@@ -43,13 +41,12 @@ public class RestApisApplication extends ResourceConfig {
         mappedMediaTypes.put("json", MediaType.APPLICATION_JSON_TYPE);
 
         property(ServerProperties.MEDIA_TYPE_MAPPINGS, mappedMediaTypes);
+        property(ServerProperties.WADL_FEATURE_DISABLE, true);
         register(UriConnegFilter.class);
         register(JaxbContextResolver.class);
         register(RestApiJAXBContextProvider.class);
         register(KapuaSerializableBodyWriter.class);
         register(ListBodyWriter.class);
-        register(CORSResponseFilter.class);
-        register(SwaggerDefinition.class);
         register(MoxyJsonConfigContextResolver.class);
 
         register(new ContainerLifecycleListener() {
@@ -76,22 +73,6 @@ public class RestApisApplication extends ResourceConfig {
             public void onShutdown(Container container) {
             }
         });
-
-        initSwagger();
     }
 
-    private void initSwagger() {
-        final String apiVersion = "1.0";
-        final String basePath = "/v1";
-        final String apiResourcePackage = "org.eclipse.kapua.app.api";
-        final String apiTitle = "Eclipse Kapua REST API";
-
-        BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion(apiVersion);
-        beanConfig.setBasePath(basePath);
-        beanConfig.setTitle(apiTitle);
-        beanConfig.setSchemes(new String[] { "http" });
-        beanConfig.setResourcePackage(apiResourcePackage);
-        beanConfig.setScan(true);
-    }
 }

@@ -1,8 +1,8 @@
 # Kura - Kapua connection
 
-This is a short introduction into how locally connect Kura and Kapua. Although some of the info bellow can already be found on Kapua github project and Kura guides, this document contains everything needed for the connection. If you have any questions post them on [Eclipse Community Forums](https://www.eclipse.org/forums/index.php/f/340/), [Gitter chat room](https://gitter.im/eclipse/kapua) or join our [mailing list](https://dev.eclipse.org/mailman/listinfo/kapua-dev). In case you find any issues, [report them](https://github.com/eclipse/kapua/issues). Also if you want to contribute, [this is the place to start!](https://github.com/eclipse/kapua).
+This is a short introduction to locally connect Kura and Kapua. Although some of the info below can already be found on Kapua github project and Kura guides, this document contains everything needed for the connection. If you have any questions post them on [Eclipse Community Forums](https://www.eclipse.org/forums/index.php/f/340/), [Gitter chat room](https://gitter.im/eclipse/kapua) or join our [mailing list](https://dev.eclipse.org/mailman/listinfo/kapua-dev). In case you find any issues, [report them](https://github.com/eclipse/kapua/issues). Also if you want to contribute, [this is the place to start!](https://github.com/eclipse/kapua).
 
-## Usefull links
+## Useful links
 
  - [Kapua quick start guide](https://github.com/eclipse/kapua/blob/develop/README.md)
  - [Kapua User Manual](http://download.eclipse.org/kapua/docs/develop/user-manual/en/)
@@ -32,9 +32,8 @@ This part of the tutorial consists of several pieces. First you need to download
 
 1. Open OS Shell (Terminal) and go to home directory.
 2. Download Kapua project from [Github repository](https://github.com/eclipse/kapua.git) with command `git clone https://github.com/eclipse/kapua.git`
-3. Go to Kapua folder and run command `mvn clean install -f external/pom.xml` which will build some additional resources required by Kapua.
-4. Go to Kapua folder and run command `mvn clean install -DskipTests -Pconsole,docker` which will build the project with the Web Admin console.
-5. After build finishes run Docker deploy script in `deployment/docker`:
+3. Go to Kapua folder and run command `mvn clean install -DskipTests -Pconsole,docker` which will build the project with the Web Admin console.
+4. After build finishes run Docker deploy script in `deployment/docker`:
  
 ```
 ./docker-deploy.sh
@@ -53,12 +52,12 @@ CONTAINER ID        IMAGE                 COMMAND                  CREATED      
 505d32a0bb9e        kapua/kapua-api       "/home/kapua/run-j..."   4 hours ago         Created                                                                                           kapua-api             0B (virtual 180MB)
 dd9852845105        kapua/kapua-console   "/home/kapua/run-c..."   4 hours ago         Up 4 hours                 0.0.0.0:8080->8080/tcp, 8778/tcp                                       kapua-console         83kB (virtual 206MB)
 65c8e15ab7e9        kapua/kapua-broker    "/maven/bin/active..."   4 hours ago         Up 4 hours                 8778/tcp, 0.0.0.0:1883->1883/tcp, 0.0.0.0:61614->61614/tcp, 8883/tcp   kapua-broker          94.4kB (virtual 212MB)
-b3309e145e84        elasticsearch:5.4.0   "/docker-entrypoin..."   4 hours ago         Exited (137) 4 hours ago                                                                          kapua-elasticsearch   32.8kB (virtual 352MB)
+b3309e145e84        elasticsearch:6.8.7   "/docker-entrypoin..."   4 hours ago         Up 4 hours                                                                         kapua-elasticsearch   32.8kB (virtual 352MB)
 e097f77f1758        kapua/kapua-sql       "/home/kapua/run-h2"     4 hours ago         Up 4 hours                 0.0.0.0:3306->3306/tcp, 0.0.0.0:8181->8181/tcp, 8778/tcp               kapua-sql             32.8kB (virtual 86MB)
 785efe9976cf        kapua/kapua-events-broker:latest   "/run-artemis"           About an hour ago   Up About an hour    0.0.0.0:5672->5672/tcp                                                 compose_events-broker_1   410kB (virtual 130MB)
 ```
 
-6. Kapua can be stopped by executing script: 
+6. Kapua can be stopped by executing the script: 
 
 ```
 ./docker-undeploy.sh
@@ -84,7 +83,7 @@ kapua-password
 
 ### Adding Account and User
 
-Now you can login into Kapua, but we still need to create an Account and a User. This section has for steps. First one is creating a child account. 
+Now you can login to Kapua, but we still need to create an Account and a User. This section has four steps. First one is creating a child account. 
 
 While logged in as kapua-sys click **Child Accounts** and **Add** a user named User123.
 
@@ -144,10 +143,10 @@ After that go to **Permissions** tab and click **Add**, select **ALL** in every 
 
 Now we have everything we need to connect Kura to Kapua.  
 
-## Downloading and cofiguring Kura
+## Downloading and configuring Kura
 
 Second part of this guide describes how to configure Raspberry Pi, but you can also use BBB (BeagleBone Black) or Intel Edison [as described on Kura download page](http://www.eclipse.org/kura/downloads.php?).
-Because there already exists guide for [installing Kura on Raspberry Pi](https://eclipse.github.io/kura/intro/raspberry-pi-quick-start.html) we will not repeat the procedure here. When you finish, come back and follow procedure bellow. In this example wi will assume that Raspberry Pi has IP: 192.168.1.11 and our PC 192.168.1.10.
+Because there already exists a guide for [installing Kura on Raspberry Pi](https://eclipse.github.io/kura/intro/raspberry-pi-quick-start.html) we will not repeat the procedure here. When you finish, come back and follow the procedure below. In this example, we will assume that Raspberry Pi has IP: 192.168.1.11 and our PC 192.168.1.10.
 
 1. Connect Raspberry Pi and local PC to the same network
 2. On PC open browser and enter Raspberry's IP (which can be obtained with **ifconifg** command in Terminal of Raspberry Pi)
@@ -171,7 +170,7 @@ Kura is now fully configured and is ready to send some data.
 
 As you can see, our **data** sections Kapua is empty. That is because we did not yet send any data to it. So in this example we will user **Example publisher** deployment package, which can be obtained from [Eclipse marketplace](https://marketplace.eclipse.org/). 
 
-This bundle sends some data to provided Cloud (in our case Kapua). We will use it to verify our connection. [Click here](https://marketplace.eclipse.org/content/example-publisher-eclipse-kura) to visit Example Publisher page. 
+This bundle sends some data to the provided Cloud (in our case Kapua). We will use it to verify our connection. [Click here](https://marketplace.eclipse.org/content/example-publisher-eclipse-kura) to visit Example Publisher page. 
 
 Click on download button and copy the link address (it has **.dp** extension) and paste it into **Kura -> Packages -> Install/Upgrade -> URL**. 
 
@@ -181,7 +180,7 @@ Click **+** right from **search** box. Under **Factory** select **org.eclipse.ku
 
 Example publisher should automatically start sending data to [Kapua](http://localhost:8080/), which can be verified in kura.log file or in Kapua itself (kura.log file is in on Raspberry Pi in /var/log folder).
 
-If everything done correctly data should be transmitted to Kapua and accumulated in **data/metrics**. 
+If everything is done correctly, data should be transmitted to Kapua and accumulated in **data/metrics**. 
 
 
 

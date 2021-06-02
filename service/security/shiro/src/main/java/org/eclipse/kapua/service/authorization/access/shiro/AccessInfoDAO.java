@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -66,7 +67,7 @@ public class AccessInfoDAO extends ServiceDAO {
      * @throws KapuaException
      * @since 1.0.0
      */
-    public static AccessInfoListResult query(EntityManager em, KapuaQuery<AccessInfo> accessInfoQuery)
+    public static AccessInfoListResult query(EntityManager em, KapuaQuery accessInfoQuery)
             throws KapuaException {
         return ServiceDAO.query(em, AccessInfo.class, AccessInfoImpl.class, new AccessInfoListResultImpl(), accessInfoQuery);
     }
@@ -80,7 +81,7 @@ public class AccessInfoDAO extends ServiceDAO {
      * @throws KapuaException
      * @since 1.0.0
      */
-    public static long count(EntityManager em, KapuaQuery<AccessInfo> accessInfoQuery)
+    public static long count(EntityManager em, KapuaQuery accessInfoQuery)
             throws KapuaException {
         return ServiceDAO.count(em, AccessInfo.class, AccessInfoImpl.class, accessInfoQuery);
     }
@@ -91,11 +92,12 @@ public class AccessInfoDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param accessInfoId
+     * @return the deleted {@link AccessInfo}
      * @throws KapuaEntityNotFoundException If {@link AccessInfo} is nott found.
      * @since 1.0.0
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId accessInfoId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, AccessInfoImpl.class, scopeId, accessInfoId);
+    public static AccessInfo delete(EntityManager em, KapuaId scopeId, KapuaId accessInfoId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, AccessInfoImpl.class, scopeId, accessInfoId);
     }
 
 }

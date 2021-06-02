@@ -1,0 +1,114 @@
+#!/bin/bash
+###############################################################################
+# Copyright (c) 2017, 2021 Red Hat Inc and others
+#
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#     Red Hat Inc - initial API and implementation
+#     Eurotech
+###############################################################################
+
+set -e
+
+if [ ! -f /opt/jboss/keycloak/standalone/data/first-run ]; then
+  echo "Initializing Kapua setup ..."
+  echo "   Kapua Console: $KAPUA_CONSOLE_URL"
+
+  /opt/jboss/tools/docker-entrypoint.sh -b localhost &
+
+  while ! curl -sf http://localhost:8080/auth; do
+    echo Waiting for keycloak to come up ...
+    sleep 5
+  done
+  echo "Keycloak is up"
+
+  KC=/opt/jboss/keycloak/bin/kcadm.sh
+  REALM_NAME="kapua"
+  $KC config credentials --server http://localhost:8080/auth --realm master --user "$KEYCLOAK_USER" --password "$KEYCLOAK_PASSWORD"
+
+  if test -n "$SMTP_HOST" && test -n "$SMTP_USER" && test -n "$SMTP_PASSWORD" && test -n "$SMTP_FROM"; then
+
+  echo "Creating ${REALM_NAME} realm ..."
+  $KC create realms -s realm=${REALM_NAME} \
+    -s enabled=true \
+    -s "smtpServer.host=${SMTP_HOST}" \
+    ${SMTP_PORT:+-s "smtpServer.port=${SMTP_PORT}"} \
+    -s "smtpServer.user=${SMTP_USER}" \
+    -s "smtpServer.password=${SMTP_PASSWORD}" \
+    -s "smtpServer.from=${SMTP_FROM}" \
+    ${SMTP_ENABLE_SSL:+-s "smtpServer.ssl=${SMTP_ENABLE_SSL}"} \
+    -f - << EOF
+    {
+        "displayName": "Eclipse Kapua",
+        "registrationAllowed": true,
+        "registrationEmailAsUsername": true,
+        "rememberMe": true,
+        "verifyEmail": true,
+        "resetPasswordAllowed": true,
+        "smtpServer": {
+           "auth": true,
+           "starttls": true
+        }
+     }
+EOF
+
+  else
+  $KC create realms -s realm=${REALM_NAME} \
+    -s enabled=true \
+    -f - << EOF
+    {
+        "displayName": "Eclipse Kapua",
+        "smtpServer": {
+           "auth": true,
+           "starttls": true
+        }
+     }
+EOF
+  fi
+  echo "${REALM_NAME} realm created."
+
+  echo "Creating console client ..."
+  $KC create clients -r ${REALM_NAME} \
+    -s "redirectUris=[\"${KAPUA_CONSOLE_URL}/*\"]" \
+    -f - << EOF
+    {
+        "clientId": "console",
+        "name": "Web Console",
+        "publicClient": true,
+        "protocolMappers": [ {
+           "name": "console",
+           "protocol": "openid-connect",
+           "protocolMapper": "oidc-audience-mapper",
+           "config": {
+              "access.token.claim": "true",
+              "included.custom.audience": "console"
+           }
+        } ]
+    }
+EOF
+  echo "console client created."
+
+  SSO_USER="sso-user"
+  SSO_USER_PASSWORD="sso-password"
+  echo "Creating ${SSO_USER} ..."
+  $KC create users -r ${REALM_NAME} -s username=${SSO_USER} -s enabled=true
+  $KC set-password -r ${REALM_NAME} --username ${SSO_USER} --new-password ${SSO_USER_PASSWORD}
+  echo "${SSO_USER} created."
+
+  touch /opt/jboss/keycloak/standalone/data/first-run
+
+  sleep 1
+
+  kill %1
+  wait %1
+
+  echo "Keycloak shut down ... commencing normal startup"
+fi
+
+exec /opt/jboss/tools/docker-entrypoint.sh $@
+exit $?

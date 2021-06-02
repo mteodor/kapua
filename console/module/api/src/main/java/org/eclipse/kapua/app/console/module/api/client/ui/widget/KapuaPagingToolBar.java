@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -17,7 +18,7 @@ import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 
 public class KapuaPagingToolBar extends PagingToolBar {
 
-    private static final ConsoleMessages MSGS = GWT.create(ConsoleMessages.class);
+    private static final ConsoleMessages TOOLBAR_MSGS = GWT.create(ConsoleMessages.class);
 
     /**
      * Max length of user input field for page number.
@@ -40,21 +41,21 @@ public class KapuaPagingToolBar extends PagingToolBar {
 
         PagingToolBarMessages pagingToolbarMessages = getMessages();
         StringBuilder sb = new StringBuilder();
-        sb.append(MSGS.pagingToolbarShowingPre())
+        sb.append(TOOLBAR_MSGS.pagingToolbarShowingPre())
                 .append(" {0} - {1} ")
-                .append(MSGS.pagingToolbarShowingMid())
+                .append(TOOLBAR_MSGS.pagingToolbarShowingMid())
                 .append(" {2} ")
                 .append(kapuaPagingToolbarMessages.pagingToolbarShowingPost());
         pagingToolbarMessages.setDisplayMsg(sb.toString());
 
         pagingToolbarMessages.setEmptyMsg(kapuaPagingToolbarMessages.pagingToolbarNoResult());
-        pagingToolbarMessages.setBeforePageText(MSGS.pagingToolbarPage());
-        pagingToolbarMessages.setAfterPageText(MSGS.pagingToolbarOf().concat("{0}"));
-        pagingToolbarMessages.setFirstText(MSGS.pagingToolbarFirstPage());
-        pagingToolbarMessages.setPrevText(MSGS.pagingToolbarPrevPage());
-        pagingToolbarMessages.setNextText(MSGS.pagingToolbarNextPage());
-        pagingToolbarMessages.setLastText(MSGS.pagingToolbarLastPage());
-        pagingToolbarMessages.setRefreshText(MSGS.pagingToolbarRefresh());
+        pagingToolbarMessages.setBeforePageText(TOOLBAR_MSGS.pagingToolbarPage());
+        pagingToolbarMessages.setAfterPageText(TOOLBAR_MSGS.pagingToolbarOf().concat("{0}"));
+        pagingToolbarMessages.setFirstText(TOOLBAR_MSGS.pagingToolbarFirstPage());
+        pagingToolbarMessages.setPrevText(TOOLBAR_MSGS.pagingToolbarPrevPage());
+        pagingToolbarMessages.setNextText(TOOLBAR_MSGS.pagingToolbarNextPage());
+        pagingToolbarMessages.setLastText(TOOLBAR_MSGS.pagingToolbarLastPage());
+        pagingToolbarMessages.setRefreshText(TOOLBAR_MSGS.pagingToolbarRefresh());
     }
 
 }

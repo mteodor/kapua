@@ -1,22 +1,24 @@
 ###############################################################################
-# Copyright (c) 2019 Eurotech and/or its affiliates and others
+# Copyright (c) 2019, 2021 Eurotech and/or its affiliates and others
 #
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     Eurotech - initial implementation
 ###############################################################################
+#Requires -Version 7
 
 $script_dir = Split-Path (Get-Variable MyInvocation).Value.MyCommand.Path
-$common_path = $script_dir + '\docker-common.ps1'
+$common_path = Join-Path $script_dir docker-common.ps1
 
 . $common_path
 
 Write-Host "Undeploying Eclipse Kapua..."
 
-docker-compose -f $script_dir'\..\compose\docker-compose.yml' down
+docker-compose -f (Join-Path $script_dir .. compose docker-compose.yml) down
 
 Write-Host "Undeploying Eclipse Kapua... DONE!"

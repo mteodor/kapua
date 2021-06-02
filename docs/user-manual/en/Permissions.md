@@ -4,13 +4,13 @@ Kapua has a lot of different permissions for various purposes, all of which can 
 
 This document was created because adding, editing and using permissions in Kapua can be rather difficult some times, so end users like you will not waste time with searching and debugging which permission(s) is/are needed for certain operation but will rather focus on the primary task itself.
 
-Bellow there is a description for every service/grid in Kapua and which permissions need to be granted in order to see certain tabs or to enable certain buttons or features. For most of them the process and logic are pretty straightforward but some of them must be "studied" a bit in detail.
+Below there is a description for every service/grid in Kapua and which permissions need to be granted in order to see certain tabs or to enable certain buttons or features. For most of them the process and logic are pretty straightforward but some of them must be "studied" a bit in detail.
 
 ## Forwardable Permissions
 
-But before we dive into Kapua's permissions we have to mention one imporatant thing that can be more confusing than others - so called **__Forwardable__** option in permissions.
+But before we dive into Kapua's permissions we have to mention one important thing that can be more confusing than others - so called **__Forwardable__** option in permissions.
 
-**__Forwardable__** permission is a link between a parent account and child account; It enables parent account to edit child account's settings, view its Users... In short, this permission can limit certain user to viewing users only in his "scope". Best way to explain this is through an example.
+**__Forwardable__** permission is a link between a parent account and child account; It enables parent account to edit child account's settings, view its Users... In short, this permission can limit certain user to viewing users only in his "scope". The best way to explain this is through an example.
 Imagine you have account named __account0__ and in this account you have the following users:
 
  - __user0__ (permissions: _**Account:Read**_, _**Account:Write**_, _**User:Read**_ - forwardable set to False)
@@ -30,7 +30,7 @@ In this document only specific permissions and permission mix will be described,
 
 ## Welcome and About
 
-**__Welcome__** and **__About__** are used to show some basic information about Kapua.These two tabs are enabled by default, so user can always see and use them (even if the user has no permissions). User can also always change its password (upper right corner).
+**__Welcome__** and **__About__** are used to show some basic information about Kapua. These two tabs are enabled by default, so user can always see and use them (even if the user has no permissions). User can also always change its password (upper right corner).
 
 
 ## Connections
@@ -43,16 +43,16 @@ Connections view is also closely related to __**Users**__ in Kapua - connections
 | Feature                                             | Needed Permissions                                       | Forwardable |
 |-----------------------------------------------------|----------------------------------------------------------|-------------|
 | **See Connections tab in main menu**                | Device_connection:Read                                   | No          |
-| Enabled **Edit** button                        | Device_connection:Read                                   | No          |
-| Enabled **_Refresh_** button in Connections            | Device_connection:Read Device_connection:Write           | No          |
-| See **_Reserved User_** option                     | Device_connection:Read Device_connection:Write User:Read | No          |
+| Enabled **Edit** button                             | Device_connection:Read                                   | No          |
+| Enabled **_Refresh_** button in Connections         | Device_connection:Read Device_connection:Write           | No          |
+| See **_Reserved User_** option                      | Device_connection:Read Device_connection:Write User:Read | No          |
 | See **_Allow User Change_** option                  | Device_connection:Read Device_connection:Write User:Read | No          |
 | See **_Last User_** filter option                   | Device_connection:Read Device_connection:Write User:Read | No          |
 | See **_Reserved User_** filter option               | Device_connection:Read Device_connection:Write User:Read | No          |
 
 ## Devices
 
-Kapua is a device management software and therefore it is logical that we have __**Device**__ view. With it, we can monitor the device's condition, status and many other things. If user has __Command__ permisisons, we can even send some simple commands to it remotely or reboot it, if necessary.
+Kapua is a device management software and therefore it is logical that we have __**Device**__ view. With it, we can monitor the device's condition, status and many other things. If user has __Command__ permissions, we can even send some simple commands to it remotely or reboot it, if necessary.
 **__Devices__** view is the most complex view in Kapua, since it has more than 10 tabs and subtabs all of which need some special permissions for viewing/editing.
 If user has only _**Device:Read**_ permission, the __Description__ tab will be enabled and user will be able to see all the info of a certain device (if there are any, since user cannot add devices without **_Device:Write_** permission). __**Export to CSV**__ button and refresh button are also enabled (even if there are no devices in the list).
 
@@ -61,54 +61,54 @@ One of the specialities is in __Tags__ tab - user needs **_Device:Write_** permi
 Other buttons/features do no require any special permissions as you can see from the table bellow.
 
 
-| Feature                                                                  | Needed Permissions                                                | Forwardable |
-|--------------------------------------------------------------------------|-------------------------------------------------------------------|-------------|
-| **See Devices tab in main menu**                                         | Device:Read                                                       | No          |
-| Enabled **_Refresh_** button                                             | Device:Read                                                       | No          |
-| Enabled **_Export to CSV_** button                                       | Device:Read                                                       | No          |
-| Enabled **_Add_** button                                                 | Device:Read Device:Write                                          | No          |
-| Enabled **_Access Group_** option in **Add** window                      | Device:Read Device:Write Group:Read                               | No          |
-| Enabled **_Edit_** button                                                | Device:Read Device:Write                                          | No          |
-| Enabled **_Access Group_** option in **Edit** window                     | Device:Read Device:Write Group:Read                               | No          |
-| Enabled **_Delete_** button                                              | Device:Read Device:Delete                                         | No          |
-| Enabled **_Group_** option in filter menu							       | Device:Read Group:Read 										   | No   	     |
-| Enabled **_Tag_** option in filter menu							       | Device:Read Tag:Read 											   | No  	     |
-| **TAG TAB**                                                              |                                                                   |             |
-| Enabled **_Tag_** tab                                                    | Device:Read Tag:Read                                              | No          |
-| Enabled **_Refresh_** button in **Tag** tab                              | Device:Read Tag:Read                                              | No          |
-| Enabled **_Apply_** button in **Tag** tab                                | Device:Read Device:Write Tag:Read                                 | No          |
-| Enabled **_Remove_** button in **Tag** tab                               | Device:Read Device:Write Tag:Read                                 | No          |
-| **EVENTS TAB**                                                           |                                                                   |             |
-| Enabled **_Events_** tab                                                 | Device:Read Device_event:Read                                     | No          |
-| Enabled **_Refresh_** button in **Events** tab                           | Device:Read Device_event:Read                                     | No          |
-| Enabled **_Export to CSV_** button in "Events" tab                       | Device:Read Device_event:Read                                     | No          |
-| **PACKAGES TAB**                                                         |                                                                   |             |
-| Enabled **_Packages_** tab (**Installed** and **In Progress** subtabs)   | Device:Read Device_management:Read                                | No          |
-| Enabled **_Refresh_** button in **Packages** tab                         | Device:Read Device_management:Read                                | No          |
+| Feature                                                                  | Needed Permissions                                                 | Forwardable |
+|--------------------------------------------------------------------------|--------------------------------------------------------------------|-------------|
+| **See Devices tab in main menu**                                         | Device:Read                                                        | No          |
+| Enabled **_Refresh_** button                                             | Device:Read                                                        | No          |
+| Enabled **_Export to CSV_** button                                       | Device:Read                                                        | No          |
+| Enabled **_Add_** button                                                 | Device:Read Device:Write                                           | No          |
+| Enabled **_Access Group_** option in **Add** window                      | Device:Read Device:Write Group:Read                                | No          |
+| Enabled **_Edit_** button                                                | Device:Read Device:Write                                           | No          |
+| Enabled **_Access Group_** option in **Edit** window                     | Device:Read Device:Write Group:Read                                | No          |
+| Enabled **_Delete_** button                                              | Device:Read Device:Delete                                          | No          |
+| Enabled **_Group_** option in filter menu                                | Device:Read Group:Read                                             | No          |
+| Enabled **_Tag_** option in filter menu                                  | Device:Read Tag:Read                                               | No          |
+| **TAG TAB**                                                              |                                                                    |             |
+| Enabled **_Tag_** tab                                                    | Device:Read Tag:Read                                               | No          |
+| Enabled **_Refresh_** button in **Tag** tab                              | Device:Read Tag:Read                                               | No          |
+| Enabled **_Apply_** button in **Tag** tab                                | Device:Read Device:Write Tag:Read                                  | No          |
+| Enabled **_Remove_** button in **Tag** tab                               | Device:Read Device:Write Tag:Read                                  | No          |
+| **EVENTS TAB**                                                           |                                                                    |             |
+| Enabled **_Events_** tab                                                 | Device:Read Device_event:Read                                      | No          |
+| Enabled **_Refresh_** button in **Events** tab                           | Device:Read Device_event:Read                                      | No          |
+| Enabled **_Export to CSV_** button in "Events" tab                       | Device:Read Device_event:Read                                      | No          |
+| **PACKAGES TAB**                                                         |                                                                    |             |
+| Enabled **_Packages_** tab (**Installed** and **In Progress** subtabs)   | Device:Read Device_management:Read                                 | No          |
+| Enabled **_Refresh_** button in **Packages** tab                         | Device:Read Device_management:Read                                 | No          |
 | Enabled **_Install_** button in **Packages** tab                         | Device:Read Device_management:Read Device_management:Write         | No          |
 | Enabled **_Uninstall_** button in **Packages** tab                       | Device:Read Device_management:Read Device_management:Write         | No          |
 | Enabled **_History_** subtab in **Packages** tab                         | Device:Read Device_management:Read Device_management-registry:Read | No          |
-| **BUNDLES TAB**                                                          |                                                                   |             |
-| Enabled **_Bundles_** tab                                                | Device:Read Device_management:Read                                | No          |
-| Enabled **_Refresh_** button in **Bundles** tab                          | Device:Read Device_management:Read                                | No          |
-| Enabled **_Start_** button in **Bundles** tab                            | Device:Read Device_management:Read Device_management:Execute      | No          |
-| Enabled **_Stop_** button in **Bundles** tab                             | Device:Read Device_management:Read Device_management:Execute      | No          |
-| **CONFIGURATION TAB**                                                    |                                                                   |             |
-| Enabled **_Configuration_** tab (**Services** and **Snapshots** subtabs) | Device:Read Device_management:Read                                | No          |
-| Enabled **_Refresh_** button in **Configuration** tab                    | Device:Read Device_management:Read                                | No          |
-| Enabled **_Save_** button in **Configuration** tab                       | Device:Read Device_management:Read Device_management:Write        | No          |
-| Enabled **_Discard_** button in **Configuration** tab                    | Device:Read Device_management:Read Device_management:Write        | No          |
-| Enabled **_Refresh_** button in **Snapshots** subtab                     | Device:Read Device_management:Read Device_management:Write        | No          |
-| Enabled **_Download_** button in **Snapshots** subtab                    | Device:Read Device_management:Read Device_management:Write        | No          |
-| Enabled **_Rollback to_** button in **Snapshots** subtab                 | Device:Read Device_management:Read Device_management:Write        | No          |
-| Enabled **_Upload And Apply_** button in **Snapshots** subtab            | Device:Read Device_management:Read Device_management:Write        | No          |
-| **COMMAND TAB**                                                  		   |                                                                   |             |
-| Enabled **_Command_** tab                                                | Device:Read Device_management:Read Device_management:Execute      | No          |
-| **ASSETS TAB**                                                   		   |                                                                   |             |
-| Enabled **_Assets_** tab                                                 | Device:Read Device_management:Read                                | No          |
-| Enabled **_Refresh_** button in **Assets** tab                           | Device:Read Device_management:Read                                | No          |
-| Enabled **_Save_** button in **Assets** tab                              | Device:Read Device_management:Read Device_management:Write        | No          |
-| Enabled **_Discard_** button in **Assets** tab                           | Device:Read Device_management:Read Device_management:Write        | No          |
+| **BUNDLES TAB**                                                          |                                                                    |             |
+| Enabled **_Bundles_** tab                                                | Device:Read Device_management:Read                                 | No          |
+| Enabled **_Refresh_** button in **Bundles** tab                          | Device:Read Device_management:Read                                 | No          |
+| Enabled **_Start_** button in **Bundles** tab                            | Device:Read Device_management:Read Device_management:Execute       | No          |
+| Enabled **_Stop_** button in **Bundles** tab                             | Device:Read Device_management:Read Device_management:Execute       | No          |
+| **CONFIGURATION TAB**                                                    |                                                                    |             |
+| Enabled **_Configuration_** tab (**Services** and **Snapshots** subtabs) | Device:Read Device_management:Read                                 | No          |
+| Enabled **_Refresh_** button in **Configuration** tab                    | Device:Read Device_management:Read                                 | No          |
+| Enabled **_Save_** button in **Configuration** tab                       | Device:Read Device_management:Read Device_management:Write         | No          |
+| Enabled **_Discard_** button in **Configuration** tab                    | Device:Read Device_management:Read Device_management:Write         | No          |
+| Enabled **_Refresh_** button in **Snapshots** subtab                     | Device:Read Device_management:Read Device_management:Write         | No          |
+| Enabled **_Download_** button in **Snapshots** subtab                    | Device:Read Device_management:Read Device_management:Write         | No          |
+| Enabled **_Rollback to_** button in **Snapshots** subtab                 | Device:Read Device_management:Read Device_management:Write         | No          |
+| Enabled **_Upload And Apply_** button in **Snapshots** subtab            | Device:Read Device_management:Read Device_management:Write         | No          |
+| **COMMAND TAB**                                                          |                                                                    |             |
+| Enabled **_Command_** tab                                                | Device:Read Device_management:Read Device_management:Execute       | No          |
+| **ASSETS TAB**                                                           |                                                                    |             |
+| Enabled **_Assets_** tab                                                 | Device:Read Device_management:Read                                 | No          |
+| Enabled **_Refresh_** button in **Assets** tab                           | Device:Read Device_management:Read                                 | No          |
+| Enabled **_Save_** button in **Assets** tab                              | Device:Read Device_management:Read Device_management:Write         | No          |
+| Enabled **_Discard_** button in **Assets** tab                           | Device:Read Device_management:Read Device_management:Write         | No          |
 
 
 ## Batch Jobs
@@ -156,7 +156,7 @@ Data tab is one of the simplest tabs in Kapua which is used to see the data that
 | **See Data tab in main menu**     | Datastore:Read                   | No          |
 | Enabled **_Refresh_** button      | Datastore:Read                   | No          |
 | **"BY DEVICE" TAB**               |                                  |             |
-| Enabled **_Refresh_** button      | Device:Read Datastore:Read      | No          |
+| Enabled **_Refresh_** button      | Device:Read Datastore:Read       | No          |
 | **"BY ASSET" TAB**                |                                  |             |
 | Enabled **_Refresh_** button      | Device:Read Datastore:Read       | No          |
 
@@ -187,7 +187,7 @@ Nevertheless, let's take a closer look on some of the permissions. To see __**Us
 
 For showing **__Credentials__** tab, user needs _**Credentials:Read**_ permission (alongside with _**User:Read**_) and for editing/unlocking/deleting them _**Credentials:Write**_ and _**Credentials:Delete**_ respectively.
 
-**Roles** tab is a bit different. For **Roles** tab to be visible user needs _**User:Read**_, _**Role:Read**_ and _**Access_info:Read**_ permissons, but for **Add** and **Revoke** buttons to be enabled user also needs **_Access_info:Write/Delete_** (and not "Role:Write/Delete" "- these are meant for adding, editing and deleting roles).
+**Roles** tab is a bit different. For **Roles** tab to be visible user needs _**User:Read**_, _**Role:Read**_ and _**Access_info:Read**_ permissions, but for **Add** and **Revoke** buttons to be enabled user also needs **_Access_info:Write/Delete_** (and not "Role:Write/Delete" "- these are meant for adding, editing and deleting roles).
 
 "Permissions" tab is again a bit different and deserves a bit more explanation then others. If user wants to see **Permissions** tab, **_"Access_info:Read"_**, **_"User:Read"_** and **_"Domain:Read"_** permissions are needed - do not forget on **_Domain:Read_** permission! But why?
 If you look at "Grant Permission" window closely, you will see, that we have "Domain", "Action", "Access Group" and "Forwardable" options - and the first one, "Domain" has its own permission just for enabling this dropdown menu.
@@ -196,15 +196,15 @@ You can imagine "Domain:Read" permission as "entry point" for all other permissi
 Word of caution: Be careful which permissions you grant to users, because if you grant them Access_info:Read/Write in combination with User:Read, they can start granting permissions themselves and therefore do things they are not supposed to.
 
 
-| Feature                                  | Needed Permissions                                        | Forwardable |
+| Feature                                  | Needed Permissions                                       | Forwardable |
 |------------------------------------------|----------------------------------------------------------|-------------|
-| **See Users tab in main menu**   	       | User:Read                                                | No          |
-| Enabled **_Refresh_** button     	       | User:Read                                                | No          |
+| **See Users tab in main menu**           | User:Read                                                | No          |
+| Enabled **_Refresh_** button             | User:Read                                                | No          |
 | Enabled **_Add_** button                 | User:Read User:Write                                     | No          |
 | Enabled **_Edit_** button                | User:Read User:Write                                     | No          |
 | Enabled **_Delete_** button              | User:Read User:Delete                                    | No          |
-| See **_Reserved for Connection_** option | User:Read Connection:Read Device:Read 			          | No 			|
-| **CREDENTIALS TAB**          			   |                                                          |             |
+| See **_Reserved for Connection_** option | User:Read Connection:Read Device:Read                    | No          |
+| **CREDENTIALS TAB**                      |                                                          |             |
 | Enabled **_Credentials_** tab            | User:Read Credential:Read                                | No          |
 | Enabled **_Refresh_** button             | User:Read Credential:Read                                | No          |
 | Enabled **_Add_** button                 | User:Read Credential:Read Credential:Write               | No          |
@@ -217,8 +217,8 @@ Word of caution: Be careful which permissions you grant to users, because if you
 | Enabled **_Assign_** button              | User:Read Role:Read Access_info:Read Access_info:Write   | No          |
 | Enabled **_Remove_** button              | User:Read Role:Read Access_info:Read Access_info:Delete  | No          |
 | **PERMISSIONS TAB**                      |                                                          |             |
-| Enabled **_Permissions_** tab            | User:Read Access_info:Read Domain:Read 				  | No          |
-| Enabled **_Refresh_** button             | User:Read Access_info:Read Domain:Read 				  | No          |
+| Enabled **_Permissions_** tab            | User:Read Access_info:Read Domain:Read                   | No          |
+| Enabled **_Refresh_** button             | User:Read Access_info:Read Domain:Read                   | No          |
 | Enabled **_Grant_** button               | User:Read Access_info:Read Domain:Read Access_info:Write | No          |
 | Enabled **_Revoke_** button              | User:Read Access_info:Read Domain:Read Access_info:Delete| No          |
 

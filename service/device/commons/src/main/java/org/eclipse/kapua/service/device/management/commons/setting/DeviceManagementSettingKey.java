@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,31 +15,43 @@ package org.eclipse.kapua.service.device.management.commons.setting;
 import org.eclipse.kapua.commons.setting.SettingKey;
 
 /**
- * Available settings key for device management service
- * 
- * @since 1.0
+ * Device Management {@link SettingKey}s for {@link DeviceManagementSetting}.
  *
+ * @since 1.0.0
  */
 public enum DeviceManagementSettingKey implements SettingKey {
 
     /**
-     * Character encoding
+     * Character encoding.
+     *
+     * @since 1.0.0
      */
-    CHAR_ENCODING("character.encoding"),
+    CHAR_ENCODING("device.management.character.encoding"),
 
     /**
-     * Request timeout
+     * Request timeout.
+     *
+     * @since 1.0.0
      */
-    REQUEST_TIMEOUT("request.timeout");
-
-    private String key;
+    REQUEST_TIMEOUT("device.management.request.timeout"),
 
     /**
-     * Constructor
-     * 
-     * @param key
+     * Request timeout.
+     *
+     * @since 1.0.0
      */
-    private DeviceManagementSettingKey(String key) {
+    SHOW_STACKTRACE("device.management.response.stacktrace.show"),
+    ;
+
+    private final String key;
+
+    /**
+     * Constructor.
+     *
+     * @param key The value of the {@link DeviceManagementSettingKey}.
+     * @since 1.0.0
+     */
+    DeviceManagementSettingKey(String key) {
         this.key = key;
     }
 

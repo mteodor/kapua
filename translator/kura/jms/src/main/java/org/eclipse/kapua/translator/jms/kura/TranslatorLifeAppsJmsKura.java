@@ -1,66 +1,48 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.translator.jms.kura;
 
-import org.eclipse.kapua.KapuaErrorCodes;
-import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.service.device.call.message.kura.lifecycle.KuraAppsChannel;
 import org.eclipse.kapua.service.device.call.message.kura.lifecycle.KuraAppsMessage;
 import org.eclipse.kapua.service.device.call.message.kura.lifecycle.KuraAppsPayload;
 import org.eclipse.kapua.translator.Translator;
 import org.eclipse.kapua.transport.message.jms.JmsMessage;
-import org.eclipse.kapua.transport.message.jms.JmsTopic;
+
+import java.util.Date;
 
 /**
- * Messages translator implementation from {@link org.eclipse.kapua.transport.message.jms.JmsMessage} to {@link org.eclipse.kapua.service.device.call.message.kura.lifecycle.KuraAppsMessage}
+ * {@link Translator} implementation from {@link JmsMessage} to {@link KuraAppsMessage}
  *
- * @since 1.0
+ * @since 1.0.0
  */
-public class TranslatorLifeAppsJmsKura extends Translator<JmsMessage, KuraAppsMessage> {
+public class TranslatorLifeAppsJmsKura extends AbstractTranslatorLifecycleJmsKura<KuraAppsChannel, KuraAppsPayload, KuraAppsMessage> {
 
-    @Override
-    public KuraAppsMessage translate(JmsMessage jmsMessage)
-            throws KapuaException {
-        return new KuraAppsMessage(translate(jmsMessage.getTopic()),
-                jmsMessage.getReceivedOn(),
-                translate(jmsMessage.getPayload().getBody()));
-    }
-
-    private KuraAppsChannel translate(JmsTopic jmsTopic)
-            throws KapuaException {
-        String[] topicTokens = jmsTopic.getSplittedTopic();
-        // we shouldn't never get a shorter topic here (because that means we have issues on camel routing)
-        if (topicTokens == null || topicTokens.length < 3) {
-            throw new KapuaException(KapuaErrorCodes.INTERNAL_ERROR);
-        }
-
-        return new KuraAppsChannel(topicTokens[0], topicTokens[1], topicTokens[2]);
-    }
-
-    private KuraAppsPayload translate(byte[] jmsBody)
-            throws KapuaException {
-        KuraAppsPayload kuraAppsPayload = new KuraAppsPayload();
-        kuraAppsPayload.readFromByteArray(jmsBody);
-        return kuraAppsPayload;
+    public TranslatorLifeAppsJmsKura() {
+        super(KuraAppsMessage.class);
     }
 
     @Override
-    public Class<JmsMessage> getClassFrom() {
-        return JmsMessage.class;
+    public KuraAppsMessage createLifecycleMessage(KuraAppsChannel kuraAppsChannel, Date receivedOn, KuraAppsPayload kuraAppsPayload) {
+        return new KuraAppsMessage(kuraAppsChannel, receivedOn, kuraAppsPayload);
     }
 
     @Override
-    public Class<KuraAppsMessage> getClassTo() {
-        return KuraAppsMessage.class;
+    public KuraAppsPayload createLifecyclePayload() {
+        return new KuraAppsPayload();
     }
 
+    @Override
+    public KuraAppsChannel createLifecycleChannel(String messageClassifier, String scopeName, String clientId) {
+        return new KuraAppsChannel(messageClassifier, scopeName, clientId);
+    }
 }

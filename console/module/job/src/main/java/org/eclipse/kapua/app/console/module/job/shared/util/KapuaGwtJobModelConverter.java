@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -20,6 +21,7 @@ import org.eclipse.kapua.app.console.module.job.shared.model.GwtJobStepProperty;
 import org.eclipse.kapua.app.console.module.job.shared.model.GwtJobTarget;
 import org.eclipse.kapua.app.console.module.job.shared.model.scheduler.GwtTrigger;
 import org.eclipse.kapua.app.console.module.job.shared.model.scheduler.GwtTriggerProperty;
+import org.eclipse.kapua.app.console.module.job.shared.model.scheduler.definition.GwtTriggerDefinition;
 import org.eclipse.kapua.service.job.Job;
 import org.eclipse.kapua.service.job.execution.JobExecution;
 import org.eclipse.kapua.service.job.step.JobStep;
@@ -27,7 +29,8 @@ import org.eclipse.kapua.service.job.step.definition.JobStepDefinition;
 import org.eclipse.kapua.service.job.step.definition.JobStepProperty;
 import org.eclipse.kapua.service.job.targets.JobTarget;
 import org.eclipse.kapua.service.scheduler.trigger.Trigger;
-import org.eclipse.kapua.service.scheduler.trigger.TriggerProperty;
+import org.eclipse.kapua.service.scheduler.trigger.definition.TriggerDefinition;
+import org.eclipse.kapua.service.scheduler.trigger.definition.TriggerProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +86,11 @@ public class KapuaGwtJobModelConverter {
             gwtJobStepProperty.setPropertyType(jobStepProperty.getPropertyType());
             gwtJobStepProperty.setPropertyValue(jobStepProperty.getPropertyValue());
             gwtJobStepProperty.setExampleValue(jobStepProperty.getExampleValue());
+            gwtJobStepProperty.setMinLength(jobStepProperty.getMinLength());
+            gwtJobStepProperty.setMaxLength(jobStepProperty.getMaxLength());
+            gwtJobStepProperty.setMinValue(jobStepProperty.getMinValue());
+            gwtJobStepProperty.setMaxValue(jobStepProperty.getMaxValue());
+            gwtJobStepProperty.setValidationRegex(jobStepProperty.getValidationRegex());
             gwtJobStepPropertyList.add(gwtJobStepProperty);
         }
 
@@ -119,19 +127,32 @@ public class KapuaGwtJobModelConverter {
         return gwtJobStepDefinition;
     }
 
-    public static GwtTrigger convertTrigger(Trigger trigger) {
+    public static GwtTrigger convertTrigger(Trigger trigger, String triggerDefinitionName) {
         GwtTrigger gwtTrigger = new GwtTrigger();
 
         KapuaGwtCommonsModelConverter.convertUpdatableEntity(trigger, gwtTrigger);
 
         gwtTrigger.setTriggerName(trigger.getName());
-        gwtTrigger.setCronScheduling(trigger.getCronScheduling());
         gwtTrigger.setStartsOn(trigger.getStartsOn());
         gwtTrigger.setEndsOn(trigger.getEndsOn());
-        gwtTrigger.setRetryInterval(trigger.getRetryInterval());
+        gwtTrigger.setTriggerDefinitionName(triggerDefinitionName);
         gwtTrigger.setTriggerProperties(convertTriggerProperties(trigger.getTriggerProperties()));
 
         return gwtTrigger;
+    }
+
+    public static GwtTriggerDefinition convertTriggerDefinition(TriggerDefinition triggerDefinition) {
+        GwtTriggerDefinition gwtTriggerDefinition = new GwtTriggerDefinition();
+
+        KapuaGwtCommonsModelConverter.convertEntity(triggerDefinition, gwtTriggerDefinition);
+
+        gwtTriggerDefinition.setTriggerDefinitionName(triggerDefinition.getName());
+        gwtTriggerDefinition.setDescription(triggerDefinition.getDescription());
+        gwtTriggerDefinition.setProcessorName(triggerDefinition.getProcessorName());
+        gwtTriggerDefinition.setTriggerProperties(convertTriggerProperties(triggerDefinition.getTriggerProperties()));
+        gwtTriggerDefinition.setTriggerType(triggerDefinition.getTriggerType().name());
+
+        return gwtTriggerDefinition;
     }
 
     private static List<GwtTriggerProperty> convertTriggerProperties(List<TriggerProperty> triggerPropertyList) {
@@ -155,6 +176,7 @@ public class KapuaGwtJobModelConverter {
         gwtJobExecution.setJobId(KapuaGwtCommonsModelConverter.convertKapuaId(jobExecution.getJobId()));
         gwtJobExecution.setStartedOn(jobExecution.getStartedOn());
         gwtJobExecution.setEndedOn(jobExecution.getEndedOn());
+        gwtJobExecution.setLog(jobExecution.getLog());
 
         return gwtJobExecution;
     }

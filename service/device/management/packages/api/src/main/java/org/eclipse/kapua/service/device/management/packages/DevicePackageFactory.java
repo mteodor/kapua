@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -16,11 +17,14 @@ import org.eclipse.kapua.service.device.management.packages.model.DevicePackage;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackageBundleInfo;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackageBundleInfos;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackages;
+import org.eclipse.kapua.service.device.management.packages.model.download.AdvancedPackageDownloadOptions;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadOperation;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadOptions;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadRequest;
+import org.eclipse.kapua.service.device.management.packages.model.install.DevicePackageInstallOperation;
 import org.eclipse.kapua.service.device.management.packages.model.install.DevicePackageInstallOptions;
 import org.eclipse.kapua.service.device.management.packages.model.install.DevicePackageInstallRequest;
+import org.eclipse.kapua.service.device.management.packages.model.uninstall.DevicePackageUninstallOperation;
 import org.eclipse.kapua.service.device.management.packages.model.uninstall.DevicePackageUninstallOptions;
 import org.eclipse.kapua.service.device.management.packages.model.uninstall.DevicePackageUninstallRequest;
 
@@ -81,7 +85,15 @@ public interface DevicePackageFactory extends KapuaObjectFactory {
      * @return the newly created {@link DevicePackageDownloadOptions}
      * @since 1.1.0
      */
-    DevicePackageDownloadOptions newDevicePackageDownloadOptions();
+    DevicePackageDownloadOptions newPackageDownloadOptions();
+
+    /**
+     * Creates a new {@link AdvancedPackageDownloadOptions}
+     *
+     * @return the newly created {@link AdvancedPackageDownloadOptions}
+     * @since 1.1.0
+     */
+    AdvancedPackageDownloadOptions newAdvancedPackageDownloadOptions();
 
     /**
      * Creates a new {@link DevicePackageDownloadOperation}
@@ -109,8 +121,15 @@ public interface DevicePackageFactory extends KapuaObjectFactory {
      * @return the newly created {@link DevicePackageInstallOptions}
      * @since 1.1.0
      */
-    DevicePackageInstallOptions newDevicePackageInstallOptions();
+    DevicePackageInstallOptions newPackageInstallOptions();
 
+    /**
+     * Instantiates a new {@link DevicePackageInstallOperation}.
+     *
+     * @return The newly instantiated {@link DevicePackageInstallOperation}.
+     * @since 1.5.0
+     */
+    DevicePackageInstallOperation newPackageInstallOperation();
 
     //
     // Uninstall operation
@@ -130,5 +149,13 @@ public interface DevicePackageFactory extends KapuaObjectFactory {
      * @return the newly created {@link DevicePackageUninstallOptions}
      * @since 1.1.0
      */
-    DevicePackageUninstallOptions newDevicePackageUninstallOptions();
+    DevicePackageUninstallOptions newPackageUninstallOptions();
+
+    /**
+     * Instantiates a new {@link DevicePackageUninstallOperation}.
+     *
+     * @return The newly instantiated {@link DevicePackageUninstallOperation}.
+     * @since 1.5.0
+     */
+    DevicePackageUninstallOperation newPackageUninstallOperation();
 }

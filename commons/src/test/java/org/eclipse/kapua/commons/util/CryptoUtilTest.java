@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,16 +13,18 @@
  *******************************************************************************/
 package org.eclipse.kapua.commons.util;
 
-import java.lang.reflect.Constructor;
-import java.util.Random;
-
-import org.eclipse.kapua.test.junit.JUnitTests;
+import org.eclipse.kapua.qa.markers.junit.JUnitTests;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.lang.reflect.Constructor;
+import java.util.Random;
+
 @Category(JUnitTests.class)
 public class CryptoUtilTest extends Assert {
+
+    private static final Random RANDOM = RandomUtils.getInstance();
 
     @Test
     public void testConstructor() throws Exception {
@@ -33,15 +36,14 @@ public class CryptoUtilTest extends Assert {
     @Test
     public void testSha1Hash() throws Exception {
         StringBuilder longTest = new StringBuilder();
-        Random random = new Random();
         String permittedSymbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
         for (int i = 0; i < 500; i++) {
-            longTest.append(permittedSymbols.charAt(random.nextInt(permittedSymbols.length())));
+            longTest.append(permittedSymbols.charAt(RANDOM.nextInt(permittedSymbols.length())));
         }
         String longName = longTest.toString();
-        String[] permittedStrings = new String[] { "a", "ab", "abc", "123", longName };
+        String[] permittedStrings = new String[]{"a", "ab", "abc", "123", longName};
         int sizeOfPermittedStrings = permittedStrings.length;
-        String[] falseStrings = new String[] { null };
+        String[] falseStrings = new String[]{null};
         int sizeOfFalseStrings = falseStrings.length;
         // Negative tests
         for (int i = 0; i < sizeOfFalseStrings; i++) {
@@ -65,15 +67,14 @@ public class CryptoUtilTest extends Assert {
     @Test
     public void testEncodeBase64() {
         StringBuilder longTest = new StringBuilder();
-        Random random = new Random();
         String permittedSymbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
         for (int i = 0; i < 500; i++) {
-            longTest.append(permittedSymbols.charAt(random.nextInt(permittedSymbols.length())));
+            longTest.append(permittedSymbols.charAt(RANDOM.nextInt(permittedSymbols.length())));
         }
         String longName = longTest.toString();
-        String[] permittedStrings = new String[] { "a", "ab", "abc", "123", longName };
+        String[] permittedStrings = new String[]{"a", "ab", "abc", "123", longName};
         int sizeOfPermittedStrings = permittedStrings.length;
-        String[] falseStrings = new String[] { null };
+        String[] falseStrings = new String[]{null};
         int sizeOfFalseStrings = falseStrings.length;
         // Negative tests
         for (int i = 0; i < sizeOfFalseStrings; i++) {
@@ -98,15 +99,14 @@ public class CryptoUtilTest extends Assert {
     @Test
     public void testDecodeBase64() {
         StringBuilder longTest = new StringBuilder();
-        Random random = new Random();
         String permittedSymbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
         for (int i = 0; i < 500; i++) {
-            longTest.append(permittedSymbols.charAt(random.nextInt(permittedSymbols.length())));
+            longTest.append(permittedSymbols.charAt(RANDOM.nextInt(permittedSymbols.length())));
         }
         String longName = longTest.toString();
-        String[] permittedStrings = new String[] { "a", "ab", "abc", "123", longName };
+        String[] permittedStrings = new String[]{"a", "ab", "abc", "123", longName};
         int sizeOfPermittedStrings = permittedStrings.length;
-        String[] falseStrings = new String[] { null };
+        String[] falseStrings = new String[]{null};
         int sizeOfFalseStrings = falseStrings.length;
         // Negative tests
         for (int i = 0; i < sizeOfFalseStrings; i++) {

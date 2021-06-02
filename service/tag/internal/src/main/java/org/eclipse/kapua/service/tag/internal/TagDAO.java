@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -24,14 +25,14 @@ import org.eclipse.kapua.service.tag.TagQuery;
 
 /**
  * {@link Tag} DAO
- * 
+ *
  * @since 1.0.0
  */
 public class TagDAO extends ServiceDAO {
 
     /**
      * Creates and returns new {@link Tag}
-     * 
+     *
      * @param em
      *            The {@link EntityManager} that holds the transaction.
      * @param creator
@@ -52,7 +53,7 @@ public class TagDAO extends ServiceDAO {
 
     /**
      * Updates and returns the updated {@link Tag}
-     * 
+     *
      * @param em
      *            The {@link EntityManager} that holds the transaction.
      * @param tag
@@ -68,7 +69,7 @@ public class TagDAO extends ServiceDAO {
 
     /**
      * Finds the {@link Tag} by {@link Tag} identifier
-     * 
+     *
      * @param em
      *            The {@link EntityManager} that holds the transaction.
      * @param scopeId
@@ -93,7 +94,7 @@ public class TagDAO extends ServiceDAO {
      *             On query error.
      * @since 1.0.0
      */
-    public static TagListResult query(EntityManager em, KapuaQuery<Tag> tagQuery)
+    public static TagListResult query(EntityManager em, KapuaQuery tagQuery)
             throws KapuaException {
         return ServiceDAO.query(em, Tag.class, TagImpl.class, new TagListResultImpl(), tagQuery);
     }
@@ -109,7 +110,7 @@ public class TagDAO extends ServiceDAO {
      * @throws KapuaException
      * @since 1.0.0
      */
-    public static long count(EntityManager em, KapuaQuery<Tag> tagQuery)
+    public static long count(EntityManager em, KapuaQuery tagQuery)
             throws KapuaException {
         return ServiceDAO.count(em, Tag.class, TagImpl.class, tagQuery);
     }
@@ -122,11 +123,12 @@ public class TagDAO extends ServiceDAO {
      * @param scopeId
      * @param tagId
      *            The {@link Tag} id to delete.
+     * @return deleted entity
      * @throws KapuaEntityNotFoundException
      *             If {@link Tag} is not found.
      * @since 1.0.0
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId tagId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, TagImpl.class, scopeId, tagId);
+    public static Tag delete(EntityManager em, KapuaId scopeId, KapuaId tagId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, TagImpl.class, scopeId, tagId);
     }
 }

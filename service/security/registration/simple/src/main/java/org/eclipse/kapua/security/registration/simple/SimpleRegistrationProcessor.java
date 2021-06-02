@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Red Hat Inc and others.
+ * Copyright (c) 2017, 2021 Red Hat Inc and others.
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat Inc - initial API and implementation
@@ -67,7 +68,7 @@ import java.util.Set;
 /**
  * A processor which creates a simple account and user setup
  * <p>
- * This processor creates a new account based on the SSO claim and creates a single
+ * This processor creates a new account based on the OpenID SSO claim and creates a single
  * user for this account.
  * </p>
  * <p>
@@ -316,7 +317,7 @@ public class SimpleRegistrationProcessor implements RegistrationProcessor {
 
         // Create default password
 
-        CredentialCreator credential = credentialFactory.newCreator(account.getId(), user.getId(), CredentialType.PASSWORD, baseName + "-password", CredentialStatus.ENABLED, null);
+        CredentialCreator credential = credentialFactory.newCreator(account.getId(), user.getId(), CredentialType.PASSWORD, baseName + "-Password1!", CredentialStatus.ENABLED, null);
         credentialService.create(credential);
 
         return user;

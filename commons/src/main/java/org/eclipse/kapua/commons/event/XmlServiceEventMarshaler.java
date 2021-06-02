@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -18,13 +19,11 @@ import org.eclipse.kapua.event.ServiceEventBusException;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLStreamException;
 
 /**
- * Xml event bus marshaller implementation
+ * XML {@link ServiceEventMarshaler} implementation.
  *
- * @since 1.0
+ * @since 1.0.0
  */
 public class XmlServiceEventMarshaler implements ServiceEventMarshaler {
 
@@ -39,7 +38,7 @@ public class XmlServiceEventMarshaler implements ServiceEventMarshaler {
     public ServiceEvent unmarshal(String message) throws KapuaException {
         try {
             return XmlUtil.unmarshal(message, ServiceEvent.class);
-        } catch (JAXBException | XMLStreamException | FactoryConfigurationError | SAXException e) {
+        } catch (JAXBException | SAXException e) {
             throw new ServiceEventBusException(e);
         }
     }

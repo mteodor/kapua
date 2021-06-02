@@ -1,15 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.authorization.shiro;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.shiro.SecurityUtils;
 import org.eclipse.kapua.KapuaException;
@@ -30,6 +35,26 @@ import org.eclipse.kapua.service.authorization.shiro.exception.SubjectUnauthoriz
 public class AuthorizationServiceImpl implements AuthorizationService {
 
     @Override
+    public boolean[] isPermitted(List<Permission> permissions) throws KapuaException {
+        KapuaSession session = KapuaSecurityUtils.getSession();
+
+        if (session == null) {
+            throw new KapuaUnauthenticatedException();
+        }
+        if (session.isTrustedMode()) {
+            boolean[] returnedPermissions = new boolean[permissions.size()];
+            Arrays.fill(returnedPermissions, true);
+            return returnedPermissions;
+        }
+        else {
+            List<org.apache.shiro.authz.Permission> permissionsShiro = permissions.stream()
+                    .map(permission -> (org.apache.shiro.authz.Permission) permission)
+                    .collect(Collectors.toList());
+            return SecurityUtils.getSubject().isPermitted(permissionsShiro);
+        }
+    }
+
+    @Override
     public boolean isPermitted(Permission permission)
             throws KapuaException {
         KapuaSession session = KapuaSecurityUtils.getSession();
@@ -48,4 +73,5 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             throw new SubjectUnauthorizedException(permission);
         }
     }
+
 }

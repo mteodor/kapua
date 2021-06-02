@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,11 +15,13 @@ package org.eclipse.kapua.commons.event;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.eclipse.kapua.commons.core.InterceptorBind;
+import org.eclipse.kapua.commons.jpa.EntityManagerContainer;
 import org.eclipse.kapua.commons.metric.MetricServiceFactory;
 import org.eclipse.kapua.commons.metric.MetricsService;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.commons.security.KapuaSession;
+import org.eclipse.kapua.commons.service.event.store.api.EventStoreRecord;
 import org.eclipse.kapua.commons.service.event.store.api.ServiceEventUtil;
 import org.eclipse.kapua.commons.service.event.store.internal.EventStoreDAO;
 import org.eclipse.kapua.commons.service.internal.AbstractKapuaService;
@@ -54,18 +57,18 @@ public class RaiseServiceEventInterceptor implements MethodInterceptor {
     private static final Logger LOG = LoggerFactory.getLogger(RaiseServiceEventInterceptor.class);
 
     private static final String MODULE = "commons";
-    private static final String COMPONENT = "serviceEvent";
+    private static final String COMPONENT = "service_event";
     private static final String ACTION = "event_data_filler";
     private static final String COUNT = "count";
 
 
     private static final MetricsService METRIC_SERVICE = MetricServiceFactory.getInstance();
 
-    private Counter wrongIds;
+    private Counter wrongId;
     private Counter wrongEntity;
 
     public RaiseServiceEventInterceptor() {
-        wrongIds = METRIC_SERVICE.getCounter(MODULE, COMPONENT, ACTION, "wrong_ids", COUNT);
+        wrongId = METRIC_SERVICE.getCounter(MODULE, COMPONENT, ACTION, "wrong_id", COUNT);
         wrongEntity = METRIC_SERVICE.getCounter(MODULE, COMPONENT, ACTION, "wrong_entity", COUNT);
     }
 
@@ -183,7 +186,7 @@ public class RaiseServiceEventInterceptor implements MethodInterceptor {
     private void useKapuaIdsToFillEvent(ServiceEvent serviceEvent, List<KapuaId> ids, Class<?>[] implementedClass) {
         if (ids.size()>2) {
             LOG.warn("Found more than two KapuaId in the parameters! Assuming to use the first two!");
-            wrongIds.inc();
+            wrongId.inc();
         }
         if (ids.size() >= 2) {
             serviceEvent.setEntityScopeId(ids.get(0));
@@ -259,9 +262,10 @@ public class RaiseServiceEventInterceptor implements MethodInterceptor {
         if (invocation.getThis() instanceof AbstractKapuaService) {
             try {
                 serviceEventBus.setStatus(newServiceEventStatus);
-                ((AbstractKapuaService) invocation.getThis()).getEntityManagerSession().onTransactedAction(
-                        em -> EventStoreDAO.update(em,
-                                ServiceEventUtil.mergeToEntity(EventStoreDAO.find(em, serviceEventBus.getScopeId(), KapuaEid.parseCompactId(serviceEventBus.getId())), serviceEventBus)));
+                ((AbstractKapuaService) invocation.getThis()).getEntityManagerSession().doTransactedAction(EntityManagerContainer.<EventStoreRecord>create().onResultHandler(em -> {
+                    return EventStoreDAO.update(em,
+                            ServiceEventUtil.mergeToEntity(EventStoreDAO.find(em, serviceEventBus.getScopeId(), KapuaEid.parseCompactId(serviceEventBus.getId())), serviceEventBus));
+                }));
             } catch (Throwable t) {
                 // this may be a valid condition if the HouseKeeper is doing the update concurrently with this task
                 LOG.warn("Error updating event status: {}", t.getMessage(), t);

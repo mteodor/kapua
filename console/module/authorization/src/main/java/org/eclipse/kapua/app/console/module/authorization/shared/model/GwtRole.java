@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -18,6 +19,8 @@ import org.eclipse.kapua.app.console.module.api.shared.model.GwtUpdatableEntityM
 public class GwtRole extends GwtUpdatableEntityModel {
 
     private static final long serialVersionUID = 5857520420217101882L;
+
+    private static final String DESCRIPTION = "description";
 
     Set<GwtRolePermission> rolePermissions;
 
@@ -34,15 +37,15 @@ public class GwtRole extends GwtUpdatableEntityModel {
     }
 
     public String getDescription() {
-        return get("description");
+        return get(DESCRIPTION);
     }
 
     public String getUnescapedDescription() {
-        return (String) getUnescaped("description");
+        return (String) getUnescaped(DESCRIPTION);
     }
 
     public void setDescription(String description) {
-        set("description", description);
+        set(DESCRIPTION, description);
     }
 
     public Set<GwtRolePermission> getPermissions() {

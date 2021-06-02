@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,30 +13,30 @@
 package org.eclipse.kapua.commons.model.query;
 
 import org.eclipse.kapua.commons.model.id.KapuaEid;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria.SortOrder;
 import org.eclipse.kapua.commons.model.query.predicate.AndPredicateImpl;
 import org.eclipse.kapua.commons.model.query.predicate.AttributePredicateImpl;
 import org.eclipse.kapua.commons.model.query.predicate.OrPredicateImpl;
-import org.eclipse.kapua.model.KapuaEntity;
 import org.eclipse.kapua.model.KapuaEntityAttributes;
 import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.model.query.FieldSortCriteria;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.model.query.KapuaSortCriteria;
+import org.eclipse.kapua.model.query.SortOrder;
 import org.eclipse.kapua.model.query.predicate.AndPredicate;
 import org.eclipse.kapua.model.query.predicate.AttributePredicate;
 import org.eclipse.kapua.model.query.predicate.OrPredicate;
 import org.eclipse.kapua.model.query.predicate.QueryPredicate;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * {@link KapuaQuery} {@code abstract} implementation.
  *
- * @param <E> {@link KapuaEntity} domain
  * @since 1.0.0
  */
-public abstract class AbstractKapuaQuery<E extends KapuaEntity> implements KapuaQuery<E> {
+public abstract class AbstractKapuaQuery implements KapuaQuery {
 
     private KapuaId scopeId;
 
@@ -45,16 +46,14 @@ public abstract class AbstractKapuaQuery<E extends KapuaEntity> implements Kapua
 
     private Integer offset;
     private Integer limit;
+    private Boolean askTotalCount;
 
     /**
      * Constructor.
-     * <p>
-     * It defaults the {@link #sortCriteria} to order by the {@link KapuaEntity#getCreatedOn()} {@link SortOrder#ASCENDING}.
      *
      * @since 1.0.0
      */
     public AbstractKapuaQuery() {
-        setSortCriteria(new FieldSortCriteria(KapuaEntityAttributes.CREATED_ON, SortOrder.ASCENDING));
     }
 
     /**
@@ -67,6 +66,22 @@ public abstract class AbstractKapuaQuery<E extends KapuaEntity> implements Kapua
         this();
 
         setScopeId(scopeId);
+    }
+
+    /**
+     * Constructor.
+     * <p>
+     * It deeply clones the given {@link KapuaQuery}
+     *
+     * @param query the query to clone.
+     */
+    public AbstractKapuaQuery(@NotNull KapuaQuery query) {
+        setFetchAttributes(query.getFetchAttributes());
+        setPredicate(query.getPredicate());
+        setLimit(query.getLimit());
+        setOffset(query.getOffset());
+        setSortCriteria(query.getSortCriteria());
+        setAskTotalCount(query.getAskTotalCount());
     }
 
     @Override
@@ -119,6 +134,11 @@ public abstract class AbstractKapuaQuery<E extends KapuaEntity> implements Kapua
     }
 
     @Override
+    public KapuaSortCriteria getDefaultSortCriteria() {
+        return fieldSortCriteria(KapuaEntityAttributes.ENTITY_ID, SortOrder.ASCENDING);
+    }
+
+    @Override
     public Integer getOffset() {
         return offset;
     }
@@ -136,6 +156,16 @@ public abstract class AbstractKapuaQuery<E extends KapuaEntity> implements Kapua
     @Override
     public void setLimit(Integer limit) {
         this.limit = limit;
+    }
+
+    @Override
+    public Boolean getAskTotalCount() {
+        return askTotalCount;
+    }
+
+    @Override
+    public void setAskTotalCount(Boolean askTotalCount) {
+        this.askTotalCount = askTotalCount;
     }
 
     //
@@ -168,5 +198,10 @@ public abstract class AbstractKapuaQuery<E extends KapuaEntity> implements Kapua
     @Override
     public OrPredicate orPredicate(QueryPredicate... queryPredicates) {
         return new OrPredicateImpl(queryPredicates);
+    }
+
+    @Override
+    public FieldSortCriteria fieldSortCriteria(String attributeName, SortOrder sortOrder) {
+        return new FieldSortCriteriaImpl(attributeName, sortOrder);
     }
 }

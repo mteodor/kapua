@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -66,7 +67,7 @@ public interface AccessRoleService extends KapuaEntityService<AccessRole, Access
      * @since 1.0.0
      */
     @Override
-    AccessRoleListResult query(KapuaQuery<AccessRole> query) throws KapuaException;
+    AccessRoleListResult query(KapuaQuery query) throws KapuaException;
 
     /**
      * Returns the count of the {@link AccessRole} elements matching the provided query.
@@ -77,7 +78,7 @@ public interface AccessRoleService extends KapuaEntityService<AccessRole, Access
      * @since 1.0.0
      */
     @Override
-    long count(KapuaQuery<AccessRole> query) throws KapuaException;
+    long count(KapuaQuery query) throws KapuaException;
 
     /**
      * Delete the {@link AccessRole} by scope id and {@link AccessRole} id.

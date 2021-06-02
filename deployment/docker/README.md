@@ -46,6 +46,10 @@ To stop and remove all containers, simply run:
 ./docker-undeploy.sh
 ```
 
+### Single Sign On (OpenID Connect)
+To enable Single Sign On (SSO), please refer to `deployment/docker/unix/sso/README.md`.
+For more details about the SSO deployment, please check the `docs/developer-guide/en/sso.md` SSO developer guide.
+
 ### Advanced options
 
 #### Setting the Kapua version
@@ -67,13 +71,11 @@ If you want to build containers from the code, you'll need to build the whole Ka
 
 From the project root directory, run:
 ```bash
-mvn clean install -f external/pom.xml
 mvn clean install -Pdocker
 ```
 
 To build also the Admin Web Console container, which is excluded by default, add the `console` profile:
 ```bash
-mvn clean install -f external/pom.xml
 mvn clean install -Pconsole,docker
 ```
 
@@ -119,4 +121,17 @@ Again, All the values should be exported as inline values. e.g.:
 ```bash
 export KAPUA_KEYSTORE=$(base64 /path/to/keystore.pkcs)
 export KAPUA_KEYSTORE_PASSWORD=keystore_password
+```
+
+##### Providing custom logging level
+
+The `info` logging level is used as default root level in container logs.
+To provide a different logging level you can set the following environment variable:
+
+- **LOGBACK_LOG_LEVEL**: The logging level value
+
+Allowed logging level values are: `trace`, `debug`, `info`, `warn`, `error`, `all` or `off`.  e.g.:
+
+```bash
+export LOGBACK_LOG_LEVEL=debug
 ```

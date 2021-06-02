@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -13,15 +14,19 @@ package org.eclipse.kapua.service.device.management.packages.model;
 
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.service.device.management.packages.DevicePackageFactory;
+import org.eclipse.kapua.service.device.management.packages.model.download.AdvancedPackageDownloadOptions;
+import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadOperation;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadRequest;
+import org.eclipse.kapua.service.device.management.packages.model.install.DevicePackageInstallOperation;
+import org.eclipse.kapua.service.device.management.packages.model.uninstall.DevicePackageUninstallOperation;
 import org.eclipse.kapua.service.device.management.packages.model.uninstall.DevicePackageUninstallRequest;
 
 import javax.xml.bind.annotation.XmlRegistry;
 
 /**
- * Device package xml factory class
+ * {@link DevicePackageXmlRegistry} class.
  *
- * @since 1.0
+ * @since 1.0.0
  */
 @XmlRegistry
 public class DevicePackageXmlRegistry {
@@ -33,6 +38,7 @@ public class DevicePackageXmlRegistry {
      * Creates a new device package instance
      *
      * @return
+     * @since 1.0.0
      */
     public DevicePackage newDevicePackage() {
         return DEVICE_PACKAGE_FACTORY.newDeviceDeploymentPackage();
@@ -42,6 +48,7 @@ public class DevicePackageXmlRegistry {
      * Creates a new device packages instance
      *
      * @return
+     * @since 1.0.0
      */
     public DevicePackages newDevicePackages() {
         return DEVICE_PACKAGE_FACTORY.newDeviceDeploymentPackages();
@@ -51,6 +58,7 @@ public class DevicePackageXmlRegistry {
      * Creates a new device package bundle information instance
      *
      * @return
+     * @since 1.0.0
      */
     public DevicePackageBundleInfo newDevicePackageBundleInfo() {
         return DEVICE_PACKAGE_FACTORY.newDevicePackageBundleInfo();
@@ -60,6 +68,7 @@ public class DevicePackageXmlRegistry {
      * Creates a new device package bundle informations instance
      *
      * @return
+     * @since 1.0.0
      */
     public DevicePackageBundleInfos newDevicePackageBundleInfos() {
         return DEVICE_PACKAGE_FACTORY.newDevicePackageBundleInfos();
@@ -75,11 +84,52 @@ public class DevicePackageXmlRegistry {
     }
 
     /**
+     * Creates a new device package download request instance
+     *
+     * @return
+     * @since 1.1.0
+     */
+    public AdvancedPackageDownloadOptions newAdvancedPackageDownloadOptions() {
+        return DEVICE_PACKAGE_FACTORY.newAdvancedPackageDownloadOptions();
+    }
+
+    /**
+     * Instantiates a new {@link DevicePackageDownloadOperation}.
+     *
+     * @return The newly instantiated {@link DevicePackageDownloadOperation}.
+     * @since 1.5.0
+     */
+    public DevicePackageDownloadOperation newDevicePackageDownloadOperation() {
+        return DEVICE_PACKAGE_FACTORY.newPackageDownloadOperation();
+    }
+
+    /**
+     * Instantiates a new {@link DevicePackageInstallOperation}.
+     *
+     * @return The newly instantiated {@link DevicePackageInstallOperation}.
+     * @since 1.5.0
+     */
+    public DevicePackageInstallOperation newDevicePackageInstallOperation() {
+        return DEVICE_PACKAGE_FACTORY.newPackageInstallOperation();
+    }
+
+    /**
      * Creates a new device package uninstall request instance
      *
      * @return
+     * @since 1.0.0
      */
     public DevicePackageUninstallRequest newDevicePackageUninstallRequest() {
         return DEVICE_PACKAGE_FACTORY.newPackageUninstallRequest();
+    }
+
+    /**
+     * Instantiates a new {@link DevicePackageUninstallOperation}.
+     *
+     * @return The newly instantiated {@link DevicePackageUninstallOperation}.
+     * @since 1.5.0
+     */
+    public DevicePackageUninstallOperation newDevicePackageUninstallOperation() {
+        return DEVICE_PACKAGE_FACTORY.newPackageUninstallOperation();
     }
 }

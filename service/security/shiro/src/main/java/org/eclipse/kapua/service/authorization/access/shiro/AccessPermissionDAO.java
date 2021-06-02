@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -23,7 +24,7 @@ import org.eclipse.kapua.service.authorization.access.AccessPermissionListResult
 
 /**
  * {@link AccessPermission} {@link ServiceDAO}
- * 
+ *
  * @since 1.0
  *
  */
@@ -31,7 +32,7 @@ public class AccessPermissionDAO extends ServiceDAO {
 
     /**
      * Creates and return new access permission
-     * 
+     *
      * @param em
      * @param creator
      * @return
@@ -49,7 +50,7 @@ public class AccessPermissionDAO extends ServiceDAO {
 
     /**
      * Find the access info by access permission identifier
-     * 
+     *
      * @param em
      * @param scopeId
      * @param accessPermissionId
@@ -67,7 +68,7 @@ public class AccessPermissionDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static AccessPermissionListResult query(EntityManager em, KapuaQuery<AccessPermission> accessInfoPermissionQuery)
+    public static AccessPermissionListResult query(EntityManager em, KapuaQuery accessInfoPermissionQuery)
             throws KapuaException {
         return ServiceDAO.query(em, AccessPermission.class, AccessPermissionImpl.class, new AccessPermissionListResultImpl(), accessInfoPermissionQuery);
     }
@@ -80,7 +81,7 @@ public class AccessPermissionDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<AccessPermission> accessPermissionQuery)
+    public static long count(EntityManager em, KapuaQuery accessPermissionQuery)
             throws KapuaException {
         return ServiceDAO.count(em, AccessPermission.class, AccessPermissionImpl.class, accessPermissionQuery);
     }
@@ -91,10 +92,11 @@ public class AccessPermissionDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param accessPermissionId
+     * @return the deleted {@link AccessPermission}
      * @throws KapuaEntityNotFoundException
      *             If {@link AccessPermission} is not found.
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId accessPermissionId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, AccessPermissionImpl.class, scopeId, accessPermissionId);
+    public static AccessPermission delete(EntityManager em, KapuaId scopeId, KapuaId accessPermissionId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, AccessPermissionImpl.class, scopeId, accessPermissionId);
     }
 }

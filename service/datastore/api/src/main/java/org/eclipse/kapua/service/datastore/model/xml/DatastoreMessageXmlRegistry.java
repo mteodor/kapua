@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,7 +13,7 @@
 package org.eclipse.kapua.service.datastore.model.xml;
 
 import org.eclipse.kapua.locator.KapuaLocator;
-import org.eclipse.kapua.service.datastore.DatastoreObjectFactory;
+import org.eclipse.kapua.service.datastore.MessageStoreFactory;
 import org.eclipse.kapua.service.datastore.model.MessageListResult;
 import org.eclipse.kapua.service.datastore.model.query.MessageQuery;
 
@@ -27,15 +28,15 @@ import javax.xml.bind.annotation.XmlRegistry;
 public class DatastoreMessageXmlRegistry {
 
     private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
-    private static final DatastoreObjectFactory DATASTORE_OBJECT_FACTORY = LOCATOR.getFactory(DatastoreObjectFactory.class);
+    private static final MessageStoreFactory MESSAGE_STORE_FACTORY = LOCATOR.getFactory(MessageStoreFactory.class);
 
     /**
      * Creates a {@link MessageListResult} instance
      *
      * @return
      */
-    public MessageListResult newDatastoreMessageListResult() {
-        return DATASTORE_OBJECT_FACTORY.newDatastoreMessageListResult();
+    public MessageListResult newListResult() {
+        return MESSAGE_STORE_FACTORY.newListResult();
     }
 
     /**
@@ -44,6 +45,6 @@ public class DatastoreMessageXmlRegistry {
      * @return
      */
     public MessageQuery newQuery() {
-        return DATASTORE_OBJECT_FACTORY.newDatastoreMessageQuery(null);
+        return MESSAGE_STORE_FACTORY.newQuery(null);
     }
 }

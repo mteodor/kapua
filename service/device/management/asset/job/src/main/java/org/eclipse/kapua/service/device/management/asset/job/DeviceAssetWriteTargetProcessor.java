@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -20,7 +21,7 @@ import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssetManagementService;
 import org.eclipse.kapua.service.device.management.asset.DeviceAssets;
 import org.eclipse.kapua.service.device.management.asset.job.definition.DeviceAssetWritePropertyKeys;
-import org.eclipse.kapua.service.job.operation.TargetOperation;
+import org.eclipse.kapua.service.job.operation.TargetProcessor;
 import org.eclipse.kapua.service.job.targets.JobTarget;
 
 import javax.batch.runtime.context.JobContext;
@@ -28,11 +29,11 @@ import javax.batch.runtime.context.StepContext;
 import javax.inject.Inject;
 
 /**
- * {@link TargetOperation} for {@link DeviceAssetManagementService#write(KapuaId, KapuaId, DeviceAssets, Long)}
+ * {@link TargetProcessor} for {@link DeviceAssetManagementService#write(KapuaId, KapuaId, DeviceAssets, Long)}
  *
  * @since 1.0.0
  */
-public class DeviceAssetWriteTargetProcessor extends AbstractTargetProcessor implements TargetOperation {
+public class DeviceAssetWriteTargetProcessor extends AbstractTargetProcessor implements TargetProcessor {
 
     private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
     private static final DeviceAssetManagementService ASSET_MANAGEMENT_SERVICE = LOCATOR.getService(DeviceAssetManagementService.class);

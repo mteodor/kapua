@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -13,35 +14,27 @@ package org.eclipse.kapua.service.device.management.snapshot.internal;
 
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.commons.util.xml.XmlUtil;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.device.management.DeviceManagementDomains;
 import org.eclipse.kapua.service.device.management.commons.AbstractDeviceManagementServiceImpl;
 import org.eclipse.kapua.service.device.management.commons.call.DeviceCallExecutor;
-import org.eclipse.kapua.service.device.management.commons.exception.DeviceManagementErrorCodes;
-import org.eclipse.kapua.service.device.management.commons.exception.DeviceManagementException;
-import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSetting;
-import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSettingKey;
 import org.eclipse.kapua.service.device.management.configuration.internal.DeviceConfigurationAppProperties;
 import org.eclipse.kapua.service.device.management.message.KapuaMethod;
-import org.eclipse.kapua.service.device.management.message.response.KapuaResponsePayload;
 import org.eclipse.kapua.service.device.management.snapshot.DeviceSnapshotManagementService;
 import org.eclipse.kapua.service.device.management.snapshot.DeviceSnapshots;
-import org.eclipse.kapua.service.device.management.snapshot.internal.exception.SnapshotGetManagementException;
 import org.eclipse.kapua.service.device.management.snapshot.message.internal.SnapshotRequestChannel;
 import org.eclipse.kapua.service.device.management.snapshot.message.internal.SnapshotRequestMessage;
 import org.eclipse.kapua.service.device.management.snapshot.message.internal.SnapshotRequestPayload;
 import org.eclipse.kapua.service.device.management.snapshot.message.internal.SnapshotResponseMessage;
-import org.eclipse.kapua.service.device.management.snapshot.message.internal.SnapshotResponsePayload;
 
 import java.util.Date;
 
 /**
- * Device snapshot service implementation.
+ * {@link DeviceSnapshotManagementService} implementation.
  *
- * @since 1.0
+ * @since 1.0.0
  */
 @KapuaProvider
 public class DeviceSnapshotManagementServiceImpl extends AbstractDeviceManagementServiceImpl implements DeviceSnapshotManagementService {
@@ -76,8 +69,8 @@ public class DeviceSnapshotManagementServiceImpl extends AbstractDeviceManagemen
 
         //
         // Do get
-        DeviceCallExecutor deviceApplicationCall = new DeviceCallExecutor(snapshotRequestMessage, timeout);
-        SnapshotResponseMessage responseMessage = (SnapshotResponseMessage) deviceApplicationCall.send();
+        DeviceCallExecutor<?, ?, ?, SnapshotResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(snapshotRequestMessage, timeout);
+        SnapshotResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
         // Create event
@@ -85,32 +78,7 @@ public class DeviceSnapshotManagementServiceImpl extends AbstractDeviceManagemen
 
         //
         // Check response
-        if (responseMessage.getResponseCode().isAccepted()) {
-            SnapshotResponsePayload responsePayload = responseMessage.getPayload();
-
-            DeviceManagementSetting config = DeviceManagementSetting.getInstance();
-            String charEncoding = config.getString(DeviceManagementSettingKey.CHAR_ENCODING);
-
-            String body = null;
-            try {
-                body = new String(responsePayload.getBody(), charEncoding);
-            } catch (Exception e) {
-                throw new DeviceManagementException(DeviceManagementErrorCodes.RESPONSE_PARSE_EXCEPTION, e, (Object) responsePayload.getBody());
-            }
-
-            DeviceSnapshots deviceSnapshots = null;
-            try {
-                deviceSnapshots = XmlUtil.unmarshal(body, DeviceSnapshotsImpl.class);
-            } catch (Exception e) {
-                throw new DeviceManagementException(DeviceManagementErrorCodes.RESPONSE_PARSE_EXCEPTION, e, body);
-            }
-
-            return deviceSnapshots;
-        } else {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new SnapshotGetManagementException(responseMessage.getResponseCode(), responsePayload.getExceptionMessage(), responsePayload.getExceptionStack());
-        }
+        return checkResponseAcceptedOrThrowError(responseMessage, () -> responseMessage.getPayload().getDeviceSnapshots());
     }
 
     @Override
@@ -145,17 +113,15 @@ public class DeviceSnapshotManagementServiceImpl extends AbstractDeviceManagemen
 
         //
         // Do exec
-        DeviceCallExecutor deviceApplicationCall = new DeviceCallExecutor(snapshotRequestMessage, timeout);
-        SnapshotResponseMessage responseMessage = (SnapshotResponseMessage) deviceApplicationCall.send();
+        DeviceCallExecutor<?, ?, ?, SnapshotResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(snapshotRequestMessage, timeout);
+        SnapshotResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
         // Create event
         createDeviceEvent(scopeId, deviceId, snapshotRequestMessage, responseMessage);
 
-        if (!responseMessage.getResponseCode().isAccepted()) {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new SnapshotGetManagementException(responseMessage.getResponseCode(), responsePayload.getExceptionMessage(), responsePayload.getExceptionStack());
-        }
+        //
+        // Check response
+        checkResponseAcceptedOrThrowError(responseMessage);
     }
 }

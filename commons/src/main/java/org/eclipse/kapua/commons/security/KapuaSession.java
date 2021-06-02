@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -39,6 +40,7 @@ public class KapuaSession implements Serializable {
         TRUSTED_CLASSES.add("org.eclipse.kapua.broker.core.plugin.KapuaSecurityContext.<init>");
         TRUSTED_CLASSES.add("org.eclipse.kapua.commons.security.KapuaSecurityUtils.doPrivileged");
         TRUSTED_CLASSES.add("org.eclipse.kapua.commons.event.jms.JMSServiceEventBus.setSession");
+        TRUSTED_CLASSES.add("org.eclipse.kapua.job.engine.app.core.filter.RebuildSessionFilter.onAccessDenied");
     }
 
     /**
@@ -61,6 +63,16 @@ public class KapuaSession implements Serializable {
      * If true every rights check will be skipped, in other word <b>the user is trusted so he is allowed to execute every operation</b> defined in the system.
      */
     private boolean trustedMode;
+
+    /**
+     * OpenID Connect idToken obtained with an OpenID Connect login, contains user information, used for the OpenID Connect logout
+     */
+    private String openIDidToken;
+
+    /**
+     * Set to true when the logout from the current session is triggered by the user
+     */
+    private boolean userInitiatedLogout;
 
     /**
      * Default constructor
@@ -146,6 +158,22 @@ public class KapuaSession implements Serializable {
     }
 
     /**
+     * Constructs a {@link KapuaSession} with given parameters
+     *
+     * @param accessToken
+     * @param scopeId
+     * @param userId
+     * @param openIDidToken the idToken obtained with an OpenID Connect login, contains user information, used for the logout
+     */
+    public KapuaSession(AccessToken accessToken, KapuaId scopeId, KapuaId userId, String openIDidToken) {
+        this();
+        this.accessToken = accessToken;
+        this.scopeId = scopeId;
+        this.userId = userId;
+        this.openIDidToken = openIDidToken;
+    }
+
+    /**
      * Constructs a {@link KapuaSession} with given parameter
      *
      * @param principal
@@ -183,6 +211,15 @@ public class KapuaSession implements Serializable {
     }
 
     /**
+     * Get the OpenID Connect idToken
+     *
+     * @return
+     */
+    public String getOpenIDidToken() {
+        return openIDidToken;
+    }
+
+    /**
      * Set the trusted mode status.<br>
      * If true every rights check will be skipped, in other word <b>the user is trusted so he is allowed to execute every operation</b> defined in the system.
      */
@@ -198,5 +235,23 @@ public class KapuaSession implements Serializable {
      */
     public final boolean isTrustedMode() {
         return trustedMode;
+    }
+
+    /**
+     * Get the `userInitiatedLogout` value.
+     *
+     * @return 'true' if user initiated logout, 'false' otherwise
+     */
+    public boolean isUserInitiatedLogout() {
+        return userInitiatedLogout;
+    }
+
+    /**
+     * Set the logout as 'user initiated'. This will allow to avoid logging out from an OpenID session by using the OpenIDLogoutListener.
+     *
+     * @param userInitiatedLogout 'true' if user initiated logout, 'false' otherwise
+     */
+    public void setUserInitiatedLogout(boolean userInitiatedLogout) {
+        this.userInitiatedLogout = userInitiatedLogout;
     }
 }

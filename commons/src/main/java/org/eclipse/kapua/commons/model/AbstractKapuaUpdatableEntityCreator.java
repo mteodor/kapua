@@ -1,20 +1,25 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.commons.model;
 
+import org.eclipse.kapua.commons.util.PropertiesUtils;
+import org.eclipse.kapua.entity.EntityPropertiesReadException;
+import org.eclipse.kapua.entity.EntityPropertiesWriteException;
 import org.eclipse.kapua.model.KapuaEntity;
 import org.eclipse.kapua.model.KapuaUpdatableEntityCreator;
 import org.eclipse.kapua.model.id.KapuaId;
 
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -25,12 +30,12 @@ import java.util.Properties;
  */
 public abstract class AbstractKapuaUpdatableEntityCreator<E extends KapuaEntity> extends AbstractKapuaEntityCreator<E> implements KapuaUpdatableEntityCreator<E> {
 
-    protected Properties entityAttributes;
+    protected String attributes;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param scopeId the scope {@link KapuaId}
+     * @param scopeId The scope {@link KapuaId} to set to in the {@link KapuaUpdatableEntityCreator}
      * @since 1.0.0
      */
     public AbstractKapuaUpdatableEntityCreator(KapuaId scopeId) {
@@ -39,14 +44,19 @@ public abstract class AbstractKapuaUpdatableEntityCreator<E extends KapuaEntity>
 
     @Override
     public Properties getEntityAttributes() {
-        if (entityAttributes==null) {
-            entityAttributes = new Properties();
+        try {
+            return PropertiesUtils.readPropertiesFromString(attributes);
+        } catch (IOException e) {
+            throw new EntityPropertiesReadException(e, "attributes", attributes);
         }
-        return entityAttributes;
     }
 
     @Override
-    public void setEntityAttributes(Properties entityAttributes) {
-        this.entityAttributes = entityAttributes;
+    public void setEntityAttributes(Properties attributes) {
+        try {
+            this.attributes = PropertiesUtils.writePropertiesToString(attributes);
+        } catch (IOException e) {
+            throw new EntityPropertiesWriteException(e, "attributes", attributes);
+        }
     }
 }

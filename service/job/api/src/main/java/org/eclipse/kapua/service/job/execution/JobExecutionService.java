@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,7 +16,6 @@ import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.KapuaEntityService;
 import org.eclipse.kapua.service.KapuaUpdatableEntityService;
-import org.eclipse.kapua.service.config.KapuaConfigurableService;
 
 /**
  * {@link JobExecutionService} exposes APIs to manage JobExecution objects.<br>
@@ -25,8 +25,7 @@ import org.eclipse.kapua.service.config.KapuaConfigurableService;
  * @since 1.0
  */
 public interface JobExecutionService extends KapuaEntityService<JobExecution, JobExecutionCreator>,
-        KapuaUpdatableEntityService<JobExecution>,
-        KapuaConfigurableService {
+        KapuaUpdatableEntityService<JobExecution> {
 
     /**
      * Returns the {@link JobExecutionListResult} with elements matching the provided query.
@@ -37,6 +36,6 @@ public interface JobExecutionService extends KapuaEntityService<JobExecution, Jo
      * @since 1.0.0
      */
     @Override
-    JobExecutionListResult query(KapuaQuery<JobExecution> query)
+    JobExecutionListResult query(KapuaQuery query)
             throws KapuaException;
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,23 +13,18 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.datastore.internal.mediator;
 
-import javax.validation.constraints.NotNull;
-
 import com.google.common.hash.Hashing;
-
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.kapua.KapuaErrorCodes;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.util.KapuaDateUtils;
-import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
-import org.eclipse.kapua.service.datastore.MessageStoreService;
-import org.eclipse.kapua.service.datastore.internal.setting.DatastoreSettingKey;
 import org.eclipse.kapua.service.datastore.internal.setting.DatastoreSettings;
-
-import org.apache.commons.lang3.StringUtils;
+import org.eclipse.kapua.service.datastore.internal.setting.DatastoreSettingsKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.constraints.NotNull;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Instant;
@@ -56,7 +52,8 @@ import java.util.regex.Pattern;
 public class DatastoreUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(DatastoreUtils.class);
-    private static final MessageStoreService MESSAGE_STORE_SERVICE = KapuaLocator.getInstance().getService(MessageStoreService.class);
+
+    private enum IndexType { CHANNEL, CLIENT, METRIC }
 
     private DatastoreUtils() {
     }
@@ -66,6 +63,9 @@ public class DatastoreUtils {
 
     private static final char SPECIAL_DOLLAR = '$';
     private static final String SPECIAL_DOLLAR_ESC = "$24";
+
+    private static final String UNKNOWN_TYPE = "Unknown type [%s]";
+    private static final String TYPE_CANNOT_BE_CONVERTED = "Type [%s] cannot be converted to Double!";
 
     public static final CharSequence ILLEGAL_CHARS = "\"\\/*?<>|,. ";
 
@@ -90,6 +90,8 @@ public class DatastoreUtils {
     public static final String INDEXING_WINDOW_OPTION_WEEK = "week";
     public static final String INDEXING_WINDOW_OPTION_DAY = "day";
     public static final String INDEXING_WINDOW_OPTION_HOUR = "hour";
+
+    public static final String DATASTORE_DATE_FORMAT = "8" + KapuaDateUtils.ISO_DATE_PATTERN; // example 2017-01-24T11:22:10.999Z
 
     private static final DateTimeFormatter DATA_INDEX_FORMATTER_WEEK = new DateTimeFormatterBuilder()
             .parseDefaulting(WeekFields.ISO.dayOfWeek(), 1)
@@ -137,7 +139,7 @@ public class DatastoreUtils {
 
         // ES 5.2 FIX
         // return Base64.encodeBytes(hashCode);
-        return Base64.getEncoder().encodeToString(hashCode);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(hashCode);
     }
 
     private static String normalizeIndexName(String name) {
@@ -250,7 +252,7 @@ public class DatastoreUtils {
      */
     public static String getDataIndexName(KapuaId scopeId) {
         final StringBuilder sb = new StringBuilder();
-        final String prefix = DatastoreSettings.getInstance().getString(DatastoreSettingKey.INDEX_PREFIX);
+        final String prefix = DatastoreSettings.getInstance().getString(DatastoreSettingsKey.INDEX_PREFIX);
         if (StringUtils.isNotEmpty(prefix)) {
             sb.append(prefix).append("-");
         }
@@ -268,7 +270,7 @@ public class DatastoreUtils {
      */
     public static String getDataIndexName(KapuaId scopeId, long timestamp, String indexingWindowOption) throws KapuaException {
         final StringBuilder sb = new StringBuilder();
-        final String prefix = DatastoreSettings.getInstance().getString(DatastoreSettingKey.INDEX_PREFIX);
+        final String prefix = DatastoreSettings.getInstance().getString(DatastoreSettingsKey.INDEX_PREFIX);
         if (StringUtils.isNotEmpty(prefix)) {
             sb.append(prefix).append("-");
         }
@@ -291,6 +293,18 @@ public class DatastoreUtils {
         return sb.toString();
     }
 
+    public static String getChannelIndexName(KapuaId scopeId) {
+        return getRegistryIndexName(scopeId, IndexType.CHANNEL);
+    }
+
+    public static String getClientIndexName(KapuaId scopeId) {
+        return getRegistryIndexName(scopeId, IndexType.CLIENT);
+    }
+
+    public static String getMetricIndexName(KapuaId scopeId) {
+        return getRegistryIndexName(scopeId, IndexType.METRIC);
+    }
+
     /**
      * Get the Kapua index name for the specified base name
      *
@@ -298,14 +312,15 @@ public class DatastoreUtils {
      * @return
      * @since 1.0.0
      */
-    public static String getRegistryIndexName(KapuaId scopeId) {
+    private static String getRegistryIndexName(KapuaId scopeId, IndexType indexType) {
         final StringBuilder sb = new StringBuilder();
-        final String prefix = DatastoreSettings.getInstance().getString(DatastoreSettingKey.INDEX_PREFIX);
+        final String prefix = DatastoreSettings.getInstance().getString(DatastoreSettingsKey.INDEX_PREFIX);
         if (StringUtils.isNotEmpty(prefix)) {
             sb.append(prefix).append("-");
         }
         String indexName = DatastoreUtils.normalizedIndexName(scopeId.toStringId());
         sb.append(".").append(indexName);
+        sb.append("-").append(indexType.name().toLowerCase());
         return sb.toString();
     }
 
@@ -484,7 +499,7 @@ public class DatastoreUtils {
         if (CLIENT_METRIC_TYPE_BINARY.equals(acronym)) {
             return CLIENT_METRIC_TYPE_BINARY_ACRONYM;
         }
-        throw new IllegalArgumentException(String.format("Unknown type [%s]", acronym));
+        throw new IllegalArgumentException(String.format(UNKNOWN_TYPE, acronym));
     }
 
     /**
@@ -529,7 +544,7 @@ public class DatastoreUtils {
         if (aClass == byte[].class) {
             return CLIENT_METRIC_TYPE_BINARY;
         }
-        throw new IllegalArgumentException(String.format("Unknown type [%s]", aClass.getName()));
+        throw new IllegalArgumentException(String.format(UNKNOWN_TYPE, aClass.getName()));
     }
 
     /**
@@ -558,7 +573,7 @@ public class DatastoreUtils {
         } else if (CLIENT_METRIC_TYPE_BINARY.equals(clientType)) {
             clazz = byte[].class;
         } else {
-            throw new IllegalArgumentException(String.format("Unknown type [%s]", clientType));
+            throw new IllegalArgumentException(String.format(UNKNOWN_TYPE, clientType));
         }
         return clazz;
     }
@@ -579,7 +594,7 @@ public class DatastoreUtils {
             } else if (value instanceof String) {
                 convertedValue = Double.parseDouble((String) value);
             } else {
-                throw new IllegalArgumentException(String.format("Type [%s] cannot be converted to Double!", getValueClass(value)));
+                throw new IllegalArgumentException(String.format(TYPE_CANNOT_BE_CONVERTED, getValueClass(value)));
             }
         } else if (CLIENT_METRIC_TYPE_FLOAT_ACRONYM.equals(acronymType)) {
             if (value instanceof Number) {
@@ -587,7 +602,7 @@ public class DatastoreUtils {
             } else if (value instanceof String) {
                 convertedValue = Float.parseFloat((String) value);
             } else {
-                throw new IllegalArgumentException(String.format("Type [%s] cannot be converted to Double!", getValueClass(value)));
+                throw new IllegalArgumentException(String.format(TYPE_CANNOT_BE_CONVERTED, getValueClass(value)));
             }
         } else if (CLIENT_METRIC_TYPE_INTEGER_ACRONYM.equals(acronymType)) {
             if (value instanceof Number) {
@@ -595,7 +610,7 @@ public class DatastoreUtils {
             } else if (value instanceof String) {
                 convertedValue = Integer.parseInt((String) value);
             } else {
-                throw new IllegalArgumentException(String.format("Type [%s] cannot be converted to Double!", getValueClass(value)));
+                throw new IllegalArgumentException(String.format(TYPE_CANNOT_BE_CONVERTED, getValueClass(value)));
             }
         } else if (CLIENT_METRIC_TYPE_LONG_ACRONYM.equals(acronymType)) {
             if (value instanceof Number) {
@@ -613,7 +628,7 @@ public class DatastoreUtils {
                     convertedValue = KapuaDateUtils.parseDate((String) value);
                 } catch (ParseException e) {
                     throw new IllegalArgumentException(
-                            String.format("Type [%s] cannot be converted to Date. Allowed format [%s] - Value to convert [%s]!", getValueClass(value), KapuaDateUtils.ISO_DATE_PATTERN,
+                            String.format("Type [%s] cannot be converted to Date. Allowed format [%s] - Value to convert [%s]!", getValueClass(value), DATASTORE_DATE_FORMAT,
                                     value));
                 }
             } else {

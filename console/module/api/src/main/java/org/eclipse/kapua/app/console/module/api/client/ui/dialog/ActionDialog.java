@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -58,8 +59,8 @@ public abstract class ActionDialog extends KapuaDialog {
 
     protected Boolean exitStatus;
     protected String exitMessage;
-    private Boolean dateValueNotNull = false;
-    private Boolean disabledFormPanelEvents = false;
+    private boolean dateValueNotNull;
+    private boolean disabledFormPanelEvents;
 
     public ActionDialog() {
         super();
@@ -106,13 +107,15 @@ public abstract class ActionDialog extends KapuaDialog {
                         }
                     };
                     timer.schedule(100);
-                };
+                }
             }
         };
 
-        KeyNav<ComponentEvent> keyNav = new KeyNav<ComponentEvent>(formPanel) {
+        new KeyNav<ComponentEvent>(formPanel) {
+
+            @Override
             public void onKeyPress(ComponentEvent ce) {
-                if (ce.getKeyCode() == KeyCodes.KEY_TAB || ce.getKeyCode() == KeyCodes.KEY_ENTER ) {
+                if (ce.getKeyCode() == KeyCodes.KEY_TAB || ce.getKeyCode() == KeyCodes.KEY_ENTER) {
                     setSubmitButtonState();
                 }
             }
@@ -134,9 +137,7 @@ public abstract class ActionDialog extends KapuaDialog {
     }
 
     /**
-     * 
      * Add the form listeners
-     * 
      */
     protected abstract void addListeners();
 
@@ -192,14 +193,14 @@ public abstract class ActionDialog extends KapuaDialog {
 
             @Override
             public void onFailure(Throwable ex) {
-                 Timer timer = new Timer() {
+                Timer timer = new Timer() {
 
-                     @Override
-                     public void run() {
-                         Window.Location.reload();
-                     }
-                 };
-                 timer.schedule(5000);
+                    @Override
+                    public void run() {
+                        Window.Location.reload();
+                    }
+                };
+                timer.schedule(5000);
                 FailureHandler.handle(ex);
             }
 
@@ -240,10 +241,12 @@ public abstract class ActionDialog extends KapuaDialog {
     }
 
     public void setSubmitButtonState() {
-        if (formPanel.isDirty() || dateValueNotNull) {
-            submitButton.enable();
-        } else {
-            submitButton.disable();
+        if (submitButton != null) {
+            if ((formPanel.isDirty() || dateValueNotNull) && formPanel.isValid(true)) {
+                submitButton.enable();
+            } else {
+                submitButton.disable();
+            }
         }
     }
 
@@ -257,9 +260,10 @@ public abstract class ActionDialog extends KapuaDialog {
 
     /**
      * Method for checking the thrown exception for the SUBJECT_UNAUTHORIZED error code.
+     *
      * @param caught The exception thrown
-     * @return In case of the SUBJECT_UNAUTHORIZED error code the returned value is true, 
-     * the dialog is closed and the exitMessage is set. For every other case the returned 
+     * @return In case of the SUBJECT_UNAUTHORIZED error code the returned value is true,
+     * the dialog is closed and the exitMessage is set. For every other case the returned
      * value is false.
      */
     public boolean isPermissionErrorMessage(Throwable caught) {
@@ -274,10 +278,11 @@ public abstract class ActionDialog extends KapuaDialog {
     }
 
     /**
-     * Dialog specific load listener class that overrides the default loaderLoadException method.  
+     * Dialog specific load listener class that overrides the default loaderLoadException method.
      * The exception is handled by FailureHandler class's handle() method and the dialog is closed.
      */
     public class DialogLoadListener extends LoadListener {
+
         @Override
         public void loaderLoadException(LoadEvent loadEvent) {
             super.loaderLoadException(loadEvent);
@@ -286,5 +291,7 @@ public abstract class ActionDialog extends KapuaDialog {
                 hide();
             }
         }
+
     }
+
 }

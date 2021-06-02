@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -19,6 +20,9 @@ public class GwtConfigComponent extends KapuaBaseModel implements Serializable {
 
     private static final long serialVersionUID = -6388356998309026758L;
 
+    private static final String COMPONENT_ID = "componentId";
+    private static final String COMPONENT_NAME = "componentName";
+
     private List<GwtConfigParameter> parameters;
 
     public GwtConfigComponent() {
@@ -26,27 +30,27 @@ public class GwtConfigComponent extends KapuaBaseModel implements Serializable {
     }
 
     public String getComponentId() {
-        return get("componentId");
+        return get(COMPONENT_ID);
     }
 
     public String getUnescapedComponentId() {
-        return getUnescaped("componentId");
+        return getUnescaped(COMPONENT_ID);
     }
 
     public void setId(String componentId) {
-        set("componentId", componentId);
+        set(COMPONENT_ID, componentId);
     }
 
     public String getComponentName() {
-        return get("componentName");
+        return get(COMPONENT_NAME);
     }
 
     public String getUnescapedComponentName() {
-        return getUnescaped("componentName");
+        return getUnescaped(COMPONENT_NAME);
     }
 
     public void setName(String componentName) {
-        set("componentName", componentName);
+        set(COMPONENT_NAME, componentName);
     }
 
     public String getComponentDescription() {

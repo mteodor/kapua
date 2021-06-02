@@ -1,17 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2019, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.packages.model.internal;
 
-import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackageOptions;
 
 /**
@@ -22,7 +22,6 @@ import org.eclipse.kapua.service.device.management.packages.model.DevicePackageO
 public abstract class DevicePackageOptionsImpl implements DevicePackageOptions {
 
     private Long timeout;
-    private KapuaId forcedOperationId;
 
     @Override
     public Long getTimeout() {
@@ -32,15 +31,5 @@ public abstract class DevicePackageOptionsImpl implements DevicePackageOptions {
     @Override
     public void setTimeout(Long timeout) {
         this.timeout = timeout;
-    }
-
-    @Override
-    public KapuaId getForcedOperationId() {
-        return forcedOperationId;
-    }
-
-    @Override
-    public void setForcedOperationId(KapuaId forcedOperationId) {
-        this.forcedOperationId = forcedOperationId;
     }
 }

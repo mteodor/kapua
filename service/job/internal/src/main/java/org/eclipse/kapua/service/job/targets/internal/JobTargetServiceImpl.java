@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -13,7 +14,7 @@ package org.eclipse.kapua.service.job.targets.internal;
 
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.commons.configuration.AbstractKapuaConfigurableResourceLimitedService;
+import org.eclipse.kapua.commons.service.internal.AbstractKapuaService;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
@@ -26,9 +27,7 @@ import org.eclipse.kapua.service.job.JobDomains;
 import org.eclipse.kapua.service.job.internal.JobEntityManagerFactory;
 import org.eclipse.kapua.service.job.targets.JobTarget;
 import org.eclipse.kapua.service.job.targets.JobTargetCreator;
-import org.eclipse.kapua.service.job.targets.JobTargetFactory;
 import org.eclipse.kapua.service.job.targets.JobTargetListResult;
-import org.eclipse.kapua.service.job.targets.JobTargetQuery;
 import org.eclipse.kapua.service.job.targets.JobTargetService;
 
 /**
@@ -37,8 +36,7 @@ import org.eclipse.kapua.service.job.targets.JobTargetService;
  * @since 1.0.0
  */
 @KapuaProvider
-public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimitedService<JobTarget, JobTargetCreator, JobTargetService, JobTargetListResult, JobTargetQuery, JobTargetFactory>
-        implements JobTargetService {
+public class JobTargetServiceImpl extends AbstractKapuaService implements JobTargetService {
 
     private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
 
@@ -46,7 +44,7 @@ public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimit
     private static final PermissionFactory PERMISSION_FACTORY = LOCATOR.getFactory(PermissionFactory.class);
 
     public JobTargetServiceImpl() {
-        super(JobTargetService.class.getName(), JobDomains.JOB_DOMAIN, JobEntityManagerFactory.getInstance(), JobTargetService.class, JobTargetFactory.class);
+        super(JobEntityManagerFactory.getInstance(), null);
     }
 
     @Override
@@ -62,7 +60,7 @@ public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimit
 
         //
         // Do create
-        return entityManagerSession.onTransactedInsert(em -> JobTargetDAO.create(em, creator));
+        return entityManagerSession.doTransactedAction(em -> JobTargetDAO.create(em, creator));
     }
 
     @Override
@@ -85,7 +83,7 @@ public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimit
 
         //
         // Do update
-        return entityManagerSession.onTransactedResult(em -> JobTargetDAO.update(em, jobTarget));
+        return entityManagerSession.doTransactedAction(em -> JobTargetDAO.update(em, jobTarget));
     }
 
     @Override
@@ -107,7 +105,7 @@ public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimit
 
         //
         // Do delete
-        entityManagerSession.onTransactedAction(em -> JobTargetDAO.delete(em, scopeId, jobTargetId));
+        entityManagerSession.doTransactedAction(em -> JobTargetDAO.delete(em, scopeId, jobTargetId));
     }
 
     @Override
@@ -123,15 +121,14 @@ public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimit
 
         //
         // Do find
-        return entityManagerSession.onResult(em -> JobTargetDAO.find(em, scopeId, jobTargetId));
+        return entityManagerSession.doAction(em -> JobTargetDAO.find(em, scopeId, jobTargetId));
     }
 
     @Override
-    public JobTargetListResult query(KapuaQuery<JobTarget> query) throws KapuaException {
+    public JobTargetListResult query(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -139,15 +136,14 @@ public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimit
 
         //
         // Do query
-        return entityManagerSession.onResult(em -> JobTargetDAO.query(em, query));
+        return entityManagerSession.doAction(em -> JobTargetDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<JobTarget> query) throws KapuaException {
+    public long count(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
@@ -155,6 +151,6 @@ public class JobTargetServiceImpl extends AbstractKapuaConfigurableResourceLimit
 
         //
         // Do query
-        return entityManagerSession.onResult(em -> JobTargetDAO.count(em, query));
+        return entityManagerSession.doAction(em -> JobTargetDAO.count(em, query));
     }
 }

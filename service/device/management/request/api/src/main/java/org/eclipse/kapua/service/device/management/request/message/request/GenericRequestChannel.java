@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,25 +16,35 @@ import org.eclipse.kapua.service.device.management.message.request.KapuaRequestC
 import org.eclipse.kapua.service.device.management.request.GenericRequestXmlRegistry;
 
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlType;
+import java.util.List;
 
+/**
+ * Generic {@link KapuaRequestChannel} definition.
+ *
+ * @since 1.0.0
+ */
 @XmlType(factoryClass = GenericRequestXmlRegistry.class, factoryMethod = "newRequestChannel")
 public interface GenericRequestChannel extends KapuaRequestChannel {
 
     /**
-     * Get the resources
+     * Gets the resources.
+     * <p>
+     * To be used if {@link #getResource()} is not enough.
      *
-     * @return resources
+     * @return The resources.
+     * @since 1.0.0
      */
-    @XmlElementWrapper(name = "resources")
-    @XmlElement(name = "resource")
-    String[] getResources();
+    @XmlElement(name = "resources")
+    List<String> getResources();
 
     /**
-     * Set the resources
+     * Sets the resources.
+     * <p>
+     * To be used if {@link #setResource(String)} is not enough.
      *
-     * @param resources
+     * @param resources The resources.
+     * @since 1.0.0
      */
-    void setResources(String[] resources);
+    void setResources(List<String> resources);
 }

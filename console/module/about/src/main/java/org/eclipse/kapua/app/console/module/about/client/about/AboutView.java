@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Red Hat Inc and others
+ * Copyright (c) 2017, 2021 Red Hat Inc and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat Inc - initial API and implementation
@@ -45,6 +46,7 @@ import org.eclipse.kapua.app.console.module.about.shared.service.GwtAboutService
 import org.eclipse.kapua.app.console.module.api.client.ui.view.AbstractView;
 import org.eclipse.kapua.app.console.module.api.client.ui.view.View;
 import org.eclipse.kapua.app.console.module.api.client.util.ConsoleInfo;
+import org.eclipse.kapua.app.console.module.api.client.util.CssLiterals;
 import org.eclipse.kapua.app.console.module.api.client.util.Years;
 
 import java.util.LinkedList;
@@ -109,9 +111,9 @@ public class AboutView extends AbstractView implements View {
         blurb.add(blurbText, new TableData(HorizontalAlignment.LEFT, VerticalAlignment.TOP));
         blurb.setScrollMode(Scroll.AUTO);
         blurb.setBorders(true);
-        blurb.setStyleAttribute("border-top", "0px none");
-        blurb.setStyleAttribute("border-left", "0px none");
-        blurb.setStyleAttribute("border-right", "0px none");
+        blurb.setStyleAttribute("border-top", CssLiterals.BORDER_0PX_NONE);
+        blurb.setStyleAttribute("border-left", CssLiterals.BORDER_0PX_NONE);
+        blurb.setStyleAttribute("border-right", CssLiterals.BORDER_0PX_NONE);
 
         // create dependencies table
 
@@ -140,9 +142,9 @@ public class AboutView extends AbstractView implements View {
         grid.setId("about-grid");
         grid.setAutoExpandColumn("id");
         grid.setBorders(true);
-        grid.setStyleAttribute("border-left", "0px none");
-        grid.setStyleAttribute("border-right", "0px none");
-        grid.setStyleAttribute("border-bottom", "0px none");
+        grid.setStyleAttribute("border-left", CssLiterals.BORDER_0PX_NONE);
+        grid.setStyleAttribute("border-right", CssLiterals.BORDER_0PX_NONE);
+        grid.setStyleAttribute("border-bottom", CssLiterals.BORDER_0PX_NONE);
 
         // init grid plugins
         rowExpander.init(grid);

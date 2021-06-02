@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -16,8 +17,7 @@ import org.eclipse.kapua.KapuaIllegalAccessException;
 import org.eclipse.kapua.KapuaUnauthenticatedException;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceQueryPredicates;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria.SortOrder;
+import org.eclipse.kapua.model.query.SortOrder;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
@@ -171,11 +171,11 @@ public class DeviceExporterServlet extends HttpServlet {
                 }
 
                 if (sortAttribute.compareTo("CLIENT_ID") == 0) {
-                    query.setSortCriteria(new FieldSortCriteria(DeviceAttributes.CLIENT_ID, sortOrder));
+                    query.setSortCriteria(query.fieldSortCriteria(DeviceAttributes.CLIENT_ID, sortOrder));
                 } else if (sortAttribute.compareTo("DISPLAY_NAME") == 0) {
-                    query.setSortCriteria(new FieldSortCriteria(DeviceAttributes.DISPLAY_NAME, sortOrder));
+                    query.setSortCriteria(query.fieldSortCriteria(DeviceAttributes.DISPLAY_NAME, sortOrder));
                 } else if (sortAttribute.compareTo("LAST_EVENT_ON") == 0) {
-                    query.setSortCriteria(new FieldSortCriteria(DeviceAttributes.LAST_EVENT_ON, sortOrder));
+                    query.setSortCriteria(query.fieldSortCriteria(DeviceAttributes.LAST_EVENT_ON, sortOrder));
                 }
             }
 

@@ -1,46 +1,48 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.datastore.internal.model;
 
-import org.eclipse.kapua.service.datastore.client.model.ResultList;
-import org.eclipse.kapua.service.datastore.internal.model.query.AbstractStorableListResult;
 import org.eclipse.kapua.service.datastore.model.ChannelInfo;
 import org.eclipse.kapua.service.datastore.model.ChannelInfoListResult;
+import org.eclipse.kapua.service.elasticsearch.client.model.ResultList;
+import org.eclipse.kapua.service.storable.model.AbstractStorableListResult;
 
 /**
- * Channel information query result list implementation
- * 
- * @since 1.0
+ * {@link ChannelInfoListResult} implementation.
  *
+ * @since 1.0.0
  */
 public class ChannelInfoListResultImpl extends AbstractStorableListResult<ChannelInfo> implements ChannelInfoListResult {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Construct a channel info result list
+     * Constructor.
+     *
+     * @since 1.0.0
      */
     public ChannelInfoListResultImpl() {
         super();
     }
 
     /**
-     * Construct the channel info result list from the provided list
-     * 
-     * @param resultList
+     * Constructor.
+     *
+     * @param resultList The {@link ResultList} to add.
+     * @since 1.0.0
      */
     public ChannelInfoListResultImpl(ResultList<ChannelInfo> resultList) {
-        addItems(resultList.getResult());
-        setTotalCount(resultList.getTotalCount());
+        super(resultList.getResult(), resultList.getTotalCount());
     }
 
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -20,24 +21,20 @@ import java.util.Date;
 /**
  * {@link DeviceNotifyMessage} {@link org.eclipse.kapua.service.device.call.kura.Kura} implementation.
  * <p>
- * The missing message is sent by the {@link org.eclipse.kapua.service.device.registry.Device} to notify the platform about a task progress.
- * </p>
+ * The {@link KuraNotifyMessage} is sent by the {@link org.eclipse.kapua.service.device.registry.Device} to notify the platform about the DeviceManagementOperation progress.
+ *
+ * @since 1.0.0
  */
 public class KuraNotifyMessage extends KuraAppMessage<KuraNotifyChannel, KuraNotifyPayload> implements DeviceNotifyMessage<KuraNotifyChannel, KuraNotifyPayload> {
 
     /**
-     * Constructor
-     */
-    public KuraNotifyMessage() {
-        super();
-    }
-
-    /**
-     * Constructor
+     * Constructor.
      *
-     * @param channel
-     * @param timestamp
-     * @param payload
+     * @param channel   The {@link KuraNotifyChannel}.
+     * @param timestamp The timestamp.
+     * @param payload   The {@link KuraNotifyPayload}.
+     * @see org.eclipse.kapua.service.device.call.message.DeviceMessage
+     * @since 1.0.0
      */
     public KuraNotifyMessage(KuraNotifyChannel channel, Date timestamp, KuraNotifyPayload payload) {
         super(channel, timestamp, payload);

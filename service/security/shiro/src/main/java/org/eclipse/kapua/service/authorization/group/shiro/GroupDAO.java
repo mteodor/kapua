@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -24,14 +25,14 @@ import org.eclipse.kapua.service.authorization.group.GroupQuery;
 
 /**
  * {@link Group} DAO
- * 
+ *
  * @since 1.0.0
  */
 public class GroupDAO extends ServiceDAO {
 
     /**
      * Creates and returns new {@link Group}
-     * 
+     *
      * @param em
      *            The {@link EntityManager} that holds the transaction.
      * @param creator
@@ -51,7 +52,7 @@ public class GroupDAO extends ServiceDAO {
 
     /**
      * Updates and returns the updated {@link Group}
-     * 
+     *
      * @param em
      *            The {@link EntityManager} that holds the transaction.
      * @param group
@@ -67,7 +68,7 @@ public class GroupDAO extends ServiceDAO {
 
     /**
      * Finds the {@link Group} by {@link Group} identifier
-     * 
+     *
      * @param em
      *            The {@link EntityManager} that holds the transaction.
      * @param groupId
@@ -90,7 +91,7 @@ public class GroupDAO extends ServiceDAO {
      * @throws KapuaException
      * @since 1.0.0
      */
-    public static GroupListResult query(EntityManager em, KapuaQuery<Group> groupQuery)
+    public static GroupListResult query(EntityManager em, KapuaQuery groupQuery)
             throws KapuaException {
         return ServiceDAO.query(em, Group.class, GroupImpl.class, new GroupListResultImpl(), groupQuery);
     }
@@ -106,7 +107,7 @@ public class GroupDAO extends ServiceDAO {
      * @throws KapuaException
      * @since 1.0.0
      */
-    public static long count(EntityManager em, KapuaQuery<Group> groupQuery)
+    public static long count(EntityManager em, KapuaQuery groupQuery)
             throws KapuaException {
         return ServiceDAO.count(em, Group.class, GroupImpl.class, groupQuery);
     }
@@ -119,11 +120,12 @@ public class GroupDAO extends ServiceDAO {
      * @param scopeId
      * @param groupId
      *            The {@link Group} id to delete.
+     * @return deleted entity
      * @throws KapuaEntityNotFoundException
      *             If {@link Group} is not found.
      * @since 1.0.0
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId groupId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, GroupImpl.class, scopeId, groupId);
+    public static Group delete(EntityManager em, KapuaId scopeId, KapuaId groupId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, GroupImpl.class, scopeId, groupId);
     }
 }

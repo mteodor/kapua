@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -23,7 +24,7 @@ import org.eclipse.kapua.service.authorization.role.RoleListResult;
 
 /**
  * Role DAO
- * 
+ *
  * @since 1.0
  *
  */
@@ -31,7 +32,7 @@ public class RoleDAO extends ServiceDAO {
 
     /**
      * Creates and return new role
-     * 
+     *
      * @param em
      * @param creator
      * @return
@@ -49,7 +50,7 @@ public class RoleDAO extends ServiceDAO {
 
     /**
      * Updates and returns the updated {@link Role}
-     * 
+     *
      * @param em
      * @param role
      * @return
@@ -63,7 +64,7 @@ public class RoleDAO extends ServiceDAO {
 
     /**
      * Find the role by role identifier
-     * 
+     *
      * @param em
      * @param scopeId
      * @param roleId
@@ -81,7 +82,7 @@ public class RoleDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static RoleListResult query(EntityManager em, KapuaQuery<Role> roleQuery)
+    public static RoleListResult query(EntityManager em, KapuaQuery roleQuery)
             throws KapuaException {
         return ServiceDAO.query(em, Role.class, RoleImpl.class, new RoleListResultImpl(), roleQuery);
     }
@@ -94,7 +95,7 @@ public class RoleDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<Role> roleQuery)
+    public static long count(EntityManager em, KapuaQuery roleQuery)
             throws KapuaException {
         return ServiceDAO.count(em, Role.class, RoleImpl.class, roleQuery);
     }
@@ -105,11 +106,12 @@ public class RoleDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param roleId
+     * @return the deleted {@link Role}
      * @throws KapuaEntityNotFoundException
      *             If {@link Role} is not found.
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId roleId)
+    public static Role delete(EntityManager em, KapuaId scopeId, KapuaId roleId)
             throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, RoleImpl.class, scopeId, roleId);
+        return ServiceDAO.delete(em, RoleImpl.class, scopeId, roleId);
     }
 }

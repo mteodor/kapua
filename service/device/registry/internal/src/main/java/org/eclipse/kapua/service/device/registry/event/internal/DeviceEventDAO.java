@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -69,7 +70,7 @@ public class DeviceEventDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static DeviceEventListResult query(EntityManager em, KapuaQuery<DeviceEvent> query)
+    public static DeviceEventListResult query(EntityManager em, KapuaQuery query)
             throws KapuaException {
         return ServiceDAO.query(em, DeviceEvent.class, DeviceEventImpl.class, new DeviceEventListResultImpl(), query);
     }
@@ -82,7 +83,7 @@ public class DeviceEventDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<DeviceEvent> query)
+    public static long count(EntityManager em, KapuaQuery query)
             throws KapuaException {
         return ServiceDAO.count(em, DeviceEvent.class, DeviceEventImpl.class, query);
     }
@@ -93,11 +94,12 @@ public class DeviceEventDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param deviceEventId
+     * @return deleted entity
      * @throws KapuaEntityNotFoundException If the {@link DeviceEvent} is not found.
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId deviceEventId)
+    public static DeviceEvent delete(EntityManager em, KapuaId scopeId, KapuaId deviceEventId)
             throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, DeviceEventImpl.class, scopeId, deviceEventId);
+        return ServiceDAO.delete(em, DeviceEventImpl.class, scopeId, deviceEventId);
     }
 
 }

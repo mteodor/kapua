@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -34,8 +35,8 @@ import org.eclipse.kapua.app.console.module.authorization.shared.service.GwtRole
 import org.eclipse.kapua.app.console.module.authorization.shared.util.GwtKapuaAuthorizationModelConverter;
 import org.eclipse.kapua.app.console.module.authorization.shared.util.KapuaGwtAuthorizationModelConverter;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria.SortOrder;
+import org.eclipse.kapua.model.query.FieldSortCriteria;
+import org.eclipse.kapua.model.query.SortOrder;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.KapuaEntityAttributes;
@@ -87,6 +88,7 @@ public class GwtRoleServiceImpl extends KapuaRemoteServiceServlet implements Gwt
 
     private static final GroupService GROUP_SERVICE = LOCATOR.getService(GroupService.class);
 
+    private static final String ENTITY_INFO = "entityInfo";
 
     @Override
     public GwtRole create(GwtXSRFToken xsrfToken, GwtRoleCreator gwtRoleCreator) throws GwtKapuaException {
@@ -181,7 +183,7 @@ public class GwtRoleServiceImpl extends KapuaRemoteServiceServlet implements Gwt
 
             // query
             RoleListResult roles = ROLE_SERVICE.query(roleQuery);
-            totalLength = Long.valueOf(ROLE_SERVICE.count(roleQuery)).intValue();
+            totalLength = roles.getTotalCount().intValue();
 
             if (!roles.isEmpty()) {
                 UserListResult usernames = KapuaSecurityUtils.doPrivileged(new Callable<UserListResult>() {
@@ -242,10 +244,10 @@ public class GwtRoleServiceImpl extends KapuaRemoteServiceServlet implements Gwt
             if (role != null) {
                 gwtRoleDescription.add(new GwtGroupedNVPair("roleInfo", "roleName", role.getName()));
                 gwtRoleDescription.add(new GwtGroupedNVPair("roleInfo", "roleDescription", role.getDescription()));
-                gwtRoleDescription.add(new GwtGroupedNVPair("entityInfo", "roleModifiedOn", role.getModifiedOn()));
-                gwtRoleDescription.add(new GwtGroupedNVPair("entityInfo", "roleModifiedBy", role.getModifiedBy() != null ? usernameMap.get(role.getModifiedBy().toCompactId()) : null));
-                gwtRoleDescription.add(new GwtGroupedNVPair("entityInfo", "roleCreatedOn", role.getCreatedOn()));
-                gwtRoleDescription.add(new GwtGroupedNVPair("entityInfo", "roleCreatedBy", role.getCreatedBy() != null ? usernameMap.get(role.getCreatedBy().toCompactId()) : null));
+                gwtRoleDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "roleModifiedOn", role.getModifiedOn()));
+                gwtRoleDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "roleModifiedBy", role.getModifiedBy() != null ? usernameMap.get(role.getModifiedBy().toCompactId()) : null));
+                gwtRoleDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "roleCreatedOn", role.getCreatedOn()));
+                gwtRoleDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "roleCreatedBy", role.getCreatedBy() != null ? usernameMap.get(role.getCreatedBy().toCompactId()) : null));
             }
 
         } catch (Throwable t) {
@@ -278,11 +280,12 @@ public class GwtRoleServiceImpl extends KapuaRemoteServiceServlet implements Gwt
             }
 
             SortOrder sortOrder = loadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            FieldSortCriteria sortCriteria = new FieldSortCriteria(sortField, sortOrder);
+            FieldSortCriteria sortCriteria = query.fieldSortCriteria(sortField, sortOrder);
             query.setSortCriteria(sortCriteria);
+            query.setAskTotalCount(true);
 
             RolePermissionListResult list = ROLE_PERMISSION_SERVICE.query(query);
-            totalLength = (int) ROLE_PERMISSION_SERVICE.count(query);
+            totalLength = list.getTotalCount().intValue();
 
             if (list != null) {
                 for (final RolePermission rolePermission : list.getItems()) {

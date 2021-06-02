@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -34,6 +35,9 @@ import java.util.Set;
 public interface EndpointInfo extends KapuaUpdatableEntity {
 
     String TYPE = "endpointInfo";
+
+    String ENDPOINT_TYPE_RESOURCE = "resource";
+    String ENDPOINT_TYPE_CORS = "cors";
 
     @Override
     default String getType() {
@@ -80,4 +84,8 @@ public interface EndpointInfo extends KapuaUpdatableEntity {
             throw KapuaRuntimeException.internalError(e, "Unable to build URI for EndpointInfo: " + getId().toCompactId());
         }
     }
+
+    String getEndpointType();
+
+    void setEndpointType(String endpointType);
 }

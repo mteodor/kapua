@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,20 +16,20 @@ import com.extjs.gxt.ui.client.Style.SortDir;
 import com.extjs.gxt.ui.client.data.PagingLoadConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.kapua.app.console.module.api.shared.util.GwtKapuaCommonsModelConverter;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnectionQuery;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnectionStatus;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceQuery;
 import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceQueryPredicates;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.assets.GwtDeviceAsset;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.assets.GwtDeviceAssetChannel;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.assets.GwtDeviceAssetChannel.GwtDeviceAssetChannelMode;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.assets.GwtDeviceAssets;
-import org.eclipse.kapua.app.console.module.device.shared.model.device.management.registry.GwtDeviceManagementOperationQuery;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionQuery;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionStatus;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.assets.GwtDeviceAsset;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.assets.GwtDeviceAssetChannel;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.assets.GwtDeviceAssetChannel.GwtDeviceAssetChannelMode;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.assets.GwtDeviceAssets;
+import org.eclipse.kapua.app.console.module.device.shared.model.management.registry.GwtDeviceManagementOperationQuery;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria.SortOrder;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.model.query.FieldSortCriteria;
+import org.eclipse.kapua.model.query.SortOrder;
 import org.eclipse.kapua.model.query.predicate.AndPredicate;
 import org.eclipse.kapua.model.query.predicate.AttributePredicate.Operator;
 import org.eclipse.kapua.model.type.ObjectTypeConverter;
@@ -107,12 +108,12 @@ public class GwtKapuaDeviceModelConverter {
             sortField = DeviceConnectionAttributes.MODIFIED_ON;
         }
         SortOrder sortOrder = loadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-        FieldSortCriteria sortCriteria = new FieldSortCriteria(sortField, sortOrder);
+        FieldSortCriteria sortCriteria = query.fieldSortCriteria(sortField, sortOrder);
         query.setSortCriteria(sortCriteria);
         query.setOffset(loadConfig.getOffset());
         query.setLimit(loadConfig.getLimit());
         query.setPredicate(predicate);
-
+        query.setAskTotalCount(gwtDeviceConnectionQuery.getAskTotalCount());
         return query;
     }
 
@@ -229,28 +230,33 @@ public class GwtKapuaDeviceModelConverter {
             if (sortField.equals("lastEventOnFormatted")) {
                 sortField = DeviceAttributes.LAST_EVENT_ON;
             }
-            query.setSortCriteria(new FieldSortCriteria(sortField, sortOrder));
+            query.setSortCriteria(query.fieldSortCriteria(sortField, sortOrder));
         } else {
-            query.setSortCriteria(new FieldSortCriteria(DeviceAttributes.CLIENT_ID, SortOrder.ASCENDING));
+            query.setSortCriteria(query.fieldSortCriteria(DeviceAttributes.CLIENT_ID, SortOrder.ASCENDING));
         }
 
         query.setPredicate(andPred);
-
+        query.setAskTotalCount(gwtDeviceQuery.getAskTotalCount());
         return query;
     }
 
 
     public static DeviceManagementOperationQuery convertDeviceManagementOperationQuery(PagingLoadConfig loadConfig, GwtDeviceManagementOperationQuery gwtQuery) {
+
         DeviceManagementOperationQuery query = DEVICE_MANAGEMENT_OPERATION_FACTORY.newQuery(KapuaEid.parseCompactId(gwtQuery.getScopeId()));
-        if (loadConfig != null) {
-            query.setLimit(loadConfig.getLimit());
-            query.setOffset(loadConfig.getOffset());
-        }
 
         String deviceId = gwtQuery.getDeviceId();
+        AndPredicate andPredicate = query.andPredicate();
         if (deviceId != null) {
-            query.setPredicate(query.attributePredicate(DeviceManagementOperationAttributes.DEVICE_ID, KapuaEid.parseCompactId(gwtQuery.getDeviceId())));
+            andPredicate.and(query.attributePredicate(DeviceManagementOperationAttributes.DEVICE_ID, KapuaEid.parseCompactId(gwtQuery.getDeviceId())));
         }
+
+        String appId = gwtQuery.getAppId();
+        if (appId != null) {
+            andPredicate.and(query.attributePredicate(DeviceManagementOperationAttributes.APP_ID, appId));
+        }
+
+        query.setPredicate(andPredicate);
 
         if (loadConfig != null && loadConfig.getSortField() != null) {
             String sortField = loadConfig.getSortField();
@@ -262,11 +268,16 @@ public class GwtKapuaDeviceModelConverter {
             if (sortField.equals("endedOnFormatted")) {
                 sortField = DeviceManagementOperationAttributes.ENDED_ON;
             }
-            query.setSortCriteria(new FieldSortCriteria(sortField, sortOrder));
+            query.setSortCriteria(query.fieldSortCriteria(sortField, sortOrder));
         } else {
-            query.setSortCriteria(new FieldSortCriteria(DeviceManagementOperationAttributes.STARTED_ON, SortOrder.DESCENDING));
+            query.setSortCriteria(query.fieldSortCriteria(DeviceManagementOperationAttributes.STARTED_ON, SortOrder.DESCENDING));
         }
 
+        if (loadConfig != null) {
+            query.setLimit(loadConfig.getLimit());
+            query.setOffset(loadConfig.getOffset());
+        }
+        query.setAskTotalCount(gwtQuery.getAskTotalCount());
         return query;
     }
 }

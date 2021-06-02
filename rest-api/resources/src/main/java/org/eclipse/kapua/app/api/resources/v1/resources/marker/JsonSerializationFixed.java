@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2018, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,10 +13,10 @@
 package org.eclipse.kapua.app.api.resources.v1.resources.marker;
 
 import org.eclipse.kapua.app.api.resources.v1.resources.DataMessages;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.data.JsonDatastoreMessage;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.data.JsonKapuaDataMessage;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.device.management.JsonGenericRequestMessage;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.device.management.JsonGenericResponseMessage;
+import org.eclipse.kapua.app.api.core.model.data.JsonDatastoreMessage;
+import org.eclipse.kapua.app.api.core.model.data.JsonKapuaDataMessage;
+import org.eclipse.kapua.app.api.core.model.device.management.JsonGenericRequestMessage;
+import org.eclipse.kapua.app.api.core.model.device.management.JsonGenericResponseMessage;
 import org.eclipse.kapua.message.device.data.KapuaDataMessage;
 import org.eclipse.kapua.service.datastore.model.DatastoreMessage;
 import org.eclipse.kapua.service.device.management.request.message.request.GenericRequestMessage;

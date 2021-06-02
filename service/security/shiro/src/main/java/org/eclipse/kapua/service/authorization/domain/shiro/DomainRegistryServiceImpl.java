@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -44,6 +45,10 @@ public class DomainRegistryServiceImpl extends AbstractKapuaService implements D
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DomainRegistryServiceImpl.class);
 
+    private final KapuaLocator locator = KapuaLocator.getInstance();
+    private final AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
+    private final PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
+
     public DomainRegistryServiceImpl() {
         super(AuthorizationEntityManagerFactory.getInstance());
     }
@@ -57,12 +62,9 @@ public class DomainRegistryServiceImpl extends AbstractKapuaService implements D
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.DOMAIN_DOMAIN, Actions.write, null));
 
-        return entityManagerSession.onTransactedInsert(em -> DomainDAO.create(em, domainCreator));
+        return entityManagerSession.doTransactedAction(em -> DomainDAO.create(em, domainCreator));
     }
 
     @Override
@@ -71,17 +73,14 @@ public class DomainRegistryServiceImpl extends AbstractKapuaService implements D
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.DOMAIN_DOMAIN, Actions.delete, null));
 
-        entityManagerSession.onTransactedAction(em -> {
+        entityManagerSession.doTransactedAction(em -> {
             if (DomainDAO.find(em, scopeId, domainId) == null) {
                 throw new KapuaEntityNotFoundException(Domain.TYPE, domainId);
             }
 
-            DomainDAO.delete(em, scopeId, domainId);
+            return DomainDAO.delete(em, scopeId, domainId);
         });
     }
 
@@ -92,42 +91,52 @@ public class DomainRegistryServiceImpl extends AbstractKapuaService implements D
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.DOMAIN_DOMAIN, Actions.read, KapuaId.ANY));
 
-        return entityManagerSession.onResult(em -> DomainDAO.find(em, scopeId, domainId));
+        return entityManagerSession.doAction(em -> DomainDAO.find(em, scopeId, domainId));
     }
 
     @Override
-    public DomainListResult query(KapuaQuery<Domain> query)
+    public Domain findByName(String name)
+            throws KapuaException {
+
+        ArgumentValidator.notNull(name, "name");
+
+        //
+        // Do find
+        return entityManagerSession.doAction(em -> {
+            Domain domain = DomainDAO.findByName(em, name);
+
+            if (domain != null) {
+                authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.DOMAIN_DOMAIN, Actions.read, KapuaId.ANY));
+            }
+
+            return domain;
+        });
+    }
+
+    @Override
+    public DomainListResult query(KapuaQuery query)
             throws KapuaException {
         ArgumentValidator.notNull(query, "query");
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.DOMAIN_DOMAIN, Actions.read, KapuaId.ANY));
 
-        return entityManagerSession.onResult(em -> DomainDAO.query(em, query));
+        return entityManagerSession.doAction(em -> DomainDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<Domain> query)
+    public long count(KapuaQuery query)
             throws KapuaException {
         ArgumentValidator.notNull(query, "query");
 
         //
         // Check Access
-        KapuaLocator locator = KapuaLocator.getInstance();
-        AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-        PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
         authorizationService.checkPermission(permissionFactory.newPermission(AuthorizationDomains.DOMAIN_DOMAIN, Actions.read, KapuaId.ANY));
 
-        return entityManagerSession.onResult(em -> DomainDAO.count(em, query));
+        return entityManagerSession.doAction(em -> DomainDAO.count(em, query));
     }
 
     //@ListenServiceEvent(fromAddress="account")
@@ -137,12 +146,11 @@ public class DomainRegistryServiceImpl extends AbstractKapuaService implements D
         }
         LOGGER.info("DomainRegistryService: received kapua event from {}, operation {}", kapuaEvent.getService(), kapuaEvent.getOperation());
         if ("account".equals(kapuaEvent.getService()) && "delete".equals(kapuaEvent.getOperation())) {
-            deleteDomainByAccountId(kapuaEvent.getScopeId(), kapuaEvent.getEntityId());
+            deleteDomainByAccountId(kapuaEvent.getEntityId());
         }
     }
 
-    private void deleteDomainByAccountId(KapuaId scopeId, KapuaId accountId) throws KapuaException {
-        KapuaLocator locator = KapuaLocator.getInstance();
+    private void deleteDomainByAccountId(KapuaId accountId) throws KapuaException {
         DomainFactory domainFactory = locator.getFactory(DomainFactory.class);
 
         DomainQuery query = domainFactory.newQuery(accountId);

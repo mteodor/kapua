@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -101,7 +102,7 @@ public class DefaultTargetReader extends AbstractItemReader implements TargetRea
         // Wrap the JobTargets in a wrapper object to store additional informations
         jobTargets.getItems().forEach(jt -> wrappedJobTargets.add(new JobTargetWrapper(jt)));
 
-        jobLogger.info("Opening cursor... Done!");
+        jobLogger.info("Opening cursor... DONE!");
     }
 
     @Override
@@ -118,24 +119,18 @@ public class DefaultTargetReader extends AbstractItemReader implements TargetRea
             currentWrappedJobTarget = wrappedJobTargets.get(jobTargetIndex++);
         }
 
-        jobLogger.info("Reading item... Done!");
+        jobLogger.info("Reading item... DONE!");
         return currentWrappedJobTarget;
     }
 
     /**
      * This method apply {@link AttributePredicate}s according to the parameters contained into the {@link JobContextWrapper} and {@link StepContextWrapper}.
      * <p>
-     * It manages the options of resetting the status of the target to a certain {@link JobStepIndex}.
-     * <p>
      * When no {@link JobStepIndex} is specified, the methods selects all targets that are set to the current {@link StepContextWrapper#getStepIndex()} and that don't have the
      * {@link JobTargetStatus} set to {@link JobTargetStatus#PROCESS_OK}.
      * <p>
      * When a {@link JobStepIndex} is specified, the methods ignores all targets until the {@link StepContextWrapper#getStepIndex()} doesn't match the {@link JobContextWrapper#getFromStepIndex()}.
-     * When they match all the {@link JobTarget}s are seleted regardless of their {@link JobTargetStatus}. After passing the given {@link JobContextWrapper#getFromStepIndex()} {@link JobTarget}s
-     * will be selected as regularly.
-     * <p>
-     * Regardless of the status of the {@link org.eclipse.kapua.service.job.Job} of the {@link StepContextWrapper#getStepIndex()} and the {@link JobContextWrapper#getFromStepIndex()} values,
-     * {@link #stepIndexFiltering(JobContextWrapper, StepContextWrapper, KapuaQuery, AndPredicate)} can apply filter that will reduce the {@link JobTarget}s selected.
+     * Then the {@link JobTarget}s will be selected as regularly.
      *
      * @param jobContextWrapper  The {@link JobContextWrapper} from which extract data
      * @param stepContextWrapper The {@link StepContextWrapper} from which extract data
@@ -144,12 +139,16 @@ public class DefaultTargetReader extends AbstractItemReader implements TargetRea
      * @since 1.0.0
      */
     protected void stepIndexFiltering(JobContextWrapper jobContextWrapper, StepContextWrapper stepContextWrapper, KapuaQuery query, AndPredicate andPredicate) {
-        Integer fromStepIndex = jobContextWrapper.getFromStepIndex();
-        if (fromStepIndex == null || fromStepIndex < stepContextWrapper.getStepIndex()) {
-            andPredicate.and(query.attributePredicate(JobTargetAttributes.STEP_INDEX, stepContextWrapper.getStepIndex()));
-            andPredicate.and(query.attributePredicate(JobTargetAttributes.STATUS, JobTargetStatus.PROCESS_OK, AttributePredicate.Operator.NOT_EQUAL));
-        } else if (fromStepIndex > stepContextWrapper.getStepIndex()) {
-            andPredicate.and(query.attributePredicate(JobTargetAttributes.STEP_INDEX, JobStepIndex.NONE));
+
+        // Select all targets that aren't in PROCESS_OK status
+        andPredicate.and(query.attributePredicate(JobTargetAttributes.STATUS, JobTargetStatus.PROCESS_OK, AttributePredicate.Operator.NOT_EQUAL));
+
+        // Select all target that are at the current step
+        andPredicate.and(query.attributePredicate(JobTargetAttributes.STEP_INDEX, stepContextWrapper.getStepIndex()));
+
+        // Select all targets at or after the given fromStepIndex (if specified)
+        if (jobContextWrapper.getFromStepIndex() != null) {
+            andPredicate.and(query.attributePredicate(JobTargetAttributes.STEP_INDEX, jobContextWrapper.getFromStepIndex(), AttributePredicate.Operator.GREATER_THAN_OR_EQUAL));
         }
     }
 

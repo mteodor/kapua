@@ -1,78 +1,92 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.command.message.internal;
 
-import org.eclipse.kapua.message.KapuaPayload;
+import org.eclipse.kapua.service.device.management.command.DeviceCommand;
 import org.eclipse.kapua.service.device.management.commons.message.response.KapuaResponsePayloadImpl;
+import org.eclipse.kapua.service.device.management.message.response.KapuaResponsePayload;
 
 /**
- * Device command response payload.
- * 
- * @since 1.0
- * 
+ * {@link DeviceCommand} {@link KapuaResponsePayload} implementation.
+ *
+ * @since 1.0.0
  */
-public class CommandResponsePayload extends KapuaResponsePayloadImpl implements KapuaPayload {
+public class CommandResponsePayload extends KapuaResponsePayloadImpl implements KapuaResponsePayload {
+
+    private static final long serialVersionUID = -7611654604657980851L;
 
     /**
      * Standard error application property
+     *
+     * @since 1.0.0
      */
     public static final String APP_PROPERTY_STDERR = "kapua.cmd.stderr";
 
     /**
      * Standard output application property
+     *
+     * @since 1.0.0
      */
     public static final String APP_PROPERTY_STDOUT = "kapua.cmd.stdout";
 
     /**
      * Command exit code application property
+     *
+     * @since 1.0.0
      */
     public static final String APP_PROPERTY_EXIT_CODE = "kapua.cmd.exit.code";
 
     /**
      * Command timed out application property
+     *
+     * @since 1.0.0
      */
     public static final String APP_PROPERTY_TIMEDOUT = "kapua.cmd.timedout";
 
     /**
-     * Get the command standard error
-     * 
-     * @return
+     * Gets the command standard error.
+     *
+     * @return The command standard error.
+     * @since 1.0.0
      */
     public String getStderr() {
         return (String) getMetrics().get(APP_PROPERTY_STDERR);
     }
 
     /**
-     * Set the command standard error
-     * 
-     * @param stderr
+     * Sets the command standard error.
+     *
+     * @param stderr The command standard error.
+     * @since 1.0.0
      */
     public void setStderr(String stderr) {
         getMetrics().put(APP_PROPERTY_STDERR, stderr);
     }
 
     /**
-     * Get the command standard output
-     * 
-     * @return
+     * Gets the command standard output.
+     *
+     * @return The command standard output.
+     * @since 1.0.0
      */
     public String getStdout() {
         return (String) getMetrics().get(APP_PROPERTY_STDOUT);
     }
 
     /**
-     * Set the command standard output
-     * 
-     * @param stdout
+     * Sets the command standard output.
+     *
+     * @param stdout The command standard output.
      */
     public void setStdout(String stdout) {
         getMetrics().put(APP_PROPERTY_STDOUT, stdout);
@@ -80,8 +94,9 @@ public class CommandResponsePayload extends KapuaResponsePayloadImpl implements 
 
     /**
      * Get the command exit code
-     * 
+     *
      * @return
+     * @since 1.0.0
      */
     public Integer getExitCode() {
         return (Integer) getMetrics().get(APP_PROPERTY_EXIT_CODE);
@@ -89,8 +104,9 @@ public class CommandResponsePayload extends KapuaResponsePayloadImpl implements 
 
     /**
      * Get the command exit code
-     * 
+     *
      * @param exitCode
+     * @since 1.0.0
      */
     public void setExitCode(Integer exitCode) {
         getMetrics().put(APP_PROPERTY_EXIT_CODE, exitCode);
@@ -98,8 +114,9 @@ public class CommandResponsePayload extends KapuaResponsePayloadImpl implements 
 
     /**
      * Get the command execution timed out flag
-     * 
+     *
      * @return
+     * @since 1.0.0
      */
     public Boolean hasTimedout() {
         return (Boolean) getMetrics().get(APP_PROPERTY_TIMEDOUT);
@@ -107,8 +124,9 @@ public class CommandResponsePayload extends KapuaResponsePayloadImpl implements 
 
     /**
      * Set the command execution timed out flag
-     * 
+     *
      * @param timedout
+     * @since 1.0.0
      */
     public void setTimedout(boolean timedout) {
         getMetrics().put(APP_PROPERTY_TIMEDOUT, timedout);

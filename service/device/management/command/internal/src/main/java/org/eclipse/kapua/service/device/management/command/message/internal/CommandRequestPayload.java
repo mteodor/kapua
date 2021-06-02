@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *      Eurotech - initial API and implementation
@@ -12,6 +13,8 @@
 package org.eclipse.kapua.service.device.management.command.message.internal;
 
 import org.eclipse.kapua.message.internal.KapuaPayloadImpl;
+import org.eclipse.kapua.service.device.management.command.DeviceCommand;
+import org.eclipse.kapua.service.device.management.command.DeviceCommandInput;
 import org.eclipse.kapua.service.device.management.command.internal.CommandAppProperties;
 import org.eclipse.kapua.service.device.management.message.request.KapuaRequestPayload;
 
@@ -19,16 +22,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Device command request payload.
+ * {@link DeviceCommand} {@link KapuaRequestPayload} implementation.
  *
- * @since 1.0
+ * @since 1.0.0
  */
 public class CommandRequestPayload extends KapuaPayloadImpl implements KapuaRequestPayload {
 
+    private static final long serialVersionUID = 2272153023534866045L;
+
     /**
-     * Get the command argument list
+     * Gets the {@link DeviceCommandInput#getArguments()}.
      *
-     * @return
+     * @return The {@link DeviceCommandInput#getArguments()}.
+     * @since 1.0.0
      */
     public String[] getArguments() {
         List<String> argumentsList = new ArrayList<>();
@@ -42,17 +48,14 @@ public class CommandRequestPayload extends KapuaPayloadImpl implements KapuaRequ
             }
         }
 
-        if (argumentsList.isEmpty()) {
-            return null;
-        } else {
-            return argumentsList.toArray(new String[argumentsList.size()]);
-        }
+        return argumentsList.toArray(new String[0]);
     }
 
     /**
-     * Set the command argument list
+     * Sets the {@link DeviceCommandInput#getArguments()}.
      *
-     * @param arguments
+     * @param arguments The {@link DeviceCommandInput#getArguments()}.
+     * @since 1.0.0
      */
     public void setArguments(String[] arguments) {
         if (arguments != null) {
@@ -63,9 +66,10 @@ public class CommandRequestPayload extends KapuaPayloadImpl implements KapuaRequ
     }
 
     /**
-     * Get the environment pairs
+     * Gets the {@link DeviceCommandInput#getEnvironment()}.
      *
-     * @return
+     * @return The {@link DeviceCommandInput#getEnvironment()}.
+     * @since 1.0.0
      */
     public String[] getEnvironmentPairs() {
         List<String> v = new ArrayList<>();
@@ -79,17 +83,14 @@ public class CommandRequestPayload extends KapuaPayloadImpl implements KapuaRequ
             }
         }
 
-        if (v.isEmpty()) {
-            return null;
-        } else {
-            return v.toArray(new String[v.size()]);
-        }
+        return v.toArray(new String[0]);
     }
 
     /**
-     * Set the environment pairs
+     * Sets the {@link DeviceCommandInput#getEnvironment()}.
      *
-     * @param environmentPairs
+     * @param environmentPairs The {@link DeviceCommandInput#getEnvironment()}.
+     * @since 1.0.0
      */
     public void setEnvironmentPairs(String[] environmentPairs) {
         if (environmentPairs != null) {
@@ -100,18 +101,20 @@ public class CommandRequestPayload extends KapuaPayloadImpl implements KapuaRequ
     }
 
     /**
-     * Get the working directory
+     * Gets the {@link DeviceCommandInput#getWorkingDir()}.
      *
-     * @return
+     * @return The {@link DeviceCommandInput#getWorkingDir()}.
+     * @since 1.0.0
      */
     public String getWorkingDir() {
         return (String) getMetrics().get(CommandAppProperties.APP_PROPERTY_DIR.getValue());
     }
 
     /**
-     * Set the working directory
+     * Sets the {@link DeviceCommandInput#getWorkingDir()}.
      *
-     * @param workingDir
+     * @param workingDir The {@link DeviceCommandInput#getWorkingDir()}.
+     * @since 1.0.0
      */
     public void setWorkingDir(String workingDir) {
         if (workingDir != null) {
@@ -120,18 +123,20 @@ public class CommandRequestPayload extends KapuaPayloadImpl implements KapuaRequ
     }
 
     /**
-     * Get the standard input
+     * Gets the {@link DeviceCommandInput#getStdin()}.
      *
-     * @return
+     * @return The {@link DeviceCommandInput#getStdin()}.
+     * @since 1.0.0
      */
     public String getStdin() {
         return (String) getMetrics().get(CommandAppProperties.APP_PROPERTY_STDIN.getValue());
     }
 
     /**
-     * Set the standard input
+     * Sets the {@link DeviceCommandInput#getStdin()}.
      *
-     * @param stdin
+     * @param stdin The {@link DeviceCommandInput#getStdin()}.
+     * @since 1.0.0
      */
     public void setStdin(String stdin) {
         if (stdin != null) {
@@ -140,74 +145,81 @@ public class CommandRequestPayload extends KapuaPayloadImpl implements KapuaRequ
     }
 
     /**
-     * Get the command timeout
+     * Gets the {@link DeviceCommandInput#getTimeout()}.
      *
-     * @return
+     * @return The {@link DeviceCommandInput#getTimeout()}.
+     * @since 1.0.0
      */
     public Integer getTimeout() {
         return (Integer) getMetrics().get(CommandAppProperties.APP_PROPERTY_TOUT.getValue());
     }
 
     /**
-     * Set the command timeout
+     * Sets the {@link DeviceCommandInput#getTimeout()}.
      *
-     * @param timeout
+     * @param timeout The {@link DeviceCommandInput#getTimeout()}.
+     * @since 1.0.0
      */
     public void setTimeout(int timeout) {
-        getMetrics().put(CommandAppProperties.APP_PROPERTY_TOUT.getValue(), Integer.valueOf(timeout));
+        getMetrics().put(CommandAppProperties.APP_PROPERTY_TOUT.getValue(), timeout);
     }
 
     /**
-     * Get the run asynchronously flag
+     * Gets the {@link DeviceCommandInput#isRunAsynch()}.
      *
-     * @return
+     * @return The {@link DeviceCommandInput#isRunAsynch()}.
      */
     public Boolean isRunAsync() {
         return (Boolean) getMetrics().get(CommandAppProperties.APP_PROPERTY_ASYNC.getValue());
     }
 
     /**
-     * Set the run asynchronously flag
+     * Sets the {@link DeviceCommandInput#isRunAsynch()}.
      *
-     * @param runAsync
+     * @param runAsync The {@link DeviceCommandInput#isRunAsynch()}.
+     * @since 1.0.0
      */
     public void setRunAsync(boolean runAsync) {
-        getMetrics().put(CommandAppProperties.APP_PROPERTY_ASYNC.getValue(), Boolean.valueOf(runAsync));
+        getMetrics().put(CommandAppProperties.APP_PROPERTY_ASYNC.getValue(), runAsync);
     }
 
     /**
-     * Set the command
+     * Gets the {@link DeviceCommandInput#getCommand()}.
      *
-     * @param cmd
-     */
-    public void setCommand(String cmd) {
-        getMetrics().put(CommandAppProperties.APP_PROPERTY_CMD.getValue(), cmd);
-    }
-
-    /**
-     * Get the command
-     *
-     * @return
+     * @return The {@link DeviceCommandInput#getCommand()}.
+     * @since 1.0.0
      */
     public String getCommand() {
         return (String) getMetrics().get(CommandAppProperties.APP_PROPERTY_CMD.getValue());
     }
 
     /**
-     * Set the password
+     * Sets the {@link DeviceCommandInput#getCommand()}.
      *
-     * @param password
+     * @param command The {@link DeviceCommandInput#getCommand()}.
+     * @since 1.0.0
      */
-    public void setPassword(String password) {
-        getMetrics().put(CommandAppProperties.APP_PROPERTY_PASSWORD.getValue(), password);
+    public void setCommand(String command) {
+        getMetrics().put(CommandAppProperties.APP_PROPERTY_CMD.getValue(), command);
     }
 
     /**
-     * Get the password
+     * Gets the {@link DeviceCommandInput#getPassword()}.
      *
-     * @return
+     * @return The {@link DeviceCommandInput#getPassword()}.
+     * @since 1.0.0
      */
     public String getPassword() {
         return (String) getMetrics().get(CommandAppProperties.APP_PROPERTY_PASSWORD.getValue());
+    }
+
+    /**
+     * Sets the {@link DeviceCommandInput#getPassword()}.
+     *
+     * @param password The {@link DeviceCommandInput#getPassword()}.
+     * @since 1.0.0
+     */
+    public void setPassword(String password) {
+        getMetrics().put(CommandAppProperties.APP_PROPERTY_PASSWORD.getValue(), password);
     }
 }

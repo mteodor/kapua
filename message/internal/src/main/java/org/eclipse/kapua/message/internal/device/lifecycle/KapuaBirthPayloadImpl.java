@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,6 +22,8 @@ import org.eclipse.kapua.message.device.lifecycle.KapuaBirthPayloadAttibutes;
  * @since 1.0.0
  */
 public class KapuaBirthPayloadImpl extends AbstractLifecyclePayloadImpl implements KapuaBirthPayload {
+
+    private static final long serialVersionUID = 304433271740125817L;
 
     /**
      * Constructor.
@@ -65,6 +68,7 @@ public class KapuaBirthPayloadImpl extends AbstractLifecyclePayloadImpl implemen
      * @param modemImei                   The {@link KapuaBirthPayloadAttibutes#MODEM_IMEI} of the {@link KapuaBirthMessage}
      * @param modemImsi                   The {@link KapuaBirthPayloadAttibutes#MODEM_IMSI} of the {@link KapuaBirthMessage}
      * @param modemIccid                  The {@link KapuaBirthPayloadAttibutes#MODEM_ICCID} of the {@link KapuaBirthMessage}
+     * @param extendedProperties          The {@link KapuaBirthPayloadAttibutes#EXTENDED_PROPERTIES} of the {@link KapuaBirthMessage}
      * @since 1.0.0
      */
     public KapuaBirthPayloadImpl(String uptime,
@@ -95,7 +99,8 @@ public class KapuaBirthPayloadImpl extends AbstractLifecyclePayloadImpl implemen
                                  String osArch,
                                  String modemImei,
                                  String modemImsi,
-                                 String modemIccid) {
+                                 String modemIccid,
+                                 String extendedProperties) {
 
         setUptime(uptime);
         setDisplayName(displayName);
@@ -126,6 +131,7 @@ public class KapuaBirthPayloadImpl extends AbstractLifecyclePayloadImpl implemen
         setModemImei(modemImei);
         setModemImsi(modemImsi);
         setModemIccid(modemIccid);
+        setExtendedProperties(extendedProperties);
     }
 
     @Override
@@ -418,4 +424,13 @@ public class KapuaBirthPayloadImpl extends AbstractLifecyclePayloadImpl implemen
         getMetrics().put(KapuaBirthPayloadAttibutes.MODEM_ICCID, modemIccid);
     }
 
+    @Override
+    public String getExtendedProperties() {
+        return (String) getMetrics().get(KapuaBirthPayloadAttibutes.EXTENDED_PROPERTIES);
+    }
+
+    @Override
+    public void setExtendedProperties(String extendedProperties) {
+        getMetrics().put(KapuaBirthPayloadAttibutes.EXTENDED_PROPERTIES, extendedProperties);
+    }
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -18,6 +19,7 @@ import org.eclipse.kapua.commons.service.internal.ServiceDAO;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.authentication.token.AccessToken;
+import org.eclipse.kapua.service.authentication.token.AccessTokenAttributes;
 import org.eclipse.kapua.service.authentication.token.AccessTokenCreator;
 import org.eclipse.kapua.service.authentication.token.AccessTokenListResult;
 
@@ -87,7 +89,7 @@ public class AccessTokenDAO extends ServiceDAO {
      * @return
      */
     public static AccessToken findByTokenId(EntityManager em, String tokenId) {
-        return ServiceDAO.findByField(em, AccessTokenImpl.class, "tokenId", tokenId);
+        return ServiceDAO.findByField(em, AccessTokenImpl.class, AccessTokenAttributes.TOKEN_ID, tokenId);
     }
 
     /**
@@ -98,7 +100,7 @@ public class AccessTokenDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static AccessTokenListResult query(EntityManager em, KapuaQuery<AccessToken> accessTokenQuery)
+    public static AccessTokenListResult query(EntityManager em, KapuaQuery accessTokenQuery)
             throws KapuaException {
         return ServiceDAO.query(em, AccessToken.class, AccessTokenImpl.class, new AccessTokenListResultImpl(), accessTokenQuery);
     }
@@ -111,7 +113,7 @@ public class AccessTokenDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<AccessToken> accessTokenQuery)
+    public static long count(EntityManager em, KapuaQuery accessTokenQuery)
             throws KapuaException {
         return ServiceDAO.count(em, AccessToken.class, AccessTokenImpl.class, accessTokenQuery);
     }
@@ -122,9 +124,10 @@ public class AccessTokenDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param accessTokenId
+     * @return deleted entity
      * @throws KapuaEntityNotFoundException If {@link AccessToken} is not found.
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId accessTokenId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, AccessTokenImpl.class, scopeId, accessTokenId);
+    public static AccessToken delete(EntityManager em, KapuaId scopeId, KapuaId accessTokenId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, AccessTokenImpl.class, scopeId, accessTokenId);
     }
 }

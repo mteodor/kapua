@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -40,6 +41,7 @@ import org.eclipse.kapua.app.console.module.api.shared.util.GwtKapuaCommonsModel
 import org.eclipse.kapua.broker.BrokerDomains;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
+import org.eclipse.kapua.commons.service.internal.KapuaServiceDisabledException;
 import org.eclipse.kapua.commons.util.ThrowingRunnable;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.config.metatype.KapuaTad;
@@ -433,6 +435,8 @@ public class GwtAccountServiceImpl extends KapuaRemoteServiceServlet implements 
                         tocd = configurableService.getConfigMetadata(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
                     } catch (SubjectUnauthorizedException ex) {
                         continue;
+                    } catch (KapuaServiceDisabledException ex) {
+                        continue;
                     }
                     if (tocd != null) {
                         GwtConfigComponent gwtConfig = new GwtConfigComponent();
@@ -680,7 +684,7 @@ public class GwtAccountServiceImpl extends KapuaRemoteServiceServlet implements 
             AccountQuery query = GwtKapuaAccountModelConverter.convertAccountQuery(loadConfig, gwtAccountQuery);
 
             KapuaListResult<Account> accounts = ACCOUNT_SERVICE.query(query);
-            totalLength = (int) ACCOUNT_SERVICE.count(query);
+            totalLength = accounts.getTotalCount().intValue();
 
             if (!accounts.isEmpty()) {
                 UserListResult usernames = KapuaSecurityUtils.doPrivileged(new Callable<UserListResult>() {
@@ -698,7 +702,8 @@ public class GwtAccountServiceImpl extends KapuaRemoteServiceServlet implements 
 
                 for (Account a : accounts.getItems()) {
                     GwtAccount gwtAccount = KapuaGwtAccountModelConverter.convertAccount(a);
-                    gwtAccount.setModifiedByName(usernameMap.get(gwtAccount.getCreatedBy()));
+                    gwtAccount.setCreatedByName(usernameMap.get(gwtAccount.getCreatedBy()));
+                    gwtAccount.setModifiedByName(usernameMap.get(gwtAccount.getModifiedBy()));
                     gwtAccounts.add(gwtAccount);
                 }
             }

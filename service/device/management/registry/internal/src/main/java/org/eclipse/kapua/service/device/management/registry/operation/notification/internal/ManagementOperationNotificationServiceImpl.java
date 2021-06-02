@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -35,12 +36,12 @@ import org.eclipse.kapua.service.device.management.registry.operation.notificati
 @KapuaProvider
 public class ManagementOperationNotificationServiceImpl extends AbstractKapuaService implements ManagementOperationNotificationService {
 
-    private static KapuaLocator locator = KapuaLocator.getInstance();
+    private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
 
-    private static AuthorizationService authorizationService = locator.getService(AuthorizationService.class);
-    private static PermissionFactory permissionFactory = locator.getFactory(PermissionFactory.class);
+    private static final AuthorizationService AUTHORIZATION_SERVICE = LOCATOR.getService(AuthorizationService.class);
+    private static final PermissionFactory PERMISSION_FACTORY = LOCATOR.getFactory(PermissionFactory.class);
 
-    private static DeviceManagementOperationRegistryService deviceManagementOperationRegistryService = locator.getService(DeviceManagementOperationRegistryService.class);
+    private static final DeviceManagementOperationRegistryService DEVICE_MANAGEMENT_OPERATION_REGISTRY_SERVICE = LOCATOR.getService(DeviceManagementOperationRegistryService.class);
 
     protected ManagementOperationNotificationServiceImpl() {
         super(DeviceManagementOperationEntityManagerFactory.getInstance());
@@ -60,17 +61,17 @@ public class ManagementOperationNotificationServiceImpl extends AbstractKapuaSer
 
         //
         // Check access
-        authorizationService.checkPermission(permissionFactory.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.write, null));
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.write, null));
 
         //
         // Check operation existence
-        if (KapuaSecurityUtils.doPrivileged(() -> deviceManagementOperationRegistryService.find(creator.getScopeId(), creator.getOperationId()) == null)) {
+        if (KapuaSecurityUtils.doPrivileged(() -> DEVICE_MANAGEMENT_OPERATION_REGISTRY_SERVICE.find(creator.getScopeId(), creator.getOperationId()) == null)) {
             throw new KapuaEntityNotFoundException(DeviceManagementOperation.TYPE, creator.getOperationId());
         }
 
         //
         // Do create
-        return entityManagerSession.onTransactedInsert(em -> ManagementOperationNotificationDAO.create(em, creator));
+        return entityManagerSession.doTransactedAction(em -> ManagementOperationNotificationDAO.create(em, creator));
     }
 
     @Override
@@ -82,43 +83,41 @@ public class ManagementOperationNotificationServiceImpl extends AbstractKapuaSer
 
         //
         // Check Access
-        authorizationService.checkPermission(permissionFactory.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.read, scopeId));
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.read, scopeId));
 
         //
         // Do find
-        return entityManagerSession.onResult(em -> ManagementOperationNotificationDAO.find(em, scopeId, entityId));
+        return entityManagerSession.doAction(em -> ManagementOperationNotificationDAO.find(em, scopeId, entityId));
     }
 
     @Override
-    public ManagementOperationNotificationListResult query(KapuaQuery<ManagementOperationNotification> query) throws KapuaException {
+    public ManagementOperationNotificationListResult query(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
-        authorizationService.checkPermission(permissionFactory.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.read, query.getScopeId()));
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.read, query.getScopeId()));
 
         //
         // Do query
-        return entityManagerSession.onResult(em -> ManagementOperationNotificationDAO.query(em, query));
+        return entityManagerSession.doAction(em -> ManagementOperationNotificationDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<ManagementOperationNotification> query) throws KapuaException {
+    public long count(KapuaQuery query) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
-        authorizationService.checkPermission(permissionFactory.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.read, query.getScopeId()));
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.read, query.getScopeId()));
 
         //
         // Do count
-        return entityManagerSession.onResult(em -> ManagementOperationNotificationDAO.count(em, query));
+        return entityManagerSession.doAction(em -> ManagementOperationNotificationDAO.count(em, query));
     }
 
     @Override
@@ -130,10 +129,10 @@ public class ManagementOperationNotificationServiceImpl extends AbstractKapuaSer
 
         //
         // Check Access
-        authorizationService.checkPermission(permissionFactory.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.delete, null));
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(DeviceManagementRegistryDomains.DEVICE_MANAGEMENT_REGISTRY_DOMAIN, Actions.delete, null));
 
         //
         // Do delete
-        entityManagerSession.onTransactedAction(em -> ManagementOperationNotificationDAO.delete(em, scopeId, entityId));
+        entityManagerSession.doTransactedAction(em -> ManagementOperationNotificationDAO.delete(em, scopeId, entityId));
     }
 }

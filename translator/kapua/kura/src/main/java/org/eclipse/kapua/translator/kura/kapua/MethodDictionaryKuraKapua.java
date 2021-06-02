@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,14 +16,15 @@ package org.eclipse.kapua.translator.kura.kapua;
 import org.eclipse.kapua.service.device.call.kura.KuraMethod;
 import org.eclipse.kapua.service.device.management.message.KapuaMethod;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * Dictionary class to define actions translations between Kura domain to Kapua domain.<br>
- * For detail about action please refer to {@link KapuaMethod} and {@link KuraMethod}
+ * Dictionary class to define actions translations between {@link org.eclipse.kapua.service.device.call.kura.Kura} domain to Kapua domain.
  *
- * @since 1.0
+ * @see KapuaMethod
+ * @see KuraMethod
+ * @since 1.0.0
  */
 public class MethodDictionaryKuraKapua {
 
@@ -32,7 +34,7 @@ public class MethodDictionaryKuraKapua {
     private static final Map<KuraMethod, KapuaMethod> DICTIONARY;
 
     static {
-        DICTIONARY = new HashMap<>(5);
+        DICTIONARY = new EnumMap<>(KuraMethod.class);
 
         DICTIONARY.put(KuraMethod.GET, KapuaMethod.READ);
         DICTIONARY.put(KuraMethod.POST, KapuaMethod.CREATE);
@@ -41,16 +43,35 @@ public class MethodDictionaryKuraKapua {
         DICTIONARY.put(KuraMethod.EXEC, KapuaMethod.EXECUTE);
     }
 
+    /**
+     * Constructor.
+     *
+     * @since 1.0.0
+     */
     private MethodDictionaryKuraKapua() {
     }
 
     /**
-     * Returns the action translation from Kura domain to Kapua domain
+     * Returns the method translation from Kura domain to Kapua domain
      *
-     * @param kuraMethod
-     * @return
+     * @param kuraMethod The {@link KuraMethod} to translate.
+     * @return The method translation from Kura domain to Kapua domain
+     * @since 1.0.0
+     * @deprecated Since 1.2.0. Renamed to
      */
+    @Deprecated
     public static KapuaMethod get(KuraMethod kuraMethod) {
+        return translate(kuraMethod);
+    }
+
+    /**
+     * Translates the given {@link KuraMethod} to the matching {@link KapuaMethod}.
+     *
+     * @param kuraMethod The {@link KuraMethod} to translate.
+     * @return The matching {@link KapuaMethod}
+     * @since 1.2.0
+     */
+    public static KapuaMethod translate(KuraMethod kuraMethod) {
         return DICTIONARY.get(kuraMethod);
     }
 }

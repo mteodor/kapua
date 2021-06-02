@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat
@@ -13,6 +14,8 @@
 package org.eclipse.kapua.commons.jpa;
 
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang.StringUtils;
+
 import org.eclipse.kapua.commons.setting.system.SystemSetting;
 import org.eclipse.kapua.commons.setting.system.SystemSettingKey;
 
@@ -32,7 +35,10 @@ public class H2JdbcConnectionUrlResolver implements JdbcConnectionUrlResolver {
         if (schema != null) {
             connectionUrl += ";INIT=CREATE SCHEMA IF NOT EXISTS " + schema + "\\;SET SCHEMA " + schema;
         }
-
+        String additionalOptions = config.getString(SystemSettingKey.DB_CONNECTION_ADDITIONAL_OPTIONS);
+        if (StringUtils.isNotBlank(additionalOptions)) {
+            connectionUrl += ";" + additionalOptions;
+        }
         return connectionUrl;
     }
 

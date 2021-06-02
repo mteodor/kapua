@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -59,8 +60,10 @@ public class GwtJobServiceImpl extends KapuaRemoteServiceServlet implements GwtJ
     private static final UserService USER_SERVICE = LOCATOR.getService(UserService.class);
     private static final UserFactory USER_FACTORY = LOCATOR.getFactory(UserFactory.class);
 
+    private static final String ENTITY_INFO = "entityInfo";
+
     @Override
-    public PagingLoadResult<GwtJob> query(PagingLoadConfig loadConfig, final GwtJobQuery gwtJobQuery) throws GwtKapuaException {
+    public PagingLoadResult<GwtJob> query(PagingLoadConfig loadConfig, GwtJobQuery gwtJobQuery) throws GwtKapuaException {
         //
         // Do query
         int totalLength = 0;
@@ -72,7 +75,7 @@ public class GwtJobServiceImpl extends KapuaRemoteServiceServlet implements GwtJ
 
             // query
             JobListResult jobs = JOB_SERVICE.query(jobQuery);
-            totalLength = (int) JOB_SERVICE.count(jobQuery);
+            totalLength = jobs.getTotalCount().intValue();
 
             // If there are results
             if (!jobs.isEmpty()) {
@@ -193,14 +196,28 @@ public class GwtJobServiceImpl extends KapuaRemoteServiceServlet implements GwtJ
     }
 
     @Override
+    public void deleteForced(GwtXSRFToken xsrfToken, String gwtScopeId, String gwtJobId) throws GwtKapuaException {
+        checkXSRFToken(xsrfToken);
+
+        try {
+            KapuaId scopeId = GwtKapuaCommonsModelConverter.convertKapuaId(gwtScopeId);
+            KapuaId jobId = GwtKapuaCommonsModelConverter.convertKapuaId(gwtJobId);
+
+            JOB_SERVICE.deleteForced(scopeId, jobId);
+        } catch (Throwable t) {
+            KapuaExceptionHandler.handle(t);
+        }
+    }
+
+    @Override
     public ListLoadResult<GwtGroupedNVPair> findJobDescription(String gwtScopeId,
-            String gwtJobId) throws GwtKapuaException {
+                                                               String gwtJobId) throws GwtKapuaException {
         List<GwtGroupedNVPair> gwtJobDescription = new ArrayList<GwtGroupedNVPair>();
         try {
-            final KapuaId scopeId = KapuaEid.parseCompactId(gwtScopeId);
+            KapuaId scopeId = KapuaEid.parseCompactId(gwtScopeId);
             KapuaId jobId = KapuaEid.parseCompactId(gwtJobId);
 
-            final Job job = JOB_SERVICE.find(scopeId, jobId);
+            Job job = JOB_SERVICE.find(scopeId, jobId);
 
             UserListResult userListResult = KapuaSecurityUtils.doPrivileged(new Callable<UserListResult>() {
 
@@ -218,10 +235,10 @@ public class GwtJobServiceImpl extends KapuaRemoteServiceServlet implements GwtJ
             if (job != null) {
                 gwtJobDescription.add(new GwtGroupedNVPair("jobInfo", "jobName", job.getName()));
                 gwtJobDescription.add(new GwtGroupedNVPair("jobInfo", "jobDescription", job.getDescription()));
-                gwtJobDescription.add(new GwtGroupedNVPair("entityInfo", "jobCreatedOn", job.getCreatedOn()));
-                gwtJobDescription.add(new GwtGroupedNVPair("entityInfo", "jobCreatedBy", job.getCreatedBy() != null ? usernameMap.get(job.getCreatedBy().toCompactId()) : null));
-                gwtJobDescription.add(new GwtGroupedNVPair("entityInfo", "jobModifiedOn", job.getModifiedOn()));
-                gwtJobDescription.add(new GwtGroupedNVPair("entityInfo", "jobModifiedBy", job.getModifiedBy() != null ? usernameMap.get(job.getModifiedBy().toCompactId()) : null));
+                gwtJobDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "jobCreatedOn", job.getCreatedOn()));
+                gwtJobDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "jobCreatedBy", job.getCreatedBy() != null ? usernameMap.get(job.getCreatedBy().toCompactId()) : null));
+                gwtJobDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "jobModifiedOn", job.getModifiedOn()));
+                gwtJobDescription.add(new GwtGroupedNVPair(ENTITY_INFO, "jobModifiedBy", job.getModifiedBy() != null ? usernameMap.get(job.getModifiedBy().toCompactId()) : null));
             }
         } catch (Exception e) {
             KapuaExceptionHandler.handle(e);

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -41,7 +42,8 @@ import org.eclipse.kapua.service.authentication.shiro.utils.JwtProcessors;
 import org.eclipse.kapua.service.user.User;
 import org.eclipse.kapua.service.user.UserService;
 import org.eclipse.kapua.service.user.UserStatus;
-import org.eclipse.kapua.sso.jwt.JwtProcessor;
+import org.eclipse.kapua.plugin.sso.openid.JwtProcessor;
+import org.eclipse.kapua.plugin.sso.openid.exception.OpenIDException;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,9 +79,12 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
     @Override
     protected void onInit() {
         super.onInit();
-
-        jwtProcessor = JwtProcessors.createDefault();
-        setCredentialsMatcher(new JwtCredentialsMatcher(jwtProcessor));
+        try {
+            jwtProcessor = JwtProcessors.createDefault();
+            setCredentialsMatcher(new JwtCredentialsMatcher(jwtProcessor));
+        } catch (OpenIDException se) {
+            throw new ShiroException("Error while creating Jwt Processor!", se);
+        }
     }
 
     @Override
@@ -95,7 +100,7 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
         //
         // Extract credentials
         JwtCredentialsImpl token = (JwtCredentialsImpl) authenticationToken;
-        String jwt = token.getJwt();
+        String idToken = token.getIdToken();
 
         //
         // Get Services
@@ -110,7 +115,7 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
             throw new ShiroException("Error while getting services!", kre);
         }
 
-        final String id = extractExternalId(jwt);
+        final String id = extractExternalId(idToken);
         logger.debug("JWT contains external id: {}", id);
 
         // Get the associated user by external id
@@ -165,7 +170,7 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
 
         // Create credential
 
-        final Credential credential = new CredentialImpl(user.getScopeId(), user.getId(), CredentialType.JWT, jwt, CredentialStatus.ENABLED, null);
+        final Credential credential = new CredentialImpl(user.getScopeId(), user.getId(), CredentialType.JWT, idToken, CredentialStatus.ENABLED, null);
 
         // Build AuthenticationInfo
 
@@ -173,23 +178,21 @@ public class JwtAuthenticatingRealm extends AuthenticatingRealm implements Destr
                 account,
                 user,
                 credential,
-               null);
+                null);
     }
 
     /**
      * Extract the subject information
      *
-     * @param jwt
-     *            the token to use
+     * @param jwt the token to use
      * @return the subject, never returns {@code null}
-     * @throws ShiroException
-     *             in case the subject could not be extracted
+     * @throws ShiroException in case the subject could not be extracted
      */
     private String extractExternalId(String jwt) {
         final String id;
         try {
             final JwtContext ctx = jwtProcessor.process(jwt);
-            id = ctx.getJwtClaims().getSubject();
+            id = ctx.getJwtClaims().getClaimValueAsString(jwtProcessor.getExternalIdClaimName());
         } catch (final Exception e) {
             throw new ShiroException("Failed to parse JWT", e);
         }

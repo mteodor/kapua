@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -28,9 +29,12 @@ public class GwtSession extends KapuaBaseModel implements Serializable {
     private String version;
     private String buildVersion;
     private String buildNumber;
+    private boolean ssoEnabled;
+    private boolean datastoreDisabled;
 
     // User info
     private String accountId;
+    private String accountName;
     private String accountPath;
     private String rootAccountId;
     private String rootAccountName;
@@ -42,6 +46,11 @@ public class GwtSession extends KapuaBaseModel implements Serializable {
     private String userId;
     private String userName;
     private String userDisplayName;
+    private String openIDIdToken;
+
+    private String tokenId;
+
+    private String trustKey;
 
     private List<GwtSessionPermission> sessionPermissions = new ArrayList<GwtSessionPermission>();
     private Map<GwtSessionPermission, Boolean> checkedPermissionsCache = new HashMap<GwtSessionPermission, Boolean>();
@@ -110,6 +119,14 @@ public class GwtSession extends KapuaBaseModel implements Serializable {
         return rootAccountId;
     }
 
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String name) {
+        this.accountName = name;
+    }
+
     public void setSelectedAccountId(String selectedAccountId) {
         this.selectedAccountId = selectedAccountId;
     }
@@ -156,6 +173,30 @@ public class GwtSession extends KapuaBaseModel implements Serializable {
 
     public void setSelectedAccountName(String selectedAccountName) {
         this.selectedAccountName = selectedAccountName;
+    }
+
+    public String getTokenId() {
+        return tokenId;
+    }
+
+    public void setTokenId(String tokenId) {
+        this.tokenId = tokenId;
+    }
+
+    public boolean isSsoEnabled() {
+        return ssoEnabled;
+    }
+
+    public void setSsoEnabled(boolean ssoEnabled) {
+        this.ssoEnabled = ssoEnabled;
+    }
+
+    public boolean isDatastoreDisabled() {
+        return datastoreDisabled;
+    }
+
+    public void setDatastoreDisabled(boolean datastoreDisabled) {
+        this.datastoreDisabled = datastoreDisabled;
     }
 
     public List<GwtSessionPermission> getSessionPermissions() {
@@ -275,4 +316,21 @@ public class GwtSession extends KapuaBaseModel implements Serializable {
 
         return false;
     }
+
+    public String getOpenIDIdToken() {
+        return openIDIdToken;
+    }
+
+    public void setOpenIDIdToken(String openIDIdToken) {
+        this.openIDIdToken = openIDIdToken;
+    }
+
+    public String getTrustKey() {
+        return trustKey;
+    }
+
+    public void setTrustKey(String trustKey) {
+        this.trustKey = trustKey;
+    }
+
 }

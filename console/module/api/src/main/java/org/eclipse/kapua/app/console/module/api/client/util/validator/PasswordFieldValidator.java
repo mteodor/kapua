@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -16,9 +17,14 @@ import com.extjs.gxt.ui.client.widget.form.TextField;
 
 public class PasswordFieldValidator extends TextFieldValidator {
 
-    public PasswordFieldValidator(TextField<String> passwordField) {
+    private final int minLength;
+
+    public PasswordFieldValidator(TextField<String> passwordField, int minLength) {
         super(passwordField, FieldType.PASSWORD);
         textField.setRegex(null);
+        this.minLength = minLength;
+        this.textField.getMessages().setRegexText(this.textField.getMessages().getRegexText().replace("{0}", Integer.toString(minLength)));
+        this.textField.setToolTip(this.textField.getToolTip().getToolTipConfig().getText().replace("{0}", Integer.toString(minLength)));
     }
 
     public String validate(Field<?> field, String value) {
@@ -28,13 +34,15 @@ public class PasswordFieldValidator extends TextFieldValidator {
         boolean isDirty = textField.isDirty();
         if (!isDirty) {
             textField.setRegex(null);
+            textField.setMinLength(0);
             return null;
         }
 
         if (textFieldType.getRegex() != null) {
             textField.setRegex(textFieldType.getRegex());
         }
-
+        textField.setMinLength(minLength);
         return super.validate(field, value);
     }
+
 }

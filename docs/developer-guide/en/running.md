@@ -37,20 +37,20 @@ To stop Kapua, run
 
 ## OpenShift
 
-OpenShift is a PaaS (Platform As A Service) platform based on Kubernetes. Kapua support deployments into [OpenShift Origin](https://www.openshift.org),
+OpenShift is a PaaS (Platform As A Service) platform based on Kubernetes. Kapua supports deployments into [OpenShift Origin](https://www.openshift.org),
 which is an open source community project. Origin sources, can be found [here](https://www.openshift.org/). We support Kapua on OpenShift Origin **1.4.1**.
 
 Currently we support running OpenShift only on Linux OS. If you would like to run Kapua on Mac OS or on Windows for development purposes, please install Linux
-(for example Fedora 25) into virtual machine (for example VirtualBox) and install OpenShift there.
+(for example Fedora 25) into a virtual machine (for example VirtualBox) and install OpenShift there.
 
 ### Starting OpenShift cluster
 
 For running Kapua on an OpenShift you need to
-have OpenShift cluster installed and started in a first place. You can install it by yourself or rely on the script we provides:
+have OpenShift cluster installed and started in the first place. You can install it by yourself or rely on the script we provides:
 
     sudo kapua/deployment/openshift/openshift-start.sh
 
-If you are running your OpenShift cluster for a first time, execute the following initialized script as well:
+If you are running your OpenShift cluster for the first time, execute the following initialized script as well:
 
     kapua/deployment/openshift/openshift-initialize.sh
 
@@ -157,7 +157,7 @@ For example, if your Openshift deployment is running at the address `192.168.64.
 Not all MQTT clients have WebSocket support, so we need to enable direct MQTT over TCP access to the broker as well. By default, Kapua comes with the NodePort service that routes all traffic from port `31883` to the broker.
 So you can connect your MQTT clients directly to this service. For the simulator example similar to the above, that would look something like
 
-    java -jar target/kapua-simulator-kura-1.1.0-SNAPSHOT-app.jar --broker tcp://kapua-broker:kapua-password@192.168.64.2:31883
+    java -jar target/kapua-simulator-kura-1.5.0-SNAPSHOT-app.jar --broker tcp://kapua-broker:kapua-password@192.168.64.2:31883
 
 This is suitable only for the local deployments. In the cloud or production environments, you should deploy a proper LoadBalancer Openshift service to enable external traffic flow to the broker.
 
@@ -201,7 +201,7 @@ Kapua can also be run with Vagrant.
 
 ### Installing Vagrant
 
-Before Vargant can be used to run Kapua it needs to be installed. This is different on each distribution.
+Before Vargant can be used to run Kapua it needs to be installed. This is different in each distribution.
 
 #### Installing Vagrant on Fedora 25
 

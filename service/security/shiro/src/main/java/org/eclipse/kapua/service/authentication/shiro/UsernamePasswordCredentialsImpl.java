@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,14 +13,17 @@
 package org.eclipse.kapua.service.authentication.shiro;
 
 import org.apache.shiro.authc.AuthenticationToken;
-import org.eclipse.kapua.service.authentication.AuthenticationCredentials;
 import org.eclipse.kapua.service.authentication.UsernamePasswordCredentials;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 /**
- * Username and password {@link AuthenticationCredentials} implementation.
- * 
- * @since 1.0
- * 
+ * {@link UsernamePasswordCredentials} implementation.
+ * <p>
+ * This implements also {@link AuthenticationToken} to allow usage in Shiro.
+ *
+ * @since 1.0.0
  */
 public class UsernamePasswordCredentialsImpl implements UsernamePasswordCredentials, AuthenticationToken {
 
@@ -27,15 +31,33 @@ public class UsernamePasswordCredentialsImpl implements UsernamePasswordCredenti
 
     private String username;
     private String password;
+    private String authenticationCode;
+    private String trustKey;
 
     /**
-     * Constructor
-     *  @param username
-     * @param password
+     * Constructor.
+     *
+     * @param username The credential username.
+     * @param password The credential password.
+     * @since 1.0.0
      */
-    public UsernamePasswordCredentialsImpl(String username, String password) {
-        this.username = username;
-        this.password = password;
+    public UsernamePasswordCredentialsImpl(@NotNull String username, @NotNull String password) {
+        setUsername(username);
+        setPassword(password);
+    }
+
+
+    /**
+     * Clone constructor.
+     *
+     * @param usernamePasswordCredentials The {@link UsernamePasswordCredentials} to clone.
+     * @since 1.5.0
+     */
+    public UsernamePasswordCredentialsImpl(@NotNull UsernamePasswordCredentials usernamePasswordCredentials) {
+        setUsername(usernamePasswordCredentials.getUsername());
+        setPassword(usernamePasswordCredentials.getPassword());
+        setAuthenticationCode(usernamePasswordCredentials.getAuthenticationCode());
+        setTrustKey(usernamePasswordCredentials.getTrustKey());
     }
 
     @Override
@@ -66,5 +88,40 @@ public class UsernamePasswordCredentialsImpl implements UsernamePasswordCredenti
     @Override
     public Object getCredentials() {
         return password;
+    }
+
+    @Override
+    public String getAuthenticationCode() {
+        return authenticationCode;
+    }
+
+    @Override
+    public void setAuthenticationCode(String authenticationCode) {
+        this.authenticationCode = authenticationCode;
+    }
+
+    @Override
+    public String getTrustKey() {
+        return trustKey;
+    }
+
+    @Override
+    public void setTrustKey(String trustKey) {
+        this.trustKey = trustKey;
+    }
+
+    /**
+     * Parses a {@link UsernamePasswordCredentials} into a {@link UsernamePasswordCredentialsImpl}.
+     *
+     * @param usernamePasswordCredentials The {@link UsernamePasswordCredentials} to parse.
+     * @return A instance of {@link UsernamePasswordCredentialsImpl}.
+     * @since 1.5.0
+     */
+    public static UsernamePasswordCredentialsImpl parse(@Nullable UsernamePasswordCredentials usernamePasswordCredentials) {
+        return usernamePasswordCredentials != null ?
+                (usernamePasswordCredentials instanceof UsernamePasswordCredentialsImpl ?
+                        (UsernamePasswordCredentialsImpl) usernamePasswordCredentials :
+                        new UsernamePasswordCredentialsImpl(usernamePasswordCredentials))
+                : null;
     }
 }

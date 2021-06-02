@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -34,6 +35,8 @@ import org.eclipse.kapua.service.device.registry.internal.DeviceEntityManagerFac
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+
 /**
  * {@link DeviceEventService} implementation.
  *
@@ -44,16 +47,24 @@ public class DeviceEventServiceImpl extends AbstractKapuaService implements Devi
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceEventServiceImpl.class);
 
-    private final AuthorizationService authorizationService;
-    private final PermissionFactory permissionFactory;
-    private final DeviceRegistryService deviceRegistryService;
+    private static final int MAX_RETRY = 3;
+    private static final double MAX_WAIT = 200d;
+
+    @Inject
+    private AuthorizationService authorizationService;
+    @Inject
+    private PermissionFactory permissionFactory;
+    @Inject
+    private DeviceRegistryService deviceRegistryService;
 
     /**
      * Constructor
      */
     public DeviceEventServiceImpl() {
         super(DeviceEntityManagerFactory.instance());
+
         KapuaLocator locator = KapuaLocator.getInstance();
+
         authorizationService = locator.getService(AuthorizationService.class);
         permissionFactory = locator.getFactory(PermissionFactory.class);
         deviceRegistryService = locator.getService(DeviceRegistryService.class);
@@ -63,11 +74,6 @@ public class DeviceEventServiceImpl extends AbstractKapuaService implements Devi
 
     @Override
     public DeviceEvent create(DeviceEventCreator deviceEventCreator) throws KapuaException {
-        return create(deviceEventCreator, true);
-    }
-
-    @Override
-    public DeviceEvent create(DeviceEventCreator deviceEventCreator, boolean updateDeviceLastEventId) throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(deviceEventCreator, "deviceEventCreator");
@@ -76,32 +82,20 @@ public class DeviceEventServiceImpl extends AbstractKapuaService implements Devi
         ArgumentValidator.notNull(deviceEventCreator.getReceivedOn(), "deviceEventCreator.receivedOn");
         ArgumentValidator.notEmptyOrNull(deviceEventCreator.getResource(), "deviceEventCreator.eventType");
 
+        //
         // Check Access
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_EVENT_DOMAIN, Actions.write, deviceEventCreator.getScopeId()));
 
+        //
         // Check that device exists
         if (deviceRegistryService.find(deviceEventCreator.getScopeId(), deviceEventCreator.getDeviceId()) == null) {
             throw new KapuaEntityNotFoundException(Device.TYPE, deviceEventCreator.getDeviceId());
         }
 
         // Create the event
-        DeviceEvent deviceEvent = entityManagerSession.onTransactedInsert(entityManager -> DeviceEventDAO.create(entityManager, deviceEventCreator));
+        DeviceEvent deviceEvent = entityManagerSession.doTransactedAction(entityManager -> DeviceEventDAO.create(entityManager, deviceEventCreator));
 
-        // Update last event id if necessary
-        if (updateDeviceLastEventId) {
-            Device device = deviceRegistryService.find(deviceEvent.getScopeId(), deviceEvent.getDeviceId());
-            if (device != null) {
-                device.setLastEventId(deviceEvent.getId());
-
-                try {
-                    deviceRegistryService.update(device);
-                } catch (KapuaOptimisticLockingException kole) {
-                    LOG.warn("Update of field 'lastEventOn' failed due to concurrent updates on the device: {} ({}) - {} {}. Error: {}", device.getId(), device.getClientId(), deviceEvent.getReceivedOn(), deviceEvent.getResource(),kole.getMessage());
-                    LOG.debug("Update of field 'lastEventOn' failed due to concurrent updates on the device: {} ({}) - {} {}. See following exception...", device.getId(), device.getClientId(), deviceEvent.getReceivedOn(), deviceEvent.getResource());
-                    LOG.debug("Error:", kole);
-                }
-            }
-        }
+        updateLastEventOnDevice(deviceEvent);
 
         return deviceEvent;
     }
@@ -118,37 +112,35 @@ public class DeviceEventServiceImpl extends AbstractKapuaService implements Devi
         // Check Access
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_EVENT_DOMAIN, Actions.read, scopeId));
 
-        return entityManagerSession.onResult(em -> DeviceEventDAO.find(em, scopeId, entityId));
+        return entityManagerSession.doAction(em -> DeviceEventDAO.find(em, scopeId, entityId));
     }
 
     @Override
-    public DeviceEventListResult query(KapuaQuery<DeviceEvent> query)
+    public DeviceEventListResult query(KapuaQuery query)
             throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_EVENT_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> DeviceEventDAO.query(em, query));
+        return entityManagerSession.doAction(em -> DeviceEventDAO.query(em, query));
     }
 
     @Override
-    public long count(KapuaQuery<DeviceEvent> query)
+    public long count(KapuaQuery query)
             throws KapuaException {
         //
         // Argument Validation
         ArgumentValidator.notNull(query, "query");
-        ArgumentValidator.notNull(query.getScopeId(), "query.scopeId");
 
         //
         // Check Access
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_EVENT_DOMAIN, Actions.read, query.getScopeId()));
 
-        return entityManagerSession.onResult(em -> DeviceEventDAO.count(em, query));
+        return entityManagerSession.doAction(em -> DeviceEventDAO.count(em, query));
     }
 
     @Override
@@ -162,12 +154,53 @@ public class DeviceEventServiceImpl extends AbstractKapuaService implements Devi
         // Check Access
         authorizationService.checkPermission(permissionFactory.newPermission(DeviceDomains.DEVICE_EVENT_DOMAIN, Actions.delete, scopeId));
 
-        entityManagerSession.onTransactedAction(em -> {
+        entityManagerSession.doTransactedAction(em -> {
             if (DeviceEventDAO.find(em, scopeId, deviceEventId) == null) {
                 throw new KapuaEntityNotFoundException(DeviceEvent.TYPE, deviceEventId);
             }
 
-            DeviceEventDAO.delete(em, scopeId, deviceEventId);
+            return DeviceEventDAO.delete(em, scopeId, deviceEventId);
         });
     }
+
+
+    /**
+     * Updates the {@link Device#getLastEventId()} with the given {@link DeviceEvent}.
+     *
+     * @param deviceEvent The {@link DeviceEvent} that needs to be set.
+     * @throws KapuaException If {@link Device} does not exist or updating the entity causes an error that is not {@link KapuaOptimisticLockingException} which is ignored.
+     * @since 1.2.0
+     */
+    private void updateLastEventOnDevice(DeviceEvent deviceEvent) throws KapuaException {
+        int retry = 0;
+        do {
+            retry++;
+            try {
+                Device device = deviceRegistryService.find(deviceEvent.getScopeId(), deviceEvent.getDeviceId());
+
+                if (device == null) {
+                    throw new KapuaEntityNotFoundException(Device.TYPE, deviceEvent.getDeviceId());
+                }
+
+                if (device.getLastEvent() == null ||
+                        device.getLastEvent().getReceivedOn().before(deviceEvent.getReceivedOn())) {
+                    device.setLastEventId(deviceEvent.getId());
+                    deviceRegistryService.update(device);
+                }
+                break;
+            } catch (KapuaOptimisticLockingException e) {
+                LOG.warn("Concurrent update for device: {} - Event id: {} Attempt: {}/{}. {}", deviceEvent.getDeviceId(), deviceEvent.getId(), retry, MAX_RETRY, retry < MAX_RETRY ? "Retrying..." : "Skipping update!");
+
+                if (retry < MAX_RETRY) {
+                    try {
+                        Thread.sleep((long) (Math.random() * MAX_WAIT));
+                    } catch (InterruptedException e1) {
+                        LOG.warn("Error while waiting retry: {}", e.getMessage());
+                    }
+                }
+            }
+        }
+        while (retry < MAX_RETRY);
+    }
+
 }

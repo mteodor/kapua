@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,29 +22,21 @@ import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.device.management.DeviceManagementDomains;
 import org.eclipse.kapua.service.device.management.commons.AbstractDeviceManagementServiceImpl;
 import org.eclipse.kapua.service.device.management.commons.call.DeviceCallExecutor;
-import org.eclipse.kapua.service.device.management.commons.exception.DeviceManagementErrorCodes;
-import org.eclipse.kapua.service.device.management.commons.exception.DeviceManagementException;
 import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSetting;
 import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSettingKey;
 import org.eclipse.kapua.service.device.management.configuration.DeviceComponentConfiguration;
 import org.eclipse.kapua.service.device.management.configuration.DeviceConfiguration;
 import org.eclipse.kapua.service.device.management.configuration.DeviceConfigurationFactory;
 import org.eclipse.kapua.service.device.management.configuration.DeviceConfigurationManagementService;
-import org.eclipse.kapua.service.device.management.configuration.internal.exception.ConfigurationGetManagementException;
-import org.eclipse.kapua.service.device.management.configuration.internal.exception.ConfigurationPutManagementException;
 import org.eclipse.kapua.service.device.management.configuration.message.internal.ConfigurationRequestChannel;
 import org.eclipse.kapua.service.device.management.configuration.message.internal.ConfigurationRequestMessage;
 import org.eclipse.kapua.service.device.management.configuration.message.internal.ConfigurationRequestPayload;
 import org.eclipse.kapua.service.device.management.configuration.message.internal.ConfigurationResponseMessage;
-import org.eclipse.kapua.service.device.management.configuration.message.internal.ConfigurationResponsePayload;
+import org.eclipse.kapua.service.device.management.exception.DeviceManagementRequestContentException;
 import org.eclipse.kapua.service.device.management.message.KapuaMethod;
-import org.eclipse.kapua.service.device.management.message.response.KapuaResponsePayload;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLStreamException;
-import java.io.StringWriter;
 import java.util.Date;
 
 /**
@@ -54,15 +47,20 @@ import java.util.Date;
 @KapuaProvider
 public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceManagementServiceImpl implements DeviceConfigurationManagementService {
 
+    private static final String CHAR_ENCODING = DeviceManagementSetting.getInstance().getString(DeviceManagementSettingKey.CHAR_ENCODING);
+
     private static final DeviceConfigurationFactory DEVICE_CONFIGURATION_FACTORY = LOCATOR.getFactory(DeviceConfigurationFactory.class);
+
+    private static final String SCOPE_ID = "scopeId";
+    private static final String DEVICE_ID = "deviceId";
 
     @Override
     public DeviceConfiguration get(KapuaId scopeId, KapuaId deviceId, String configurationId, String configurationComponentPid, Long timeout)
             throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(deviceId, "deviceId");
+        ArgumentValidator.notNull(scopeId, SCOPE_ID);
+        ArgumentValidator.notNull(deviceId, DEVICE_ID);
 
         //
         // Check Access
@@ -88,8 +86,8 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
 
         //
         // Do get
-        DeviceCallExecutor deviceApplicationCall = new DeviceCallExecutor(configurationRequestMessage, timeout);
-        ConfigurationResponseMessage responseMessage = (ConfigurationResponseMessage) deviceApplicationCall.send();
+        DeviceCallExecutor<?, ?, ?, ConfigurationResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(configurationRequestMessage, timeout);
+        ConfigurationResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
         // Create event
@@ -97,35 +95,7 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
 
         //
         // Check response
-        if (responseMessage.getResponseCode().isAccepted()) {
-            ConfigurationResponsePayload responsePayload = responseMessage.getPayload();
-
-            DeviceManagementSetting config = DeviceManagementSetting.getInstance();
-            String charEncoding = config.getString(DeviceManagementSettingKey.CHAR_ENCODING);
-
-            DeviceConfiguration deviceConfiguration = null;
-            if (responsePayload.getBody() != null) {
-                String body = null;
-                try {
-                    body = new String(responsePayload.getBody(), charEncoding);
-                } catch (Exception e) {
-                    throw new DeviceManagementException(DeviceManagementErrorCodes.RESPONSE_PARSE_EXCEPTION, e, (Object) responsePayload.getBody());
-                }
-
-                try {
-                    deviceConfiguration = XmlUtil.unmarshal(body, DeviceConfigurationImpl.class);
-                } catch (Exception e) {
-                    throw new DeviceManagementException(DeviceManagementErrorCodes.RESPONSE_PARSE_EXCEPTION, e, body);
-
-                }
-            }
-
-            return deviceConfiguration;
-        } else {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new ConfigurationGetManagementException(responseMessage.getResponseCode(), responsePayload.getExceptionMessage(), responsePayload.getExceptionStack());
-        }
+        return checkResponseAcceptedOrThrowError(responseMessage, () -> responseMessage.getPayload().getDeviceConfigurations());
     }
 
     @Override
@@ -133,8 +103,8 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
             throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(deviceId, "deviceId");
+        ArgumentValidator.notNull(scopeId, SCOPE_ID);
+        ArgumentValidator.notNull(deviceId, DEVICE_ID);
         ArgumentValidator.notNull(deviceComponentConfiguration, "componentConfiguration");
         ArgumentValidator.notEmptyOrNull(deviceComponentConfiguration.getId(), "componentConfiguration.componentId");
 
@@ -152,20 +122,13 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
 
         ConfigurationRequestPayload configurationRequestPayload = new ConfigurationRequestPayload();
 
+        DeviceConfiguration deviceConfiguration = DEVICE_CONFIGURATION_FACTORY.newConfigurationInstance();
         try {
-            DeviceConfiguration deviceConfiguration = DEVICE_CONFIGURATION_FACTORY.newConfigurationInstance();
             deviceConfiguration.getComponentConfigurations().add(deviceComponentConfiguration);
 
-            DeviceManagementSetting deviceManagementConfig = DeviceManagementSetting.getInstance();
-            String charEncoding = deviceManagementConfig.getString(DeviceManagementSettingKey.CHAR_ENCODING);
-
-            StringWriter sw = new StringWriter();
-            XmlUtil.marshal(deviceConfiguration, sw);
-            byte[] requestBody = sw.toString().getBytes(charEncoding);
-
-            configurationRequestPayload.setBody(requestBody);
+            configurationRequestPayload.setDeviceConfigurations(deviceConfiguration);
         } catch (Exception e) {
-            throw new DeviceManagementException(DeviceManagementErrorCodes.REQUEST_EXCEPTION, e, deviceComponentConfiguration);
+            throw new DeviceManagementRequestContentException(e, deviceConfiguration);
         }
 
         ConfigurationRequestMessage configurationRequestMessage = new ConfigurationRequestMessage();
@@ -177,8 +140,8 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
 
         //
         // Do put
-        DeviceCallExecutor deviceApplicationCall = new DeviceCallExecutor(configurationRequestMessage, timeout);
-        ConfigurationResponseMessage responseMessage = (ConfigurationResponseMessage) deviceApplicationCall.send();
+        DeviceCallExecutor<?, ?, ?, ConfigurationResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(configurationRequestMessage, timeout);
+        ConfigurationResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
         // Create event
@@ -186,12 +149,7 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
 
         //
         // Check response
-        if (!responseMessage.getResponseCode().isAccepted()) {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new ConfigurationPutManagementException(responseMessage.getResponseCode(), responsePayload.getExceptionMessage(), responsePayload.getExceptionStack());
-        }
-
+        checkResponseAcceptedOrThrowError(responseMessage);
     }
 
     @Override
@@ -202,7 +160,7 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
                     deviceId,
                     XmlUtil.unmarshal(xmlDeviceConfig, DeviceConfigurationImpl.class),
                     timeout);
-        } catch (JAXBException | XMLStreamException | FactoryConfigurationError | SAXException e) {
+        } catch (JAXBException | SAXException e) {
             throw new KapuaIllegalArgumentException("xmlDeviceConfig", xmlDeviceConfig);
         }
     }
@@ -212,8 +170,8 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
             throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(deviceId, "deviceId");
+        ArgumentValidator.notNull(scopeId, SCOPE_ID);
+        ArgumentValidator.notNull(deviceId, DEVICE_ID);
         ArgumentValidator.notNull(deviceConfiguration, "componentConfiguration");
 
         //
@@ -230,16 +188,9 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
         ConfigurationRequestPayload configurationRequestPayload = new ConfigurationRequestPayload();
 
         try {
-            DeviceManagementSetting deviceManagementConfig = DeviceManagementSetting.getInstance();
-            String charEncoding = deviceManagementConfig.getString(DeviceManagementSettingKey.CHAR_ENCODING);
-
-            StringWriter sw = new StringWriter();
-            XmlUtil.marshal(deviceConfiguration, sw);
-            byte[] requestBody = sw.toString().getBytes(charEncoding);
-
-            configurationRequestPayload.setBody(requestBody);
+            configurationRequestPayload.setDeviceConfigurations(deviceConfiguration);
         } catch (Exception e) {
-            throw new DeviceManagementException(DeviceManagementErrorCodes.REQUEST_EXCEPTION, e, deviceConfiguration);
+            throw new DeviceManagementRequestContentException(e, deviceConfiguration);
         }
 
         ConfigurationRequestMessage configurationRequestMessage = new ConfigurationRequestMessage();
@@ -251,8 +202,8 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
 
         //
         // Do put
-        DeviceCallExecutor deviceApplicationCall = new DeviceCallExecutor(configurationRequestMessage, timeout);
-        ConfigurationResponseMessage responseMessage = (ConfigurationResponseMessage) deviceApplicationCall.send();
+        DeviceCallExecutor<?, ?, ?, ConfigurationResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(configurationRequestMessage, timeout);
+        ConfigurationResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
         // Create event
@@ -260,10 +211,6 @@ public class DeviceConfigurationManagementServiceImpl extends AbstractDeviceMana
 
         //
         // Check response
-        if (!responseMessage.getResponseCode().isAccepted()) {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new ConfigurationPutManagementException(responseMessage.getResponseCode(), responsePayload.getExceptionMessage(), responsePayload.getExceptionStack());
-        }
+        checkResponseAcceptedOrThrowError(responseMessage);
     }
 }

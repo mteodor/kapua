@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,20 +22,22 @@ import javax.xml.bind.annotation.XmlType;
 import java.util.List;
 
 /**
- * Device snapshots entity definition.<br>
+ * {@link DeviceSnapshots} definition.
+ * <p>
  * This entity manages a list of {@link DeviceSnapshot}
  *
- * @since 1.0
+ * @since 1.0.0
  */
 @XmlRootElement(name = "snapshots")
 @XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlType(propOrder = { "snapshots" }, factoryClass = DeviceSnapshotXmlRegistry.class, factoryMethod = "newDeviceSnapshots")
+@XmlType(factoryClass = DeviceSnapshotXmlRegistry.class, factoryMethod = "newDeviceSnapshots")
 public interface DeviceSnapshots extends KapuaSerializable {
 
     /**
-     * Get the device snapshot list
+     * Gets the {@link DeviceSnapshot} {@link List}.
      *
-     * @return
+     * @return The {@link DeviceSnapshot} {@link List}.
+     * @since 1.0.0
      */
     @XmlElement(name = "snapshotId")
     List<DeviceSnapshot> getSnapshots();

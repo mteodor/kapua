@@ -1,35 +1,16 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.api.resources.v1.resources;
-
-import com.google.common.base.Strings;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.Authorization;
-import org.eclipse.kapua.KapuaEntityNotFoundException;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.CountResult;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.EntityId;
-import org.eclipse.kapua.app.api.resources.v1.resources.model.ScopeId;
-import org.eclipse.kapua.locator.KapuaLocator;
-import org.eclipse.kapua.model.query.predicate.AndPredicate;
-import org.eclipse.kapua.service.KapuaService;
-import org.eclipse.kapua.service.authorization.role.Role;
-import org.eclipse.kapua.service.authorization.role.RoleAttributes;
-import org.eclipse.kapua.service.authorization.role.RoleCreator;
-import org.eclipse.kapua.service.authorization.role.RoleFactory;
-import org.eclipse.kapua.service.authorization.role.RoleListResult;
-import org.eclipse.kapua.service.authorization.role.RoleQuery;
-import org.eclipse.kapua.service.authorization.role.RoleService;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -44,13 +25,55 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Api(value = "Roles", authorizations = {@Authorization(value = "kapuaAccessToken")})
+import org.eclipse.kapua.KapuaEntityNotFoundException;
+import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.app.api.core.resources.AbstractKapuaResource;
+import org.eclipse.kapua.app.api.core.model.CountResult;
+import org.eclipse.kapua.app.api.core.model.EntityId;
+import org.eclipse.kapua.app.api.core.model.ScopeId;
+import org.eclipse.kapua.locator.KapuaLocator;
+import org.eclipse.kapua.model.KapuaEntityAttributes;
+import org.eclipse.kapua.model.KapuaNamedEntityAttributes;
+import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.model.query.predicate.AndPredicate;
+import org.eclipse.kapua.service.KapuaService;
+import org.eclipse.kapua.service.authorization.access.AccessInfo;
+import org.eclipse.kapua.service.authorization.access.AccessInfoFactory;
+import org.eclipse.kapua.service.authorization.access.AccessInfoListResult;
+import org.eclipse.kapua.service.authorization.access.AccessInfoQuery;
+import org.eclipse.kapua.service.authorization.access.AccessInfoService;
+import org.eclipse.kapua.service.authorization.access.AccessRole;
+import org.eclipse.kapua.service.authorization.access.AccessRoleAttributes;
+import org.eclipse.kapua.service.authorization.access.AccessRoleFactory;
+import org.eclipse.kapua.service.authorization.access.AccessRoleListResult;
+import org.eclipse.kapua.service.authorization.access.AccessRoleQuery;
+import org.eclipse.kapua.service.authorization.access.AccessRoleService;
+import org.eclipse.kapua.service.authorization.role.Role;
+import org.eclipse.kapua.service.authorization.role.RoleCreator;
+import org.eclipse.kapua.service.authorization.role.RoleFactory;
+import org.eclipse.kapua.service.authorization.role.RoleListResult;
+import org.eclipse.kapua.service.authorization.role.RoleQuery;
+import org.eclipse.kapua.service.authorization.role.RoleService;
+import org.eclipse.kapua.service.user.User;
+import org.eclipse.kapua.service.user.UserFactory;
+import org.eclipse.kapua.service.user.UserListResult;
+import org.eclipse.kapua.service.user.UserQuery;
+import org.eclipse.kapua.service.user.UserService;
+
+import com.google.common.base.Strings;
+
 @Path("{scopeId}/roles")
 public class Roles extends AbstractKapuaResource {
 
     private final KapuaLocator locator = KapuaLocator.getInstance();
     private final RoleService roleService = locator.getService(RoleService.class);
     private final RoleFactory roleFactory = locator.getFactory(RoleFactory.class);
+    private final AccessRoleService accessRoleService = locator.getService(AccessRoleService.class);
+    private final AccessRoleFactory accessRoleFactory = locator.getFactory(AccessRoleFactory.class);
+    private final AccessInfoService accessInfoService = locator.getService(AccessInfoService.class);
+    private final AccessInfoFactory accessInfoFactory = locator.getFactory(AccessInfoFactory.class);
+    private final UserService userService = locator.getService(UserService.class);
+    private final UserFactory userFactory = locator.getFactory(UserFactory.class);
 
     /**
      * Gets the {@link Role} list in the scope.
@@ -60,22 +83,21 @@ public class Roles extends AbstractKapuaResource {
      * @param offset  The result set offset.
      * @param limit   The result set limit.
      * @return The {@link RoleListResult} of all the roles associated to the current selected scope.
-     * @throws Exception Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "roleSimpleQuery", value = "Gets the Role list in the scope", notes = "Returns the list of all the roles associated to the current selected scope.", response = RoleListResult.class)
     @GET
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public RoleListResult simpleQuery(
-            @ApiParam(value = "The ScopeId in which to search results.", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "The role name to filter results.") @QueryParam("name") String name,
-            @ApiParam(value = "The result set offset.", defaultValue = "0") @QueryParam("offset") @DefaultValue("0") int offset,
-            @ApiParam(value = "The result set limit.", defaultValue = "50") @QueryParam("limit") @DefaultValue("50") int limit) throws Exception {
+            @PathParam("scopeId") ScopeId scopeId,
+            @QueryParam("name") String name,
+            @QueryParam("offset") @DefaultValue("0") int offset,
+            @QueryParam("limit") @DefaultValue("50") int limit) throws KapuaException {
         RoleQuery query = roleFactory.newQuery(scopeId);
 
         AndPredicate andPredicate = query.andPredicate();
         if (!Strings.isNullOrEmpty(name)) {
-            andPredicate.and(query.attributePredicate(RoleAttributes.NAME, name));
+            andPredicate.and(query.attributePredicate(KapuaNamedEntityAttributes.NAME, name));
         }
         query.setPredicate(andPredicate);
 
@@ -91,17 +113,16 @@ public class Roles extends AbstractKapuaResource {
      * @param scopeId The {@link ScopeId} in which to search results.
      * @param query   The {@link RoleQuery} to use to filter results.
      * @return The {@link RoleListResult} of all the result matching the given {@link RoleQuery} parameter.
-     * @throws Exception Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "roleQuery", value = "Queries the Roles", notes = "Queries the Roles with the given RoleQuery parameter returning all matching Roles", response = RoleListResult.class)
     @POST
     @Path("_query")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public RoleListResult query(
-            @ApiParam(value = "The ScopeId in which to search results.", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "The RoleQuery to use to filter results.", required = true) RoleQuery query) throws Exception {
+            @PathParam("scopeId") ScopeId scopeId,
+            RoleQuery query) throws KapuaException {
         query.setScopeId(scopeId);
 
         return roleService.query(query);
@@ -113,17 +134,16 @@ public class Roles extends AbstractKapuaResource {
      * @param scopeId The {@link ScopeId} in which to search results.
      * @param query   The {@link RoleQuery} to use to filter results.
      * @return The count of all the result matching the given {@link RoleQuery} parameter.
-     * @throws Exception Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "roleCount", value = "Counts the Roles", notes = "Counts the Roles with the given RoleQuery parameter returning the number of matching Roles", response = CountResult.class)
     @POST
     @Path("_count")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public CountResult count(
-            @ApiParam(value = "The ScopeId in which to count results", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "The RoleQuery to use to filter count results", required = true) RoleQuery query) throws Exception {
+            @PathParam("scopeId") ScopeId scopeId,
+            RoleQuery query) throws KapuaException {
         query.setScopeId(scopeId);
 
         return new CountResult(roleService.count(query));
@@ -136,19 +156,18 @@ public class Roles extends AbstractKapuaResource {
      * @param scopeId     The {@link ScopeId} in which to create the {@link Role}
      * @param roleCreator Provides the information for the new {@link Role} to be created.
      * @return The newly created {@link Role} object.
-     * @throws Exception Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "roleCreate", value = "Create a Role", notes = "Creates a new Role based on the information provided in RoleCreator parameter.", response = Role.class)
     @POST
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public Role create(
-            @ApiParam(value = "The ScopeId in which to create the Account", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "Provides the information for the new Role to be created", required = true) RoleCreator roleCreator) throws Exception {
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    public Response create(
+            @PathParam("scopeId") ScopeId scopeId,
+            RoleCreator roleCreator) throws KapuaException {
         roleCreator.setScopeId(scopeId);
 
-        return roleService.create(roleCreator);
+        return returnCreated(roleService.create(roleCreator));
     }
 
     /**
@@ -157,16 +176,15 @@ public class Roles extends AbstractKapuaResource {
      * @param scopeId The {@link ScopeId} of the requested {@link Role}.
      * @param roleId  The id of the requested {@link Role}.
      * @return The requested {@link Role} object.
-     * @throws Exception Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "roleFind", value = "Get a Role", notes = "Returns the Role specified by the \"roleId\" path parameter.", response = Role.class)
     @GET
     @Path("{roleId}")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
     public Role find(
-            @ApiParam(value = "The ScopeId of the requested Account.", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "The id of the requested Role", required = true) @PathParam("roleId") EntityId roleId) throws Exception {
+            @PathParam("scopeId") ScopeId scopeId,
+            @PathParam("roleId") EntityId roleId) throws KapuaException {
         Role role = roleService.find(scopeId, roleId);
 
         if (role == null) {
@@ -183,18 +201,17 @@ public class Roles extends AbstractKapuaResource {
      * @param roleId  The id of the requested {@link Role}
      * @param role    The modified Role whose attributed need to be updated.
      * @return The updated {@link Role}.
-     * @throws Exception Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "roleUpdate", value = "Update an Role", notes = "Updates a new Role based on the information provided in the Role parameter.", response = Role.class)
     @PUT
     @Path("{roleId}")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Role update(
-            @ApiParam(value = "The ScopeId of the requested Account.", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "The id of the requested Role", required = true) @PathParam("roleId") EntityId roleId,
-            @ApiParam(value = "The modified Role whose attributed need to be updated", required = true) Role role) throws Exception {
+            @PathParam("scopeId") ScopeId scopeId,
+            @PathParam("roleId") EntityId roleId,
+            Role role) throws KapuaException {
         role.setScopeId(scopeId);
         role.setId(roleId);
 
@@ -207,17 +224,54 @@ public class Roles extends AbstractKapuaResource {
      * @param scopeId The ScopeId of the requested {@link Role}.
      * @param roleId  The id of the Role to be deleted.
      * @return HTTP 200 if operation has completed successfully.
-     * @throws Exception Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
      * @since 1.0.0
      */
-    @ApiOperation(nickname = "roleDelete", value = "Delete a Role", notes = "Deletes the Role specified by the \"roleId\" path parameter.")
     @DELETE
     @Path("{roleId}")
     public Response deleteRole(
-            @ApiParam(value = "The ScopeId of the Account to delete.", required = true, defaultValue = DEFAULT_SCOPE_ID) @PathParam("scopeId") ScopeId scopeId,
-            @ApiParam(value = "The id of the Role to be deleted", required = true) @PathParam("roleId") EntityId roleId) throws Exception {
+            @PathParam("scopeId") ScopeId scopeId,
+            @PathParam("roleId") EntityId roleId) throws KapuaException {
         roleService.delete(scopeId, roleId);
 
-        return returnOk();
+        return returnNoContent();
     }
+
+    /**
+     * Gets all the {@link User}s for a given {@link Role}
+     *
+     * @param scopeId The ScopeId of the requested {@link Role}.
+     * @param roleId The id of the Role to be deleted.
+     * @param offset  The result set offset.
+     * @param limit   The result set limit.
+     * @return An {@link UserListResult} containing the {@link User}s for the given {@link Role}
+     * @throws KapuaException Whenever something bad happens. See specific {@link KapuaService} exceptions.
+     * @since 1.2.0
+     */
+    @GET
+    @Path("{roleId}/users")
+    public UserListResult usersForRole(
+            @PathParam("scopeId") ScopeId scopeId,
+            @PathParam("roleId") EntityId roleId,
+            @QueryParam("offset") @DefaultValue("0") int offset,
+            @QueryParam("limit") @DefaultValue("50") int limit) throws KapuaException {
+        AccessRoleQuery accessRoleQuery = accessRoleFactory.newQuery(scopeId);
+        accessRoleQuery.setPredicate(accessRoleQuery.attributePredicate(AccessRoleAttributes.ROLE_ID, roleId));
+        accessRoleQuery.setLimit(limit);
+        accessRoleQuery.setOffset(offset);
+        AccessRoleListResult accessRoleListResult = accessRoleService.query(accessRoleQuery);
+
+        AccessInfoQuery accessInfoQuery = accessInfoFactory.newQuery(scopeId);
+        accessInfoQuery.setPredicate(accessInfoQuery.attributePredicate(KapuaEntityAttributes.ENTITY_ID, accessRoleListResult.getItems().stream().map(AccessRole::getAccessInfoId).toArray(KapuaId[]::new)));
+        accessRoleQuery.setLimit(limit);
+        accessRoleQuery.setOffset(offset);
+        AccessInfoListResult accessInfoListResult = accessInfoService.query(accessInfoQuery);
+
+        UserQuery userQuery = userFactory.newQuery(scopeId);
+        userQuery.setPredicate(userQuery.attributePredicate(KapuaEntityAttributes.ENTITY_ID, accessInfoListResult.getItems().stream().map(AccessInfo::getUserId).toArray(KapuaId[]::new)));
+        userQuery.setLimit(limit);
+        userQuery.setOffset(offset);
+        return userService.query(userQuery);
+    }
+
 }

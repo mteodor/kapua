@@ -1,84 +1,68 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.call.message.kura.lifecycle;
 
-import org.eclipse.kapua.service.device.call.message.kura.KuraPayload;
 import org.eclipse.kapua.service.device.call.message.lifecycle.DeviceLifecyclePayload;
+import org.eclipse.kapua.service.device.registry.Device;
 
 /**
  * {@link DeviceLifecyclePayload} {@link org.eclipse.kapua.service.device.call.kura.Kura} implementation.
+ *
+ * @see KuraDisconnectMessage
+ * @since 1.0.0
  */
-public class KuraDisconnectPayload extends KuraPayload implements DeviceLifecyclePayload {
+public class KuraDisconnectPayload extends AbstractKuraLifecyclePayload implements DeviceLifecyclePayload {
 
     /**
-     * Uptime metric name
+     * Uptime metric name.
+     *
+     * @since 1.0.0
      */
     private static final String UPTIME = "uptime";
+
     /**
-     * Uptime device displayble name metric name
+     * {@link Device} display name metric name.
+     *
+     * @since 1.0.0
      */
     private static final String DISPLAY_NAME = "display_name";
 
     /**
-     * Constructor
+     * Constructor.
+     *
+     * @since 1.0.0
      */
     public KuraDisconnectPayload() {
         super();
     }
 
     /**
-     * Returns a displayable representation string
+     * Gets the {@link Device} uptime.
      *
-     * @param uptime
-     * @param displayName
-     */
-    public KuraDisconnectPayload(String uptime, String displayName) {
-        super();
-
-        getMetrics().put(UPTIME, uptime);
-        getMetrics().put(DISPLAY_NAME, displayName);
-    }
-
-    /**
-     * Gets the device uptime
-     *
-     * @return
+     * @return The {@link Device} uptime.
+     * @since 1.0.0
      */
     public String getUptime() {
         return (String) getMetrics().get(UPTIME);
     }
 
     /**
-     * Gets the device displayable name
+     * Gets the {@link Device} display name.
      *
-     * @return
+     * @return The {@link Device} display name.
+     * @since 1.0.0
      */
     public String getDisplayName() {
         return (String) getMetrics().get(DISPLAY_NAME);
-    }
-
-    /**
-     * Returns a displayable representation string
-     *
-     * @return
-     */
-    @Override
-    public String toDisplayString() {
-        return new StringBuilder()
-                .append("[ getUptime()=")
-                .append(getUptime())
-                .append(", getDisplayName()=")
-                .append(getDisplayName())
-                .append("]")
-                .toString();
     }
 }

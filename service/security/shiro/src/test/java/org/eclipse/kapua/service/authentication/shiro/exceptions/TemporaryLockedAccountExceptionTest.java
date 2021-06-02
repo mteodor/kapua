@@ -1,36 +1,42 @@
 /*******************************************************************************
- * Copyright (c) 2017 Red Hat Inc and others
+ * Copyright (c) 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
- *     Red Hat Inc - initial API and implementation
+ *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.authentication.shiro.exceptions;
 
-import java.util.Date;
-
-import org.eclipse.kapua.service.authentication.shiro.exceptions.TemporaryLockedAccountException;
-import org.eclipse.kapua.test.junit.JUnitTests;
+import org.eclipse.kapua.qa.markers.junit.JUnitTests;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
 @Category(JUnitTests.class)
-public class TemporaryLockedAccountExceptionTest {
+public class TemporaryLockedAccountExceptionTest extends Assert {
 
     @Test
-    public void testDefault() {
-        TemporaryLockedAccountException ex = new TemporaryLockedAccountException(new Date());
-        Assert.assertNotNull(ex.getMessage());
+    public void temporaryLockedAccountExceptionTest() {
+        Date[] dates = {new Date(), new Date(1L), new Date(9999999999999L)};
+        String[] expectedMessages = {"This credential has been locked out until " + DateTimeFormatter.ISO_INSTANT.format(dates[0].toInstant()), "This credential has been locked out until 1970-01-01T00:00:00.001Z", "This credential has been locked out until 2286-11-20T17:46:39.999Z"};
+
+        for (int i = 0; i < dates.length; i++) {
+            TemporaryLockedAccountException temporaryLockedAccountException = new TemporaryLockedAccountException(dates[i]);
+            assertEquals("Expected and actual values should be the same.", expectedMessages[i], temporaryLockedAccountException.getMessage());
+        }
     }
 
     @Test
-    public void testNullTimestamp() {
-        TemporaryLockedAccountException ex = new TemporaryLockedAccountException(null);
-        Assert.assertNotNull(ex.getMessage());
+    public void temporaryLockedAccountExceptionNullTest() {
+        TemporaryLockedAccountException temporaryLockedAccountException = new TemporaryLockedAccountException(null);
+        assertEquals("Expected and actual values should be the same.", "This credential has been locked out until <null>", temporaryLockedAccountException.getMessage());
     }
 }

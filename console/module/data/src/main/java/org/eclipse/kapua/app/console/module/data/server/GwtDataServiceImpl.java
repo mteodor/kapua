@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -37,18 +38,20 @@ import org.eclipse.kapua.app.console.module.data.shared.util.GwtKapuaDataModelCo
 import org.eclipse.kapua.app.console.module.data.shared.util.KapuaGwtDataModelConverter;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.service.datastore.ChannelInfoFactory;
 import org.eclipse.kapua.service.datastore.ChannelInfoRegistryService;
+import org.eclipse.kapua.service.datastore.ClientInfoFactory;
 import org.eclipse.kapua.service.datastore.ClientInfoRegistryService;
-import org.eclipse.kapua.service.datastore.DatastoreObjectFactory;
+import org.eclipse.kapua.service.datastore.MessageStoreFactory;
 import org.eclipse.kapua.service.datastore.MessageStoreService;
+import org.eclipse.kapua.service.datastore.MetricInfoFactory;
 import org.eclipse.kapua.service.datastore.MetricInfoRegistryService;
 import org.eclipse.kapua.service.datastore.internal.mediator.ClientInfoField;
 import org.eclipse.kapua.service.datastore.internal.mediator.MessageField;
 import org.eclipse.kapua.service.datastore.internal.mediator.MetricInfoField;
-import org.eclipse.kapua.service.datastore.internal.model.query.ChannelMatchPredicateImpl;
 import org.eclipse.kapua.service.datastore.internal.model.query.ClientInfoQueryImpl;
 import org.eclipse.kapua.service.datastore.internal.model.query.MessageQueryImpl;
-import org.eclipse.kapua.service.datastore.internal.model.query.TermPredicateImpl;
+import org.eclipse.kapua.service.datastore.internal.model.query.predicate.ChannelMatchPredicateImpl;
 import org.eclipse.kapua.service.datastore.internal.schema.MessageSchema;
 import org.eclipse.kapua.service.datastore.model.ChannelInfo;
 import org.eclipse.kapua.service.datastore.model.ChannelInfoListResult;
@@ -58,24 +61,25 @@ import org.eclipse.kapua.service.datastore.model.DatastoreMessage;
 import org.eclipse.kapua.service.datastore.model.MessageListResult;
 import org.eclipse.kapua.service.datastore.model.MetricInfo;
 import org.eclipse.kapua.service.datastore.model.MetricInfoListResult;
-import org.eclipse.kapua.service.datastore.model.query.AndPredicate;
 import org.eclipse.kapua.service.datastore.model.query.ChannelInfoQuery;
-import org.eclipse.kapua.service.datastore.model.query.ChannelMatchPredicate;
 import org.eclipse.kapua.service.datastore.model.query.ClientInfoQuery;
 import org.eclipse.kapua.service.datastore.model.query.MessageQuery;
 import org.eclipse.kapua.service.datastore.model.query.MetricInfoQuery;
-import org.eclipse.kapua.service.datastore.model.query.RangePredicate;
-import org.eclipse.kapua.service.datastore.model.query.SortDirection;
-import org.eclipse.kapua.service.datastore.model.query.SortField;
-import org.eclipse.kapua.service.datastore.model.query.StorableFetchStyle;
-import org.eclipse.kapua.service.datastore.model.query.StorablePredicate;
-import org.eclipse.kapua.service.datastore.model.query.StorablePredicateFactory;
-import org.eclipse.kapua.service.datastore.model.query.TermPredicate;
+import org.eclipse.kapua.service.datastore.model.query.predicate.ChannelMatchPredicate;
+import org.eclipse.kapua.service.datastore.model.query.predicate.DatastorePredicateFactory;
 import org.eclipse.kapua.service.device.registry.Device;
 import org.eclipse.kapua.service.device.registry.DeviceFactory;
 import org.eclipse.kapua.service.device.registry.DeviceListResult;
 import org.eclipse.kapua.service.device.registry.DeviceQuery;
 import org.eclipse.kapua.service.device.registry.DeviceRegistryService;
+import org.eclipse.kapua.service.storable.model.query.SortDirection;
+import org.eclipse.kapua.service.storable.model.query.SortField;
+import org.eclipse.kapua.service.storable.model.query.StorableFetchStyle;
+import org.eclipse.kapua.service.storable.model.query.predicate.AndPredicate;
+import org.eclipse.kapua.service.storable.model.query.predicate.OrPredicate;
+import org.eclipse.kapua.service.storable.model.query.predicate.RangePredicate;
+import org.eclipse.kapua.service.storable.model.query.predicate.StorablePredicate;
+import org.eclipse.kapua.service.storable.model.query.predicate.TermPredicate;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,15 +95,19 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
 
     private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
 
-    private static final DatastoreObjectFactory DATASTORE_FACTORY = LOCATOR.getFactory(DatastoreObjectFactory.class);
-    private static final StorablePredicateFactory STORABLE_PREDICATE_FACTORY = LOCATOR.getFactory(StorablePredicateFactory.class);
+    private static final ChannelInfoFactory CHANNEL_INFO_FACTORY = LOCATOR.getFactory(ChannelInfoFactory.class);
+    private static final ClientInfoFactory CLIENT_INFO_FACTORY = LOCATOR.getFactory(ClientInfoFactory.class);
+    private static final MessageStoreFactory MESSAGE_STORE_FACTORY = LOCATOR.getFactory(MessageStoreFactory.class);
+    private static final MetricInfoFactory METRIC_INFO_FACTORY = LOCATOR.getFactory(MetricInfoFactory.class);
+
+    private static final DatastorePredicateFactory DATASTORE_PREDICATE_FACTORY = LOCATOR.getFactory(DatastorePredicateFactory.class);
 
     @Override
     public List<GwtTopic> findTopicsTree(String scopeId) throws GwtKapuaException {
         List<GwtTopic> channelInfoList = new ArrayList<GwtTopic>();
         HashMap<String, GwtTopic> topicMap = new HashMap<String, GwtTopic>();
         ChannelInfoRegistryService channelInfoService = LOCATOR.getService(ChannelInfoRegistryService.class);
-        ChannelInfoQuery query = DATASTORE_FACTORY.newChannelInfoQuery(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
+        ChannelInfoQuery query = CHANNEL_INFO_FACTORY.newQuery(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
         int offset = 0;
         int limit = 250;
         try {
@@ -156,9 +164,9 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
                 StorablePredicate predicate;
 
                 if (semanticTopic.endsWith("/#")) {
-                    predicate = new ChannelMatchPredicateImpl(semanticTopic.replaceFirst("/#$", "/"));
+                    predicate = DATASTORE_PREDICATE_FACTORY.newChannelMatchPredicate(semanticTopic.replaceFirst("/#$", "/"));
                 } else {
-                    predicate = new TermPredicateImpl(MessageField.CHANNEL, semanticTopic);
+                    predicate = DATASTORE_PREDICATE_FACTORY.newTermPredicate(MessageField.CHANNEL, semanticTopic);
                 }
 
                 messageQuery.setPredicate(predicate);
@@ -190,7 +198,7 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
                 query.setAskTotalCount(true);
                 query.setSortFields(Collections.singletonList(SortField.descending(MessageSchema.MESSAGE_TIMESTAMP)));
                 query.setFetchAttributes(Collections.singletonList(ClientInfoField.TIMESTAMP.field()));
-                query.setPredicate(new TermPredicateImpl(ClientInfoField.CLIENT_ID, device.getClientId()));
+                query.setPredicate(DATASTORE_PREDICATE_FACTORY.newTermPredicate(ClientInfoField.CLIENT_ID, device.getClientId()));
                 ClientInfoListResult result = clientInfoRegistryService.query(query);
 
                 if (result.getFirstItem() != null) {
@@ -214,6 +222,7 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
             semanticTopic += "/#";
         }
         int i = 0;
+
         do {
             GwtTopic t = null;
             t = topicMap.get(semanticTopic);
@@ -255,7 +264,7 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
                 }
                 channelInfoQuery.setLimit(-1);
                 channelInfoQuery.setOffset(0);
-                totalLength = Long.valueOf(channelInfoService.count(channelInfoQuery)).intValue();
+                totalLength = (int) channelInfoService.count(channelInfoQuery);
             }
         } catch (Exception e) {
             KapuaExceptionHandler.handle(e);
@@ -270,9 +279,9 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
         DeviceFactory deviceFactory = LOCATOR.getFactory(DeviceFactory.class);
         List<GwtDatastoreDevice> devices = new ArrayList<GwtDatastoreDevice>();
         KapuaId convertedScopeId = GwtKapuaCommonsModelConverter.convertKapuaId(scopeId);
-        ClientInfoQuery clientInfoQuery = DATASTORE_FACTORY.newClientInfoQuery(convertedScopeId);
+        ClientInfoQuery clientInfoQuery = CLIENT_INFO_FACTORY.newQuery(convertedScopeId);
         if (!Strings.isNullOrEmpty(filter)) {
-            StorablePredicate predicate = new ChannelMatchPredicateImpl(ClientInfoField.CLIENT_ID.field(), filter);
+            StorablePredicate predicate = new ChannelMatchPredicateImpl(ClientInfoField.CLIENT_ID, filter);
             clientInfoQuery.setPredicate(predicate);
         }
         clientInfoQuery.setAskTotalCount(true);
@@ -280,7 +289,7 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
         clientInfoQuery.setOffset(config.getOffset());
         SortDirection sortDirection = config.getSortDir() == Style.SortDir.ASC ? SortDirection.ASC : SortDirection.DESC;
         String sortField = config.getSortField().equals("friendlyDevice") ? ClientInfoField.CLIENT_ID.field() : ClientInfoField.TIMESTAMP.field();
-        clientInfoQuery.setSortFields(Collections.singletonList(SortField.of(sortDirection, sortField)));
+        clientInfoQuery.setSortFields(Collections.singletonList(SortField.of(sortField, sortDirection)));
 
         ClientInfoListResult result = null;
         try {
@@ -292,24 +301,9 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
                 }
                 DeviceQuery deviceQuery = deviceFactory.newQuery(convertedScopeId);
                 DeviceListResult deviceListResult = deviceRegistryService.query(deviceQuery);
-                Map<String, String> clientIdsMap = new HashMap<String, String>();
-                for (Device device : deviceListResult.getItems()) {
-                    if (clientIds.contains(device.getClientId())) {
-                        clientIdsMap.put(device.getClientId(), device.getDisplayName());
-                    }
-                }
+                Map<String, String> clientIdsMap = buildClientIdsMap(clientIds, deviceListResult);
 
-                for (ClientInfo client : result.getItems()) {
-                    GwtDatastoreDevice gwtDatastoreDevice = KapuaGwtDataModelConverter.convertToDatastoreDevice(client);
-                    String clientId = client.getClientId();
-                    String displayName = clientIdsMap.get(clientId);
-                    if (StringUtils.isNotEmpty(displayName)) {
-                        gwtDatastoreDevice.setFriendlyDevice(displayName + " (" + clientId + ")");
-                    } else {
-                        gwtDatastoreDevice.setFriendlyDevice(clientId);
-                    }
-                    devices.add(gwtDatastoreDevice);
-                }
+                devices = buildDevicesList(result, clientIdsMap);
             }
         } catch (KapuaException e) {
             KapuaExceptionHandler.handle(e);
@@ -317,12 +311,38 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
         return new BasePagingLoadResult<GwtDatastoreDevice>(devices, config.getOffset(), result != null ? result.getTotalCount().intValue() : 0);
     }
 
+    private List<GwtDatastoreDevice> buildDevicesList(ClientInfoListResult result, Map<String, String> clientIdsMap) {
+        List<GwtDatastoreDevice> devices = new ArrayList<GwtDatastoreDevice>();
+        for (ClientInfo client : result.getItems()) {
+            GwtDatastoreDevice gwtDatastoreDevice = KapuaGwtDataModelConverter.convertToDatastoreDevice(client);
+            String clientId = client.getClientId();
+            String displayName = clientIdsMap.get(clientId);
+            if (StringUtils.isNotEmpty(displayName)) {
+                gwtDatastoreDevice.setFriendlyDevice(displayName + " (" + clientId + ")");
+            } else {
+                gwtDatastoreDevice.setFriendlyDevice(clientId);
+            }
+            devices.add(gwtDatastoreDevice);
+        }
+        return devices;
+    }
+
+    private Map<String, String> buildClientIdsMap(List<String> clientIds, DeviceListResult deviceListResult) {
+        Map<String, String> clientIdsMap = new HashMap<String, String>();
+        for (Device device : deviceListResult.getItems()) {
+            if (clientIds.contains(device.getClientId())) {
+                clientIdsMap.put(device.getClientId(), device.getDisplayName());
+            }
+        }
+        return clientIdsMap;
+    }
+
     @Override
     public ListLoadResult<GwtDatastoreAsset> findAssets(LoadConfig config, String scopeId, GwtDatastoreDevice selectedDevice) throws GwtKapuaException {
         ChannelInfoRegistryService clientInfoService = LOCATOR.getService(ChannelInfoRegistryService.class);
         List<GwtDatastoreAsset> asset = new ArrayList<GwtDatastoreAsset>();
         KapuaId convertedScopeId = GwtKapuaCommonsModelConverter.convertKapuaId(scopeId);
-        ChannelInfoQuery query = DATASTORE_FACTORY.newChannelInfoQuery(convertedScopeId);
+        ChannelInfoQuery query = CHANNEL_INFO_FACTORY.newQuery(convertedScopeId);
         query.setLimit(10000);
         try {
             ChannelInfoListResult result = clientInfoService.query(query);
@@ -343,9 +363,9 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
     public ListLoadResult<GwtHeader> findHeaders(LoadConfig config, String scopeId, GwtTopic topic) throws GwtKapuaException {
         StorablePredicate predicate;
         if (topic.getSemanticTopic().endsWith("/#")) {
-            predicate = STORABLE_PREDICATE_FACTORY.newChannelMatchPredicate(topic.getSemanticTopic().replaceFirst("/#$", "/"));
+            predicate = DATASTORE_PREDICATE_FACTORY.newChannelMatchPredicate(topic.getSemanticTopic().replaceFirst("/#$", "/"));
         } else {
-            predicate = STORABLE_PREDICATE_FACTORY.newTermPredicate(MessageField.CHANNEL, topic.getSemanticTopic());
+            predicate = DATASTORE_PREDICATE_FACTORY.newTermPredicate(MessageField.CHANNEL, topic.getSemanticTopic());
         }
         return findHeaders(scopeId, predicate);
     }
@@ -358,13 +378,13 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
 
     @Override
     public ListLoadResult<GwtHeader> findHeaders(LoadConfig config, String scopeId, GwtDatastoreDevice device) throws GwtKapuaException {
-        TermPredicate predicate = STORABLE_PREDICATE_FACTORY.newTermPredicate(MetricInfoField.CLIENT_ID, device.getDevice());
+        TermPredicate predicate = DATASTORE_PREDICATE_FACTORY.newTermPredicate(MetricInfoField.CLIENT_ID, device.getDevice());
         return findHeaders(scopeId, predicate);
     }
 
     @Override
     public ListLoadResult<GwtHeader> findHeaders(LoadConfig config, String accountName, GwtDatastoreAsset gwtDatastoreAsset) throws GwtKapuaException {
-        ChannelMatchPredicate predicate = STORABLE_PREDICATE_FACTORY.newChannelMatchPredicate(gwtDatastoreAsset.getTopick());
+        ChannelMatchPredicate predicate = DATASTORE_PREDICATE_FACTORY.newChannelMatchPredicate(gwtDatastoreAsset.getTopick());
         return findHeaders(accountName, predicate);
     }
 
@@ -373,9 +393,9 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
             throws GwtKapuaException {
         StorablePredicate predicate;
         if (topic.getSemanticTopic().endsWith("/#")) {
-            predicate = STORABLE_PREDICATE_FACTORY.newChannelMatchPredicate(topic.getSemanticTopic().replaceFirst("/#$", "/"));
+            predicate = DATASTORE_PREDICATE_FACTORY.newChannelMatchPredicate(topic.getSemanticTopic().replaceFirst("/#$", "/"));
         } else {
-            predicate = STORABLE_PREDICATE_FACTORY.newTermPredicate(MessageField.CHANNEL, topic.getSemanticTopic());
+            predicate = DATASTORE_PREDICATE_FACTORY.newTermPredicate(MessageField.CHANNEL, topic.getSemanticTopic());
         }
 
         return findMessages(loadConfig, scopeId, headers, startDate, endDate, predicate);
@@ -383,23 +403,22 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
 
     @Override
     public List<GwtMessage> findLastMessageByTopic(String accountName, int limit) throws GwtKapuaException {
-        // TODO Auto-generated method stub
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
     public PagingLoadResult<GwtMessage> findMessagesByDevice(PagingLoadConfig loadConfig, String scopeId, GwtDatastoreDevice device, List<GwtHeader> headers, Date startDate, Date endDate)
             throws GwtKapuaException {
-        TermPredicate predicate = STORABLE_PREDICATE_FACTORY.newTermPredicate(MessageField.CLIENT_ID, device.getDevice());
+        TermPredicate predicate = DATASTORE_PREDICATE_FACTORY.newTermPredicate(MessageField.CLIENT_ID, device.getDevice());
         return findMessages(loadConfig, scopeId, headers, startDate, endDate, predicate);
     }
 
     @Override
     public PagingLoadResult<GwtMessage> findMessagesByAssets(PagingLoadConfig loadConfig, String scopeId, GwtDatastoreDevice device, GwtDatastoreAsset asset, List<GwtHeader> headers, Date startDate, Date endDate)
             throws GwtKapuaException {
-        ChannelMatchPredicate assetPredicate = STORABLE_PREDICATE_FACTORY.newChannelMatchPredicate(asset.getTopick());
-        TermPredicate devicePredicate = STORABLE_PREDICATE_FACTORY.newTermPredicate(MessageField.CLIENT_ID, device.getDevice());
-        AndPredicate andPredicate = STORABLE_PREDICATE_FACTORY.newAndPredicate();
+        ChannelMatchPredicate assetPredicate = DATASTORE_PREDICATE_FACTORY.newChannelMatchPredicate(asset.getTopick());
+        TermPredicate devicePredicate = DATASTORE_PREDICATE_FACTORY.newTermPredicate(MessageField.CLIENT_ID, device.getDevice());
+        AndPredicate andPredicate = DATASTORE_PREDICATE_FACTORY.newAndPredicate();
         andPredicate.getPredicates().add(assetPredicate);
         andPredicate.getPredicates().add(devicePredicate);
         return findMessages(loadConfig, scopeId, headers, startDate, endDate, andPredicate);
@@ -407,7 +426,7 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
 
     private ListLoadResult<GwtHeader> findHeaders(String scopeId, StorablePredicate predicate) throws GwtKapuaException {
         MetricInfoRegistryService metricService = LOCATOR.getService(MetricInfoRegistryService.class);
-        MetricInfoQuery query = DATASTORE_FACTORY.newMetricInfoQuery(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
+        MetricInfoQuery query = METRIC_INFO_FACTORY.newQuery(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
         query.setLimit(10000);
         if (predicate != null) {
             query.setPredicate(predicate);
@@ -433,15 +452,22 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
         MessageStoreService messageService = LOCATOR.getService(MessageStoreService.class);
         List<GwtMessage> messages;
         int totalLength = 0;
-        MessageQuery query = DATASTORE_FACTORY.newDatastoreMessageQuery(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
+        MessageQuery query = MESSAGE_STORE_FACTORY.newQuery(GwtKapuaCommonsModelConverter.convertKapuaId(scopeId));
         query.setLimit(loadConfig.getLimit());
         query.setOffset(loadConfig.getOffset());
-        AndPredicate andPredicate = STORABLE_PREDICATE_FACTORY.newAndPredicate();
+        AndPredicate andPredicate = DATASTORE_PREDICATE_FACTORY.newAndPredicate();
         if (predicate != null) {
             andPredicate.getPredicates().add(predicate);
         }
-        RangePredicate dateRangePredicate = STORABLE_PREDICATE_FACTORY.newRangePredicate(MessageField.TIMESTAMP.field(), startDate, endDate);
+        RangePredicate dateRangePredicate = DATASTORE_PREDICATE_FACTORY.newRangePredicate(MessageField.TIMESTAMP, startDate, endDate);
         andPredicate.getPredicates().add(dateRangePredicate);
+        if (headers != null) {
+            OrPredicate metricsPredicate = DATASTORE_PREDICATE_FACTORY.newOrPredicate();
+            for (GwtHeader header : headers) {
+                metricsPredicate.getPredicates().add(DATASTORE_PREDICATE_FACTORY.newExistsPredicate(String.format(MessageSchema.MESSAGE_METRICS + ".%s", header.getName())));
+            }
+            andPredicate.getPredicates().add(metricsPredicate);
+        }
         query.setPredicate(andPredicate);
         if (!StringUtils.isEmpty(loadConfig.getSortField())) {
             String sortField = loadConfig.getSortField();
@@ -450,11 +476,11 @@ public class GwtDataServiceImpl extends KapuaRemoteServiceServlet implements Gwt
             } else if (sortField.equals("clientId")) {
                 sortField = MessageField.CLIENT_ID.field();
             }
-            query.setSortFields(Collections.singletonList(SortField.of(SortDirection.valueOf(loadConfig.getSortDir().name()), sortField)));
+            query.setSortFields(Collections.singletonList(SortField.of(sortField, SortDirection.valueOf(loadConfig.getSortDir().name()))));
         }
         messages = getMessagesList(query, headers);
         try {
-            totalLength = Long.valueOf(messageService.count(query)).intValue();
+            totalLength = (int) messageService.count(query);
             if (totalLength > 10000) {
                 totalLength = 10000;
             }

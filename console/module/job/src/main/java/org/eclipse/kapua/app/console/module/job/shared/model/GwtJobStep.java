@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -18,28 +19,31 @@ import java.util.List;
 
 public class GwtJobStep extends GwtUpdatableEntityModel implements IsSerializable {
 
+    private final static String JOB_STEP_NAME = "jobStepName";
+    private final static String DESCRIPTION = "description";
+
     public String getJobStepName() {
-        return get("jobStepName");
+        return get(JOB_STEP_NAME);
     }
 
     public String getUnescapedJobStepName() {
-        return (String) getUnescaped("jobStepName");
+        return (String) getUnescaped(JOB_STEP_NAME);
     }
 
     public void setJobStepName(String jobStepName) {
-        set("jobStepName", jobStepName);
+        set(JOB_STEP_NAME, jobStepName);
     }
 
     public String getDescription() {
-        return get("description");
+        return get(DESCRIPTION);
     }
 
     public String getUnescapedDescription() {
-        return (String) getUnescaped("description");
+        return (String) getUnescaped(DESCRIPTION);
     }
 
     public void setDescription(String description) {
-        set("description", description);
+        set(DESCRIPTION, description);
     }
 
     public String getJobId() {

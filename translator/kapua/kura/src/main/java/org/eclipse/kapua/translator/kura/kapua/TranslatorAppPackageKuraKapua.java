@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,24 +13,17 @@
  *******************************************************************************/
 package org.eclipse.kapua.translator.kura.kapua;
 
-import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
-import org.eclipse.kapua.commons.setting.system.SystemSetting;
-import org.eclipse.kapua.commons.util.xml.XmlUtil;
 import org.eclipse.kapua.locator.KapuaLocator;
-import org.eclipse.kapua.service.device.call.kura.app.PackageMetrics;
 import org.eclipse.kapua.service.device.call.kura.model.deploy.KuraBundleInfo;
 import org.eclipse.kapua.service.device.call.kura.model.deploy.KuraDeploymentPackage;
 import org.eclipse.kapua.service.device.call.kura.model.deploy.KuraDeploymentPackages;
+import org.eclipse.kapua.service.device.call.kura.model.deploy.PackageMetrics;
 import org.eclipse.kapua.service.device.call.message.kura.app.response.KuraResponseChannel;
 import org.eclipse.kapua.service.device.call.message.kura.app.response.KuraResponseCode;
 import org.eclipse.kapua.service.device.call.message.kura.app.response.KuraResponseMessage;
-import org.eclipse.kapua.service.device.call.message.kura.app.response.KuraResponseMetrics;
 import org.eclipse.kapua.service.device.call.message.kura.app.response.KuraResponsePayload;
-import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSetting;
-import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSettingKey;
 import org.eclipse.kapua.service.device.management.packages.DevicePackageFactory;
-import org.eclipse.kapua.service.device.management.packages.message.internal.PackageAppProperties;
 import org.eclipse.kapua.service.device.management.packages.message.internal.PackageResponseChannel;
 import org.eclipse.kapua.service.device.management.packages.message.internal.PackageResponseMessage;
 import org.eclipse.kapua.service.device.management.packages.message.internal.PackageResponsePayload;
@@ -38,190 +32,124 @@ import org.eclipse.kapua.service.device.management.packages.model.DevicePackageB
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackageBundleInfos;
 import org.eclipse.kapua.service.device.management.packages.model.DevicePackages;
 import org.eclipse.kapua.service.device.management.packages.model.download.DevicePackageDownloadStatus;
+import org.eclipse.kapua.translator.exception.InvalidChannelException;
+import org.eclipse.kapua.translator.exception.InvalidPayloadException;
 import org.eclipse.kapua.translator.exception.TranslatorErrorCodes;
 import org.eclipse.kapua.translator.exception.TranslatorException;
 
-import java.io.StringWriter;
 import java.math.BigInteger;
-import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * Messages translator implementation from {@link KuraResponseMessage} to {@link PackageResponseMessage}
+ * {@link org.eclipse.kapua.translator.Translator} implementation from {@link KuraResponseMessage} to {@link PackageResponseMessage}
  *
- * @since 1.0
+ * @since 1.0.0
  */
 public class TranslatorAppPackageKuraKapua extends AbstractSimpleTranslatorResponseKuraKapua<PackageResponseChannel, PackageResponsePayload, PackageResponseMessage> {
 
-    private static final String CONTROL_MESSAGE_CLASSIFIER = SystemSetting.getInstance().getMessageClassifier();
-    private static final Map<PackageMetrics, PackageAppProperties> METRICS_DICTIONARY;
+    private static final KapuaLocator LOCATOR = KapuaLocator.getInstance();
 
-    static {
-        METRICS_DICTIONARY = new EnumMap<>(PackageMetrics.class);
-
-        METRICS_DICTIONARY.put(PackageMetrics.APP_ID, PackageAppProperties.APP_NAME);
-        METRICS_DICTIONARY.put(PackageMetrics.APP_VERSION, PackageAppProperties.APP_VERSION);
-    }
-
-    /**
-     * Constructor
-     */
     public TranslatorAppPackageKuraKapua() {
-        super(PackageResponseMessage.class);
+        super(PackageResponseMessage.class, PackageResponsePayload.class);
     }
 
     @Override
-    protected PackageResponseChannel translateChannel(KuraResponseChannel kuraChannel) throws KapuaException {
-
-        if (!CONTROL_MESSAGE_CLASSIFIER.equals(kuraChannel.getMessageClassification())) {
-            throw new TranslatorException(TranslatorErrorCodes.INVALID_CHANNEL_CLASSIFIER,
-                    null,
-                    kuraChannel.getMessageClassification());
-        }
-
-        PackageResponseChannel responseChannel = new PackageResponseChannel();
-
-        String[] appIdTokens = kuraChannel.getAppId().split("-");
-
-        if (!PackageMetrics.APP_ID.getValue().equals(appIdTokens[0])) {
-            throw new TranslatorException(TranslatorErrorCodes.INVALID_CHANNEL_APP_NAME,
-                    null,
-                    appIdTokens[0]);
-        }
-
-        if (!PackageMetrics.APP_VERSION.getValue().equals(appIdTokens[1])) {
-            throw new TranslatorException(TranslatorErrorCodes.INVALID_CHANNEL_APP_VERSION,
-                    null,
-                    appIdTokens[1]);
-        }
-
-        responseChannel.setAppName(PackageAppProperties.APP_NAME);
-        responseChannel.setVersion(PackageAppProperties.APP_VERSION);
-
-        //
-        // Return Kapua Channel
-        return responseChannel;
-    }
-
-    @Override
-    protected PackageResponsePayload translatePayload(KuraResponsePayload kuraResponsePayload) throws KapuaException {
-        PackageResponsePayload responsePayload = new PackageResponsePayload();
-
-        Map<String, Object> metrics = kuraResponsePayload.getMetrics();
-        responsePayload.setExceptionMessage((String) metrics.get(KuraResponseMetrics.EXCEPTION_MESSAGE.getValue()));
-        responsePayload.setExceptionStack((String) metrics.get(KuraResponseMetrics.EXCEPTION_STACK.getValue()));
-
-        KuraResponseCode responseCode = KuraResponseCode.fromResponseCode((Integer) metrics.get(KuraResponseMetrics.EXIT_CODE.getValue()));
-
-        if (!KuraResponseCode.INTERNAL_ERROR.equals(responseCode)) {
-            if (metrics.get(PackageMetrics.APP_METRIC_PACKAGE_OPERATION_ID.getValue()) != null) {
-                responsePayload.setPackageDownloadOperationId(new KapuaEid(new BigInteger(metrics.get(PackageMetrics.APP_METRIC_PACKAGE_OPERATION_ID.getValue()).toString())));
-
-                if (metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_STATUS.getValue()) != null) {
-                    DevicePackageDownloadStatus status;
-
-                    String kuraStatus = (String) metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_STATUS.getValue());
-                    switch (kuraStatus) {
-                        case "IN_PROGRESS":
-                            status = DevicePackageDownloadStatus.IN_PROGRESS;
-                            break;
-                        case "FAILED":
-                            status = DevicePackageDownloadStatus.FAILED;
-                            break;
-                        case "COMPLETED":
-                        case "ALREADY DONE":
-                            status = DevicePackageDownloadStatus.COMPLETED;
-                            break;
-                        default:
-                            throw new TranslatorException(TranslatorErrorCodes.INVALID_PAYLOAD, null, kuraStatus);
-                    }
-                    responsePayload.setPackageDownloadOperationStatus(status);
-                }
-
-                responsePayload.setPackageDownloadOperationSize((Integer) metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_SIZE.getValue()));
-                responsePayload.setPackageDownloadOperationProgress((Integer) metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_PROGRESS.getValue()));
-            } else {
-                responsePayload.setPackageDownloadOperationStatus(DevicePackageDownloadStatus.NONE);
-            }
-
-            String body;
-            if (kuraResponsePayload.getBody() != null) {
-                DeviceManagementSetting config = DeviceManagementSetting.getInstance();
-                String charEncoding = config.getString(DeviceManagementSettingKey.CHAR_ENCODING);
-
-                try {
-                    body = new String(kuraResponsePayload.getBody(), charEncoding);
-                } catch (Exception e) {
-                    throw new TranslatorException(TranslatorErrorCodes.INVALID_PAYLOAD,
-                            e,
-                            (Object) kuraResponsePayload.getBody());
-                }
-
-                KuraDeploymentPackages kuraDeploymentPackages = null;
-                try {
-                    kuraDeploymentPackages = XmlUtil.unmarshal(body, KuraDeploymentPackages.class);
-                } catch (Exception e) {
-                    throw new TranslatorException(TranslatorErrorCodes.INVALID_PAYLOAD,
-                            e,
-                            body);
-                }
-                translate(responsePayload, charEncoding, kuraDeploymentPackages);
-            }
-        } else {
-            if (kuraResponsePayload.getBody() != null) {
-                String errorMessage = new String(kuraResponsePayload.getBody());
-
-                responsePayload.setExceptionMessage(errorMessage);
-            }
-        }
-
-        //
-        // Return Kapua Payload
-        return responsePayload;
-    }
-
-    private void translate(PackageResponsePayload packageResponsePayload,
-                           String charEncoding,
-                           KuraDeploymentPackages kuraDeploymentPackages)
-            throws KapuaException {
+    protected PackageResponseChannel translateChannel(KuraResponseChannel kuraResponseChannel) throws InvalidChannelException {
         try {
+            TranslatorKuraKapuaUtils.validateKuraResponseChannel(kuraResponseChannel, PackageMetrics.APP_ID, PackageMetrics.APP_VERSION);
 
-            KuraDeploymentPackage[] deploymentPackageArray = kuraDeploymentPackages.getDeploymentPackages();
-            if (deploymentPackageArray != null) {
-                KapuaLocator locator = KapuaLocator.getInstance();
-                DevicePackageFactory deviceDeploymentFactory = locator.getFactory(DevicePackageFactory.class);
-                DevicePackages deviceDeploymentPackages = deviceDeploymentFactory.newDeviceDeploymentPackages();
+            return new PackageResponseChannel();
+        } catch (Exception e) {
+            throw new InvalidChannelException(e, kuraResponseChannel);
+        }
+    }
 
-                for (KuraDeploymentPackage deploymentPackage : deploymentPackageArray) {
-                    DevicePackage deviceDeploymentPackage = deviceDeploymentFactory.newDeviceDeploymentPackage();
-                    deviceDeploymentPackage.setName(deploymentPackage.getName());
-                    deviceDeploymentPackage.setVersion(deploymentPackage.getVersion());
+    @Override
+    protected PackageResponsePayload translatePayload(KuraResponsePayload kuraResponsePayload) throws InvalidPayloadException {
+        PackageResponsePayload responsePayload = super.translatePayload(kuraResponsePayload);
 
-                    DevicePackageBundleInfos devicePackageBundleInfos = deviceDeploymentPackage.getBundleInfos();
-                    KuraBundleInfo[] bundleInfoArray = deploymentPackage.getBundleInfos();
-                    for (KuraBundleInfo bundleInfo : bundleInfoArray) {
-                        DevicePackageBundleInfo devicePackageBundleInfo = deviceDeploymentFactory.newDevicePackageBundleInfo();
-                        devicePackageBundleInfo.setName(bundleInfo.getName());
-                        devicePackageBundleInfo.setVersion(bundleInfo.getVersion());
+        try {
+            KuraResponseCode responseCode = kuraResponsePayload.getResponseCode();
 
-                        // Add the new DevicePackageBundleInfo object to the corresponding list
-                        devicePackageBundleInfos.getBundlesInfos().add(devicePackageBundleInfo);
+            Map<String, Object> metrics = kuraResponsePayload.getMetrics();
+            if (!KuraResponseCode.INTERNAL_ERROR.equals(responseCode)) {
+                if (metrics.get(PackageMetrics.APP_METRIC_PACKAGE_OPERATION_ID.getName()) != null) {
+                    responsePayload.setPackageDownloadOperationId(new KapuaEid(new BigInteger(metrics.get(PackageMetrics.APP_METRIC_PACKAGE_OPERATION_ID.getName()).toString())));
+
+                    if (metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_STATUS.getName()) != null) {
+                        DevicePackageDownloadStatus status;
+
+                        String kuraStatus = (String) metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_STATUS.getName());
+                        switch (kuraStatus) {
+                            case "IN_PROGRESS":
+                                status = DevicePackageDownloadStatus.IN_PROGRESS;
+                                break;
+                            case "FAILED":
+                                status = DevicePackageDownloadStatus.FAILED;
+                                break;
+                            case "COMPLETED":
+                            case "ALREADY DONE":
+                                status = DevicePackageDownloadStatus.COMPLETED;
+                                break;
+                            default:
+                                throw new TranslatorException(TranslatorErrorCodes.INVALID_PAYLOAD, null, kuraStatus);
+                        }
+                        responsePayload.setPackageDownloadOperationStatus(status);
                     }
 
-                    // Add the new DeviceDeploymentPackage object to the corresponding list
-                    deviceDeploymentPackages.getPackages().add(deviceDeploymentPackage);
+                    responsePayload.setPackageDownloadOperationSize((Integer) metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_SIZE.getName()));
+                    responsePayload.setPackageDownloadOperationProgress((Integer) metrics.get(PackageMetrics.APP_METRIC_PACKAGE_DOWNLOAD_PROGRESS.getName()));
+                } else {
+                    responsePayload.setPackageDownloadOperationStatus(DevicePackageDownloadStatus.NONE);
                 }
 
-                StringWriter sw = new StringWriter();
-                XmlUtil.marshal(deviceDeploymentPackages, sw);
-                byte[] requestBody = sw.toString().getBytes(charEncoding);
+                if (kuraResponsePayload.hasBody()) {
+                    KuraDeploymentPackages kuraDeploymentPackages = readXmlBodyAs(kuraResponsePayload.getBody(), KuraDeploymentPackages.class);
 
-                packageResponsePayload.setBody(requestBody);
+                    responsePayload.setDeploymentPackages(translate(kuraDeploymentPackages));
+                }
+            } else {
+                if (kuraResponsePayload.hasBody()) {
+                    String errorMessage = new String(kuraResponsePayload.getBody());
+
+                    responsePayload.setExceptionMessage(errorMessage);
+                }
             }
+
+            // Return Kapua Payload
+            return responsePayload;
+        } catch (InvalidPayloadException ipe) {
+            throw ipe;
         } catch (Exception e) {
-            throw new TranslatorException(TranslatorErrorCodes.INVALID_BODY,
-                    e,
-                    kuraDeploymentPackages);
+            throw new InvalidPayloadException(e, kuraResponsePayload);
         }
+    }
+
+    private DevicePackages translate(KuraDeploymentPackages kuraDeploymentPackages) {
+        DevicePackageFactory devicePackageFactory = LOCATOR.getFactory(DevicePackageFactory.class);
+        DevicePackages deviceDeploymentPackages = devicePackageFactory.newDeviceDeploymentPackages();
+
+        KuraDeploymentPackage[] deploymentPackageArray = kuraDeploymentPackages.getDeploymentPackages();
+        for (KuraDeploymentPackage deploymentPackage : deploymentPackageArray) {
+            DevicePackage deviceDeploymentPackage = devicePackageFactory.newDeviceDeploymentPackage();
+            deviceDeploymentPackage.setName(deploymentPackage.getName());
+            deviceDeploymentPackage.setVersion(deploymentPackage.getVersion());
+
+            DevicePackageBundleInfos devicePackageBundleInfos = deviceDeploymentPackage.getBundleInfos();
+            KuraBundleInfo[] bundleInfoArray = deploymentPackage.getBundleInfos();
+            for (KuraBundleInfo bundleInfo : bundleInfoArray) {
+                DevicePackageBundleInfo devicePackageBundleInfo = devicePackageFactory.newDevicePackageBundleInfo();
+                devicePackageBundleInfo.setName(bundleInfo.getName());
+                devicePackageBundleInfo.setVersion(bundleInfo.getVersion());
+
+                // Add the new DevicePackageBundleInfo object to the corresponding list
+                devicePackageBundleInfos.getBundlesInfos().add(devicePackageBundleInfo);
+            }
+
+            // Add the new DeviceDeploymentPackage object to the corresponding list
+            deviceDeploymentPackages.getPackages().add(deviceDeploymentPackage);
+        }
+
+        return deviceDeploymentPackages;
     }
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -13,11 +14,12 @@ package org.eclipse.kapua;
 
 /**
  * KapuaErrorCodes holds the enumeration of common error codes for KapuaServices.<br>
- * For each defined enum value, a corresponding message should be defined in the properties bundle named: KapuaExceptionMessagesBundle.properties.
+ * For each defined enum value, a corresponding message should be defined in the properties bundle named: kapua-service-error-messages.properties.
  *
  * @since 1.0
  */
 public enum KapuaErrorCodes implements KapuaErrorCode {
+
     /**
      * Entity not found
      */
@@ -30,6 +32,10 @@ public enum KapuaErrorCodes implements KapuaErrorCode {
      * Duplicate name
      */
     DUPLICATE_NAME,
+    /**
+     * Duplicate externalId
+     */
+    DUPLICATE_EXTERNAL_ID,
     /**
      * Entity uniqueness in scope
      */
@@ -83,6 +89,10 @@ public enum KapuaErrorCodes implements KapuaErrorCode {
      */
     ENTITY_ALREADY_EXIST_IN_ANOTHER_ACCOUNT,
     /**
+     * External Id already exist in another account
+     */
+    EXTERNAL_ID_ALREADY_EXIST_IN_ANOTHER_ACCOUNT,
+    /**
      * The device has returned an error when starting bundle
      */
     BUNDLE_START_ERROR,
@@ -102,33 +112,20 @@ public enum KapuaErrorCodes implements KapuaErrorCode {
      */
     MAX_NUMBER_OF_ITEMS_REACHED,
 
-    /**
-     * End before start time error
-     */
-    END_BEFORE_START_TIME_ERROR,
-
-    /**
-     * Same values start and end date and time
-     */
-    SAME_START_AND_DATE,
-
-    /**
-     * retry interval and cron expression both selected
-     */
-    RETRY_AND_CRON_BOTH_SELECTED,
-    DEVICE_NOT_FOUND,
-    SCHEDULE_DUPLICATE_NAME,
     DOWNLOAD_PACKAGE_EXCEPTION,
 
-    /**
-     * trigger will never be fired
-     */
-    TRIGGER_NEVER_FIRE,
+    DEVICE_NOT_FOUND,
+
     ADMIN_ROLE_DELETED_ERROR,
 
-    /**Deleting specific permission is not allowed
-     * 
+    /**
+     * Deleting specific permission is not allowed
      */
-    PERMISSION_DELETE_NOT_ALLOWED
+    PERMISSION_DELETE_NOT_ALLOWED,
+
+    /**
+     * The service has been disabled
+     */
+    SERVICE_DISABLED
 
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -55,7 +56,7 @@ public interface CredentialService extends KapuaEntityService<Credential, Creden
      * @param query
      */
     @Override
-    CredentialListResult query(KapuaQuery<Credential> query)
+    CredentialListResult query(KapuaQuery query)
             throws KapuaException;
 
     /**
@@ -66,4 +67,12 @@ public interface CredentialService extends KapuaEntityService<Credential, Creden
      * @throws KapuaException
      */
     void unlock(KapuaId scopeId, KapuaId credentialId) throws KapuaException;
+
+    /**
+     * Returns the minimum password length according to account setting and system default
+     * @param scopeId           The id of the Account to check the setting
+     * @return                  The minimum required password length
+     * @throws KapuaException   When something goes wrong
+     */
+    int getMinimumPasswordLength(KapuaId scopeId) throws KapuaException;
 }

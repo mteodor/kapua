@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,9 +22,11 @@ public class GwtTriggerCreator extends GwtEntityCreator {
     private String triggerName;
     private Date startsOn;
     private Date endsOn;
+
+    private String triggerType;
+    private List<GwtTriggerProperty> triggerProperties;
     private String cronScheduling;
     private Long retryInterval;
-    private List<GwtTriggerProperty> triggerProperties;
 
     public String getTriggerName() {
         return triggerName;
@@ -49,6 +52,22 @@ public class GwtTriggerCreator extends GwtEntityCreator {
         this.endsOn = endsOn;
     }
 
+    public List<GwtTriggerProperty> getTriggerProperties() {
+        return triggerProperties;
+    }
+
+    public void setTriggerProperties(List<GwtTriggerProperty> triggerProperties) {
+        this.triggerProperties = triggerProperties;
+    }
+
+    public String getTriggerType() {
+        return triggerType;
+    }
+
+    public void setTriggerType(String triggerType) {
+        this.triggerType = triggerType;
+    }
+
     public String getCronScheduling() {
         return cronScheduling;
     }
@@ -63,13 +82,5 @@ public class GwtTriggerCreator extends GwtEntityCreator {
 
     public void setRetryInterval(Long retryInterval) {
         this.retryInterval = retryInterval;
-    }
-
-    public List<GwtTriggerProperty> getTriggerProperties() {
-        return triggerProperties;
-    }
-
-    public void setTriggerProperties(List<GwtTriggerProperty> triggerProperties) {
-        this.triggerProperties = triggerProperties;
     }
 }

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -37,8 +38,10 @@ public enum ConsoleSettingKeys implements SettingKey {
     FILE_UPLOAD_SIZE_MAX("console.file.upload.size.max"), //
     FILE_UPLOAD_INMEMORY_SIZE_THRESHOLD("console.file.upload.inmemory.size.threshold"), //
 
-    SSO_REDIRECT_URI("console.sso.redirect.uri"), //
-    SITE_HOME_URI("site.home.uri"), //
+    SSO_OPENID_REDIRECT_URI("console.sso.openid.redirect.uri"), //
+    SSO_OPENID_CONSOLE_HOME_URI("console.sso.openid.home.uri"), //
+    SSO_OPENID_USER_LOGOUT_ENABLED("console.sso.openid.user.logout.enabled"), //
+    SSO_OPENID_SESSION_LISTENER_LOGOUT_ENABLED("console.sso.openid.session_listener.logout.enabled"),  //
 
     EXPORT_MAX_PAGES("console.export.max.pages"),
     EXPORT_MAX_PAGE_SIZE("console.export.max.pagesize");

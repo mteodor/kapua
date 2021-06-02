@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,6 +16,7 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.jpa.EntityManager;
 import org.eclipse.kapua.commons.service.internal.ServiceDAO;
+import org.eclipse.kapua.model.KapuaNamedEntityAttributes;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.account.Account;
@@ -23,7 +25,7 @@ import org.eclipse.kapua.service.account.AccountListResult;
 
 /**
  * {@link Account} {@link ServiceDAO}
- * 
+ *
  * @since 1.0
  */
 public class AccountDAO {
@@ -33,7 +35,7 @@ public class AccountDAO {
 
     /**
      * Creates and return new Account
-     * 
+     *
      * @param em
      * @param accountCreator
      * @return
@@ -65,7 +67,7 @@ public class AccountDAO {
 
     /**
      * Updates the provided account
-     * 
+     *
      * @param em
      * @param account
      * @return
@@ -95,7 +97,7 @@ public class AccountDAO {
      * @return
      */
     public static Account findByName(EntityManager em, String name) {
-        return ServiceDAO.findByField(em, AccountImpl.class, "name", name);
+        return ServiceDAO.findByField(em, AccountImpl.class, KapuaNamedEntityAttributes.NAME, name);
     }
 
     /**
@@ -106,7 +108,7 @@ public class AccountDAO {
      * @return
      * @throws KapuaException
      */
-    public static AccountListResult query(EntityManager em, KapuaQuery<Account> accountQuery)
+    public static AccountListResult query(EntityManager em, KapuaQuery accountQuery)
             throws KapuaException {
         return ServiceDAO.query(em, Account.class, AccountImpl.class, new AccountListResultImpl(), accountQuery);
     }
@@ -119,7 +121,7 @@ public class AccountDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<Account> accountQuery)
+    public static long count(EntityManager em, KapuaQuery accountQuery)
             throws KapuaException {
         return ServiceDAO.count(em, Account.class, AccountImpl.class, accountQuery);
     }
@@ -130,10 +132,11 @@ public class AccountDAO {
      * @param em
      * @param scopeId
      * @param accountId
+     * @return The deleted {@link Account}
      * @throws KapuaEntityNotFoundException
      *             If the {@link Account} is not found
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId accountId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, AccountImpl.class, scopeId, accountId);
+    public static Account delete(EntityManager em, KapuaId scopeId, KapuaId accountId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, AccountImpl.class, scopeId, accountId);
     }
 }

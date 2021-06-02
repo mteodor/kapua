@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -27,9 +28,12 @@ import com.extjs.gxt.ui.client.widget.form.TextField;
 import com.extjs.gxt.ui.client.widget.layout.FormLayout;
 import com.extjs.gxt.ui.client.widget.toolbar.FillToolItem;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
 import org.eclipse.kapua.app.console.core.client.messages.ConsoleCoreMessages;
+import org.eclipse.kapua.app.console.module.api.client.util.CookieUtils;
 import org.eclipse.kapua.app.console.core.shared.model.authentication.GwtLoginCredential;
 import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationService;
 import org.eclipse.kapua.app.console.core.shared.service.GwtAuthorizationServiceAsync;
@@ -43,7 +47,7 @@ import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 /**
  * Login Dialog
  * <p>
- * Two-step verification - First step: username and password / cookies verification
+ * Multi-step verification - First step: username and password / cookies verification
  */
 public class LoginDialog extends Dialog {
 
@@ -53,24 +57,18 @@ public class LoginDialog extends Dialog {
     private final GwtAuthorizationServiceAsync gwtAuthorizationService = GWT.create(GwtAuthorizationService.class);
     private final GwtSettingsServiceAsync gwtSettingService = GWT.create(GwtSettingsService.class);
 
-    public GwtSession currentSession;
-    public TextField<String> username;
-    public TextField<String> password;
+    private GwtSession currentSession;
+    private TextField<String> username;
+    private TextField<String> password;
 
-    public Button reset;
-    public Button login;
-    public Button ssoLogin;
-    public Status status;
+    private Button reset;
+    private Button login;
+    private Button ssoLogin;
+    private Status status;
 
     private boolean allowMainScreen;
 
-    public void setAllowMainScreen(boolean main) {
-        this.allowMainScreen = main;
-    }
-
-    public boolean isAllowMainScreen() {
-        return this.allowMainScreen;
-    }
+    private final MfaLoginDialog mfaLoginDialog = new MfaLoginDialog(this);
 
     public LoginDialog() {
         FormLayout layout = new FormLayout();
@@ -93,12 +91,15 @@ public class LoginDialog extends Dialog {
 
             @Override
             public void componentKeyUp(ComponentEvent event) {
+
                 validate();
-                if (event.getKeyCode() == 13) {
-                    if (username.getValue() != null && username.getValue().trim().length() > 0 &&
-                            password.getValue() != null && password.getValue().trim().length() > 0) {
-                        onSubmit();
-                    }
+                if (
+                        event.getKeyCode() == 13 &&
+                                username.getValue() != null &&
+                                username.getValue().trim().length() > 0 &&
+                                password.getValue() != null &&
+                                password.getValue().trim().length() > 0) {
+                    onSubmit();
                 }
             }
         };
@@ -128,9 +129,7 @@ public class LoginDialog extends Dialog {
 
         add(password);
 
-        setFocusWidget(username);
-
-        gwtSettingService.getSsoEnabled(new AsyncCallback<Boolean>() {
+        gwtSettingService.getOpenIDEnabled(new AsyncCallback<Boolean>() {
 
             @Override
             public void onFailure(Throwable caught) {
@@ -145,8 +144,44 @@ public class LoginDialog extends Dialog {
 
     }
 
+    public boolean isAllowMainScreen() {
+        return this.allowMainScreen;
+    }
+
+    public void setAllowMainScreen(boolean main) {
+        this.allowMainScreen = main;
+    }
+
     public GwtSession getCurrentSession() {
         return currentSession;
+    }
+
+    public void setCurrentSession(GwtSession currentSession) {
+        this.currentSession = currentSession;
+    }
+
+    public TextField<String> getUsername() {
+        return username;
+    }
+
+    public void setUsername(TextField<String> username) {
+        this.username = username;
+    }
+
+    public TextField<String> getPassword() {
+        return password;
+    }
+
+    public void setPassword(TextField<String> password) {
+        this.password = password;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     @Override
@@ -173,7 +208,7 @@ public class LoginDialog extends Dialog {
                 password.reset();
                 password.enable();
                 validate();
-                username.focus(); 
+                username.focus();
             }
         });
 
@@ -191,6 +226,7 @@ public class LoginDialog extends Dialog {
 
             @Override
             public void componentSelected(ButtonEvent ce) {
+                username.clearInvalid();
                 doSsoLogin();
             }
 
@@ -202,11 +238,11 @@ public class LoginDialog extends Dialog {
     }
 
     protected void doSsoLogin() {
-        gwtSettingService.getSsoLoginUri(new AsyncCallback<String>() {
+        gwtSettingService.getOpenIDLoginUri(new AsyncCallback<String>() {
 
             @Override
             public void onFailure(Throwable caught) {
-                ConsoleInfo.display(CORE_MSGS.loginSsoLogin(), caught.getLocalizedMessage());
+                ConsoleInfo.display(CORE_MSGS.loginSsoLoginError(), caught.getLocalizedMessage());
             }
 
             @Override
@@ -215,6 +251,12 @@ public class LoginDialog extends Dialog {
             }
 
         });
+    }
+
+    @Override
+    protected void onRender(Element parent, int pos) {
+        super.onRender(parent, pos);
+        username.focus();
     }
 
     /**
@@ -230,26 +272,73 @@ public class LoginDialog extends Dialog {
             ConsoleInfo.display(MSGS.dialogError(), MSGS.passwordFieldRequired());
             password.markInvalid(password.getErrorMessage());
         } else {
-            status.show();
-            getButtonBar().disable();
-            username.disable();
-            password.disable();
-            performLogin();
+            gwtAuthorizationService.hasMfa(username.getValue(), new AsyncCallback<Boolean>() {
+
+                @Override
+                public void onFailure(Throwable caught) {
+                    FailureHandler.handle(caught);
+                }
+
+                @Override
+                public void onSuccess(Boolean hasMfaAuth) {
+                    status.show();
+                    getButtonBar().disable();
+                    username.disable();
+                    password.disable();
+
+                    // Open the MFA if needed
+                    if (hasMfaAuth) {
+                        // trust cookie test
+                        boolean existTrustCookie = CookieUtils.isCookieEnabled(CookieUtils.KAPUA_COOKIE_TRUST + username.getValue());
+                        if (existTrustCookie) {
+                            status.show();
+                            getButtonBar().disable();
+
+                            CookieUtils cookie = new CookieUtils(username.getValue());
+                            String trustKey = cookie.getTrustKeyCookie();
+                            if (trustKey != null) {
+                                if (!"".equals(trustKey)) {
+                                    // trust login
+                                    performLogin(trustKey);
+                                }
+                            } else {
+                                performLogin();
+                            }
+                        } else {
+                            mfaLoginDialog.show();
+                        }
+                    } else {
+                        // remove obsolete trust cookie if exists
+                        CookieUtils.removeCookie(CookieUtils.KAPUA_COOKIE_TRUST + username.getValue());
+
+                        status.show();
+                        getButtonBar().disable();
+
+                        performLogin();
+                    }
+                }
+            });
+
         }
     }
 
     // Login
     public void performLogin() {
+        performLogin(null);
+    }
+
+    public void performLogin(String trustKey) {
 
         GwtLoginCredential credentials = new GwtLoginCredential(username.getValue(), password.getValue());
+        credentials.setTrustKey(trustKey);
 
-        // FIXME: use some Credentials object instead of using GwtUser!
-        gwtAuthorizationService.login(credentials, new AsyncCallback<GwtSession>() {
+        gwtAuthorizationService.login(credentials, false, new AsyncCallback<GwtSession>() {
 
             @Override
             public void onFailure(Throwable caught) {
                 ConsoleInfo.display(CORE_MSGS.loginError(), caught.getLocalizedMessage());
-                reset();
+                CookieUtils.removeCookie(CookieUtils.KAPUA_COOKIE_TRUST + username.getValue());
+                resetDialog();
             }
 
             @Override
@@ -272,7 +361,7 @@ public class LoginDialog extends Dialog {
             @Override
             public void onSuccess(Void arg0) {
                 ConsoleInfo.display(MSGS.popupInfo(), MSGS.loggedOut());
-                reset();
+                resetDialog();
                 show();
             }
         });
@@ -292,15 +381,15 @@ public class LoginDialog extends Dialog {
         login.setEnabled(true);
         reset.setEnabled(hasValue(username) &&
                 hasValue(password));
-        if(hasValue(username)) {
+        if (hasValue(username)) {
             username.clearInvalid();
         }
-        if(hasValue(password)) {
+        if (hasValue(password)) {
             password.clearInvalid();
         }
     }
 
-    public void reset() {
+    public void resetDialog() {
         username.reset();
         username.enable();
         password.reset();

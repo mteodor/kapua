@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Red Hat Inc and others
+ * Copyright (c) 2017, 2021 Red Hat Inc and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat Inc - initial API and implementation
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 import com.google.common.base.Function;
 
 public final class Topic {
+
+    private static final String APPLICATION_ID = "application-id";
 
     private static final Segment CONTROL = new Segment() {
 
@@ -111,7 +114,7 @@ public final class Topic {
         }
 
         public static Segment applicationId() {
-            return replace("application-id");
+            return replace(APPLICATION_ID);
         }
     }
 
@@ -217,7 +220,7 @@ public final class Topic {
     }
 
     public static Topic reply(final String requesterClientId, final String requestId) {
-        return new Topic(Segment.control(), Segment.account(), Segment.plain(requesterClientId), Segment.replace("application-id"), Segment.plain("REPLY"),
+        return new Topic(Segment.control(), Segment.account(), Segment.plain(requesterClientId), Segment.replace(APPLICATION_ID), Segment.plain("REPLY"),
                 Segment.plain(requestId));
     }
 
@@ -226,7 +229,7 @@ public final class Topic {
         s.add(Segment.control());
         s.add(Segment.account());
         s.add(Segment.plain(requesterClientId));
-        s.add(Segment.replace("application-id"));
+        s.add(Segment.replace(APPLICATION_ID));
         s.add(Segment.plain("NOTIFY"));
         s.addAll(Segment.plain(resource));
         return new Topic(s);

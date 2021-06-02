@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -50,6 +51,7 @@ import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaTextArea;
 import org.eclipse.kapua.app.console.module.api.client.ui.widget.KapuaTextField;
 import org.eclipse.kapua.app.console.module.api.client.util.Constants;
+import org.eclipse.kapua.app.console.module.api.client.util.CssLiterals;
 import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.client.util.FormUtils;
 import org.eclipse.kapua.app.console.module.api.client.util.KapuaSafeHtmlUtils;
@@ -68,6 +70,9 @@ public class DeviceConfigPanel extends LayoutContainer {
 
     private static final ConsoleMessages MSGS = GWT.create(ConsoleMessages.class);
 
+    private static final int TEXT_FIELD_MAX_LENGTH = 1024;
+    private static final int TEXT_AREA_MAX_LENGTH = 2097152;
+
     private GwtConfigComponent configComponent;
     private FormPanel actionFormPanel;
     private FieldSet actionFieldSet;
@@ -75,6 +80,9 @@ public class DeviceConfigPanel extends LayoutContainer {
     private ComponentPlugin infoPlugin;
     private ComponentPlugin dirtyPlugin;
     private GwtSession currentSession;
+
+    private static final String CONFIG_MIN_VALUE = "configMinValue";
+    private static final String CONFIG_MAX_VALUE = "configMaxValue";
 
     public DeviceConfigPanel(GwtConfigComponent configComponent, GwtSession currentSession) {
         super(new FitLayout());
@@ -345,7 +353,7 @@ public class DeviceConfigPanel extends LayoutContainer {
             multiField.setReadOnly(true);
             multiField.setEnabled(false);
         }
-        multiField.setLabelStyle("word-break:break-all");
+        multiField.setLabelStyle(CssLiterals.WORD_BREAK_BREAK_ALL);
         Field<?> field = null;
         String value = null;
         String[] values = param.getValues();
@@ -428,16 +436,12 @@ public class DeviceConfigPanel extends LayoutContainer {
     private Field<?> paintTextConfigParameter(GwtConfigParameter param, Validator validator) {
 
         TextField<String> field = createTextFieldOrArea(param);
-        field.setName(param.getId());
-        field.setValue((String) param.getValue());
-        field.setAllowBlank(true);
-        field.setFieldLabel(param.getName());
-        field.addPlugin(dirtyPlugin);
 
-        if (param.isRequired()) {
-            field.setAllowBlank(false);
-            field.setFieldLabel("* " + param.getName());
-        }
+        field.setName(param.getId());
+        field.setValue(param.getValue());
+        field.setAllowBlank(!param.isRequired());
+        field.setFieldLabel((param.isRequired() ? "* " : "") + param.getName());
+        field.addPlugin(dirtyPlugin);
 
         applyDescription(param, field);
 
@@ -450,21 +454,33 @@ public class DeviceConfigPanel extends LayoutContainer {
             field.setValue(param.getValue());
             field.setOriginalValue(param.getValue());
         }
+
         if (validator instanceof CharValidator) {
             field.setMaxLength(1);
             field.setValidator(validator);
+        } else if (validator instanceof StringValidator) {
+
+            if (field instanceof KapuaTextField) {
+                field.setMaxLength(TEXT_FIELD_MAX_LENGTH);
+                field.setValidator(validator);
+            } else {
+                field.setMaxLength(TEXT_AREA_MAX_LENGTH);
+                field.setValidator(
+                        new StringValidator(
+                                param.getMin(),
+                                param.getMax() != null ? param.getMax() : String.valueOf(TEXT_AREA_MAX_LENGTH)
+                        )
+                );
+            }
         }
-        if (validator instanceof StringValidator) {
-            field.setValidator(validator);
-        }
-        field.setLabelStyle("word-break:break-all");
+        field.setLabelStyle(CssLiterals.WORD_BREAK_BREAK_ALL);
         return field;
     }
 
     private Field<?> paintPasswordConfigParameter(GwtConfigParameter param) {
         TextField<String> field = new KapuaTextField<String>();
         field.setName(param.getId());
-        field.setValue((String) param.getValue());
+        field.setValue(param.getValue());
         field.setAllowBlank(true);
         field.setPassword(true);
         field.setFieldLabel(param.getName());
@@ -485,7 +501,7 @@ public class DeviceConfigPanel extends LayoutContainer {
             field.setValue((String) param.getValue());
             field.setOriginalValue((String) param.getValue());
         }
-        field.setLabelStyle("word-break:break-all");
+        field.setLabelStyle(CssLiterals.WORD_BREAK_BREAK_ALL);
         return field;
     }
 
@@ -555,7 +571,7 @@ public class DeviceConfigPanel extends LayoutContainer {
                 }
                 break;
         }
-        field.setLabelStyle("word-break:break-all");
+        field.setLabelStyle(CssLiterals.WORD_BREAK_BREAK_ALL);
         return field;
     }
 
@@ -591,7 +607,7 @@ public class DeviceConfigPanel extends LayoutContainer {
         if (param.getValue() != null) {
             field.setSimpleValue(getKeyFromValue(oMap, param.getValue()));
         }
-        field.setLabelStyle("word-break:break-all");
+        field.setLabelStyle(CssLiterals.WORD_BREAK_BREAK_ALL);
         return field;
     }
 
@@ -639,7 +655,7 @@ public class DeviceConfigPanel extends LayoutContainer {
             radioFalse.setValue(true);
             radioGroup.setOriginalValue(radioFalse);
         }
-        radioGroup.setLabelStyle("word-break:break-all");
+        radioGroup.setLabelStyle(CssLiterals.WORD_BREAK_BREAK_ALL);
         return radioGroup;
     }
 
@@ -756,10 +772,10 @@ public class DeviceConfigPanel extends LayoutContainer {
             }
 
             if (minValue != null && intValue < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             if (maxValue != null && intValue > maxValue) {
-                return MessageUtils.get("configMaxValue", maxValue);
+                return MessageUtils.get(CONFIG_MAX_VALUE, maxValue);
             }
 
             return null;
@@ -800,10 +816,10 @@ public class DeviceConfigPanel extends LayoutContainer {
             }
 
             if (minValue != null && longValue < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             if (maxValue != null && longValue > maxValue) {
-                return MessageUtils.get("configMaxValue", maxValue);
+                return MessageUtils.get(CONFIG_MAX_VALUE, maxValue);
             }
 
             return null;
@@ -844,10 +860,10 @@ public class DeviceConfigPanel extends LayoutContainer {
             }
 
             if (minValue != null && doubleValue < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             if (maxValue != null && doubleValue > maxValue) {
-                return MessageUtils.get("configMaxValue", maxValue);
+                return MessageUtils.get(CONFIG_MAX_VALUE, maxValue);
             }
 
             return null;
@@ -888,10 +904,10 @@ public class DeviceConfigPanel extends LayoutContainer {
             }
 
             if (minValue != null && floatValue < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             if (maxValue != null && floatValue > maxValue) {
-                return MessageUtils.get("configMaxValue", maxValue);
+                return MessageUtils.get(CONFIG_MAX_VALUE, maxValue);
             }
 
             return null;
@@ -932,10 +948,10 @@ public class DeviceConfigPanel extends LayoutContainer {
             }
 
             if (minValue != null && shortValue < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             if (maxValue != null && shortValue > maxValue) {
-                return MessageUtils.get("configMaxValue", maxValue);
+                return MessageUtils.get(CONFIG_MAX_VALUE, maxValue);
             }
 
             return null;
@@ -976,10 +992,10 @@ public class DeviceConfigPanel extends LayoutContainer {
             }
 
             if (minValue != null && byteValue < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             if (maxValue != null && byteValue > maxValue) {
-                return MessageUtils.get("configMaxValue", maxValue);
+                return MessageUtils.get(CONFIG_MAX_VALUE, maxValue);
             }
 
             return null;
@@ -1020,10 +1036,10 @@ public class DeviceConfigPanel extends LayoutContainer {
             }
 
             if (minValue != null && charValue < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             if (maxValue != null && charValue > maxValue) {
-                return MessageUtils.get("configMaxValue", maxValue);
+                return MessageUtils.get(CONFIG_MAX_VALUE, maxValue);
             }
 
             return null;
@@ -1033,7 +1049,7 @@ public class DeviceConfigPanel extends LayoutContainer {
     private static class StringValidator implements Validator {
 
         private int minValue;
-        private int maxValue = 255;
+        private int maxValue = TEXT_FIELD_MAX_LENGTH;
 
         public StringValidator(String minValue, String maxValue) {
             if (minValue != null) {
@@ -1055,10 +1071,10 @@ public class DeviceConfigPanel extends LayoutContainer {
         @Override
         public String validate(Field<?> field, String value) {
             if (value.length() > maxValue) {
-                return MessageUtils.get("configMaxValue", (maxValue + 1));
+                return MessageUtils.get(CONFIG_MAX_VALUE, (maxValue + 1));
             }
             if (value.length() < minValue) {
-                return MessageUtils.get("configMinValue", minValue);
+                return MessageUtils.get(CONFIG_MIN_VALUE, minValue);
             }
             return null;
         }

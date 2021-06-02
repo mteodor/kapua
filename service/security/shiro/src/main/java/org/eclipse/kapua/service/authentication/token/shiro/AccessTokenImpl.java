@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -28,6 +29,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import java.util.Date;
 
 /**
@@ -67,6 +69,9 @@ public class AccessTokenImpl extends AbstractKapuaUpdatableEntity implements Acc
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "invalidated_on", nullable = true)
     private Date invalidatedOn;
+
+    @Transient
+    private String trustkey;
 
     /**
      * Constructor.
@@ -193,5 +198,15 @@ public class AccessTokenImpl extends AbstractKapuaUpdatableEntity implements Acc
     @Override
     public void setInvalidatedOn(Date invalidatedOn) {
         this.invalidatedOn = invalidatedOn;
+    }
+
+    @Override
+    public String getTrustKey() {
+        return trustkey;
+    }
+
+    @Override
+    public void setTrustKey(String trustKey) {
+        this.trustkey = trustKey;
     }
 }

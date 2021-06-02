@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -25,6 +26,8 @@ import org.eclipse.kapua.commons.util.xml.XmlUtil;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.service.device.management.configuration.DeviceConfiguration;
 import org.eclipse.kapua.service.device.management.configuration.DeviceConfigurationManagementService;
+
+import org.apache.commons.lang3.CharEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +40,7 @@ public class DeviceSnapshotsServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding(CharEncoding.UTF_8);
         PrintWriter writer = response.getWriter();
         try {
 
@@ -61,8 +64,8 @@ public class DeviceSnapshotsServlet extends HttpServlet {
             response.setContentType("application/xml; charset=UTF-8");
             response.setHeader("Cache-Control", "no-transform, max-age=0");
             response.setHeader("Content-Disposition", String.format(contentDispositionFormat,
-                    URLEncoder.encode(account, "UTF-8"),
-                    URLEncoder.encode(clientId, "UTF-8"),
+                    URLEncoder.encode(account, CharEncoding.UTF_8),
+                    URLEncoder.encode(clientId, CharEncoding.UTF_8),
                     snapshotId));
 
             XmlUtil.marshal(conf, writer);

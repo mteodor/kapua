@@ -1,17 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.datastore.model;
 
-import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.service.storable.model.StorableCreator;
+import org.eclipse.kapua.service.storable.model.id.StorableId;
 
 import java.util.Date;
 
@@ -23,20 +25,18 @@ import java.util.Date;
 public interface ChannelInfoCreator extends StorableCreator<ChannelInfo> {
 
     /**
-     * Get the account
-     *
-     * @return
-     * @since 1.0.0
-     */
-    KapuaId getScopeId();
-
-    /**
      * Get the client identifier
      *
      * @return
      * @since 1.0.0
      */
     String getClientId();
+
+    /**
+     * @param clientId
+     * @since 1.3.0
+     */
+    void setClientId(String clientId);
 
     /**
      * Get the name

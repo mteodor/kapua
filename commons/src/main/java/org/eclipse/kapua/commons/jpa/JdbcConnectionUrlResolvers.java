@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Red Hat and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Red Hat and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Red Hat
@@ -28,14 +29,15 @@ public final class JdbcConnectionUrlResolvers {
         SystemSetting config = SystemSetting.getInstance();
         String connectionUrlResolverType = config.getString(SystemSettingKey.DB_JDBC_CONNECTION_URL_RESOLVER, "DEFAULT");
         LOG.debug("The following JDBC connection URL resolver type will be used: {}", connectionUrlResolverType);
-        if (connectionUrlResolverType.equals("DEFAULT")) {
-            return new DefaultConfigurableJdbcConnectionUrlResolver().connectionUrl();
-        } else if ("H2".equals(connectionUrlResolverType)) {
-            return new H2JdbcConnectionUrlResolver().connectionUrl();
-        } else if ("MariaDB".equals(connectionUrlResolverType)) {
-            return new MariaDBJdbcConnectionUrlResolver().connectionUrl();
-        } else {
-            throw new IllegalArgumentException("Unknown JDBC connection URL resolver type: " + connectionUrlResolverType);
+        switch (connectionUrlResolverType) {
+            case "DEFAULT":
+                return new DefaultConfigurableJdbcConnectionUrlResolver().connectionUrl();
+            case "H2":
+                return new H2JdbcConnectionUrlResolver().connectionUrl();
+            case "MariaDB":
+                return new MariaDBJdbcConnectionUrlResolver().connectionUrl();
+            default:
+                throw new IllegalArgumentException("Unknown JDBC connection URL resolver type: " + connectionUrlResolverType);
         }
     }
 

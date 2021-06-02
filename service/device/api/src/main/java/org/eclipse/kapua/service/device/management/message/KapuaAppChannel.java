@@ -1,50 +1,60 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.message;
 
+import javax.xml.bind.annotation.XmlElement;
+
 /**
- * Kapua application message channel definition.<br>
+ * Device Application {@link KapuaControlChannel} definition.
+ * <p>
  * This object defines the common channel behavior for a Kapua request or response message.<br>
  * The request message is used to perform interactive operations with the device (e.g. to send command to the device, to ask configurations...)
  *
- * @since 1.0
+ * @since 1.0.0
  */
 public interface KapuaAppChannel extends KapuaControlChannel {
 
     /**
-     * Get the application name
+     * Gets the device application name.
      *
-     * @return
+     * @return The device application name.
+     * @since 1.0.0
      */
+    @XmlElement(name = "appName")
     KapuaAppProperties getAppName();
 
     /**
-     * Set the application name
+     * Sets the device application name.
      *
-     * @param app
+     * @param appName The device application name.
+     * @since 1.0.0
      */
-    void setAppName(KapuaAppProperties app);
+    void setAppName(KapuaAppProperties appName);
 
     /**
-     * Get the application version
+     * Gets the device application version.
      *
-     * @return
+     * @return The device application version.
+     * @since 1.0.0
      */
+    @XmlElement(name = "version")
     KapuaAppProperties getVersion();
 
     /**
-     * Set the application version
+     * Sets the device application version.
      *
-     * @param version
+     * @param appVersion The device application version.
+     * @since 1.0.0
      */
-    void setVersion(KapuaAppProperties version);
+    void setVersion(KapuaAppProperties appVersion);
 }

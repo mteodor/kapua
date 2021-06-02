@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -27,12 +28,13 @@ import org.eclipse.kapua.app.console.module.job.shared.model.GwtJobStepQuery;
 import org.eclipse.kapua.app.console.module.job.shared.model.GwtJobTargetQuery;
 import org.eclipse.kapua.app.console.module.job.shared.model.scheduler.GwtTriggerProperty;
 import org.eclipse.kapua.app.console.module.job.shared.model.scheduler.GwtTriggerQuery;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria.SortOrder;
+import org.eclipse.kapua.commons.model.query.FieldSortCriteriaImpl;
 import org.eclipse.kapua.job.engine.JobEngineFactory;
 import org.eclipse.kapua.job.engine.JobStartOptions;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.model.query.FieldSortCriteria;
+import org.eclipse.kapua.model.query.SortOrder;
 import org.eclipse.kapua.model.query.predicate.AndPredicate;
 import org.eclipse.kapua.model.query.predicate.AttributePredicate;
 import org.eclipse.kapua.model.query.predicate.AttributePredicate.Operator;
@@ -56,8 +58,8 @@ import org.eclipse.kapua.service.job.targets.JobTargetFactory;
 import org.eclipse.kapua.service.job.targets.JobTargetQuery;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerAttributes;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerFactory;
-import org.eclipse.kapua.service.scheduler.trigger.TriggerProperty;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerQuery;
+import org.eclipse.kapua.service.scheduler.trigger.definition.TriggerProperty;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -146,10 +148,10 @@ public class GwtKapuaJobModelConverter {
         }
 
         SortOrder sortOrder = loadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-        FieldSortCriteria sortCriteria = new FieldSortCriteria(sortField, sortOrder);
+        FieldSortCriteria sortCriteria = query.fieldSortCriteria(sortField, sortOrder);
         query.setSortCriteria(sortCriteria);
         query.setPredicate(predicate);
-
+        query.setAskTotalCount(gwtJobQuery.getAskTotalCount());
         return query;
     }
 
@@ -169,10 +171,10 @@ public class GwtKapuaJobModelConverter {
 
             String sortField = StringUtils.isEmpty(loadConfig.getSortField()) ? JobTargetAttributes.ENTITY_ID : loadConfig.getSortField();
             SortOrder sortOrder = loadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            FieldSortCriteria sortCriteria = new FieldSortCriteria(sortField, sortOrder);
+            FieldSortCriteria sortCriteria = query.fieldSortCriteria(sortField, sortOrder);
             query.setSortCriteria(sortCriteria);
         }
-
+        query.setAskTotalCount(gwtJobTargetQuery.getAskTotalCount());
         return query;
     }
 
@@ -191,7 +193,7 @@ public class GwtKapuaJobModelConverter {
 
         query.setLimit(loadConfig.getLimit());
         query.setOffset(loadConfig.getOffset());
-
+        query.setAskTotalCount(gwtJobStepQuery.getAskTotalCount());
         return query;
     }
 
@@ -207,7 +209,7 @@ public class GwtKapuaJobModelConverter {
             } else {
                 sortOrder = SortOrder.ASCENDING;
             }
-            return new FieldSortCriteria(sortField, sortOrder);
+            return new FieldSortCriteriaImpl(sortField, sortOrder);
         } else {
             String sortField = StringUtils.isEmpty(loadConfig.getSortField()) ? JobStepAttributes.STEP_INDEX : loadConfig.getSortField();
             if (sortField.equals("jobStepName")) {
@@ -218,7 +220,7 @@ public class GwtKapuaJobModelConverter {
                 sortField = JobStepAttributes.JOB_STEP_DEFINITION_ID;
             }
             SortOrder sortOrder = loadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-            return new FieldSortCriteria(sortField, sortOrder);
+            return new FieldSortCriteriaImpl(sortField, sortOrder);
         }
     }
 
@@ -277,12 +279,12 @@ public class GwtKapuaJobModelConverter {
         }
 
         SortOrder sortOrder = loadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-        FieldSortCriteria sortCriteria = new FieldSortCriteria(sortField, sortOrder);
+        FieldSortCriteria sortCriteria = query.fieldSortCriteria(sortField, sortOrder);
         query.setSortCriteria(sortCriteria);
         query.setPredicate(andPredicate);
         query.setLimit(loadConfig.getLimit());
         query.setOffset(loadConfig.getOffset());
-
+        query.setAskTotalCount(gwtTriggerQuery.getAskTotalCount());
         return query;
     }
 
@@ -301,21 +303,22 @@ public class GwtKapuaJobModelConverter {
         query.setPredicate(query.attributePredicate(JobExecutionAttributes.JOB_ID, GwtKapuaCommonsModelConverter.convertKapuaId(gwtJobExecutionQuery.getJobId())));
         String sortField = StringUtils.isEmpty(pagingLoadConfig.getSortField()) ? JobAttributes.NAME : pagingLoadConfig.getSortField();
         if (sortField.equals("startedOnFormatted")) {
-            sortField = JobAttributes.STARTED_ON;
+            sortField = JobExecutionAttributes.STARTED_ON;
         } else if (sortField.equals("endedOnFormatted")) {
-            sortField = JobAttributes.ENDED_ON;
+            sortField = JobExecutionAttributes.ENDED_ON;
         }
         SortOrder sortOrder = pagingLoadConfig.getSortDir().equals(SortDir.DESC) ? SortOrder.DESCENDING : SortOrder.ASCENDING;
-        query.setSortCriteria(new FieldSortCriteria(sortField, sortOrder));
+        query.setSortCriteria(query.fieldSortCriteria(sortField, sortOrder));
         query.setLimit(pagingLoadConfig.getLimit());
         query.setOffset(pagingLoadConfig.getOffset());
-
+        query.setAskTotalCount(gwtJobExecutionQuery.getAskTotalCount());
         return query;
     }
 
     public static JobStartOptions convertJobStartOptions(GwtJobStartOptions gwtJobStartOptions) {
         JobStartOptions jobStartOptions = JOB_ENGINE_FACTORY.newJobStartOptions();
         jobStartOptions.setTargetIdSublist(convertTargetIdSublist(gwtJobStartOptions.getTargetIdSublist()));
+        jobStartOptions.setResetStepIndex(gwtJobStartOptions.getResetStepIndex());
         jobStartOptions.setFromStepIndex(gwtJobStartOptions.getFromStepIndex());
         return jobStartOptions;
     }

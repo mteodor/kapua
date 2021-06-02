@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -72,7 +73,7 @@ public interface TagService extends KapuaEntityService<Tag, TagCreator>,
      * @since 1.0.0
      */
     @Override
-    TagListResult query(KapuaQuery<Tag> query) throws KapuaException;
+    TagListResult query(KapuaQuery query) throws KapuaException;
 
     /**
      * Returns the count of the {@link Tag} elements matching the provided query.
@@ -83,7 +84,7 @@ public interface TagService extends KapuaEntityService<Tag, TagCreator>,
      * @since 1.0.0
      */
     @Override
-    long count(KapuaQuery<Tag> query) throws KapuaException;
+    long count(KapuaQuery query) throws KapuaException;
 
     /**
      * Delete the {@link Tag} by scope id and {@link Tag} id.

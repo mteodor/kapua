@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -17,9 +18,11 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.eclipse.kapua.service.authentication.credential.Credential;
 import org.eclipse.kapua.service.authentication.shiro.JwtCredentialsImpl;
-import org.eclipse.kapua.sso.jwt.JwtProcessor;
+import org.eclipse.kapua.plugin.sso.openid.JwtProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * {@link JwtCredentialsMatcher} credential matcher implementation
@@ -32,15 +35,15 @@ public class JwtCredentialsMatcher implements CredentialsMatcher {
     private static final Logger logger = LoggerFactory.getLogger(JwtCredentialsMatcher.class);
     private JwtProcessor jwtProcessor;
 
-    public JwtCredentialsMatcher(final JwtProcessor jwtProcessor) {
+    public JwtCredentialsMatcher(@NotNull final JwtProcessor jwtProcessor) {
         this.jwtProcessor = jwtProcessor;
     }
 
     @Override
     public boolean doCredentialsMatch(AuthenticationToken authenticationToken, AuthenticationInfo authenticationInfo) {
 
-        final String jwt = ((JwtCredentialsImpl) authenticationToken).getJwt();
-        if (jwt == null) {
+        final String idToken = ((JwtCredentialsImpl) authenticationToken).getIdToken();
+        if (idToken == null) {
             // we don't have a JWT
             return false;
         }
@@ -58,13 +61,13 @@ public class JwtCredentialsMatcher implements CredentialsMatcher {
 
         // Match token with info
 
-        if (!jwt.equals(credentials.getCredentialKey())) {
+        if (!idToken.equals(credentials.getCredentialKey())) {
             return false;
         }
 
         try {
             // validate the JWT
-            return this.jwtProcessor.validate(jwt);
+            return this.jwtProcessor.validate(idToken);
         } catch (Exception e) {
             logger.error("Error while validating JWT credentials", e);
         }

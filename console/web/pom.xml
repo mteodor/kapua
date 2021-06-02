@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+    Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
 
-    All rights reserved. This program and the accompanying materials
-    are made available under the terms of the Eclipse Public License v1.0
-    which accompanies this distribution, and is available at
-    http://www.eclipse.org/legal/epl-v10.html
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
 
     Contributors:
         Eurotech - initial API and implementation
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.eclipse.kapua</groupId>
         <artifactId>kapua-console</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
+        <version>1.5.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>kapua-console-web</artifactId>
@@ -27,6 +27,13 @@
     <properties>
         <webappDirectory>${project.build.directory}</webappDirectory>
         <site.basedir>${project.build.directory}/${project.build.finalName}</site.basedir>
+
+        <!-- GWT Compiler options-->
+        <gwt-maven-plugin.compile.draftCompile>false</gwt-maven-plugin.compile.draftCompile>
+        <gwt-maven-plugin.compile.extraJvmArgs>-Xmx2048m -XX:+UseParallelGC</gwt-maven-plugin.compile.extraJvmArgs>
+        <gwt-maven-plugin.compile.optimizationLevel>9</gwt-maven-plugin.compile.optimizationLevel>
+        <gwt-maven-plugin.compile.module>org.eclipse.kapua.app.console.admin</gwt-maven-plugin.compile.module>
+        <gwt-maven-plugin.compile.style>OBF</gwt-maven-plugin.compile.style>
     </properties>
 
     <dependencies>
@@ -49,19 +56,6 @@
 
         <dependency>
             <groupId>org.eclipse.kapua</groupId>
-            <artifactId>kapua-security-certificate-internal</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.kapua</groupId>
-            <artifactId>kapua-datastore-client-rest</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.kapua</groupId>
-            <artifactId>kapua-datastore-client-transport</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.kapua</groupId>
             <artifactId>kapua-datastore-internal</artifactId>
         </dependency>
 
@@ -73,6 +67,15 @@
         <dependency>
             <groupId>org.eclipse.kapua</groupId>
             <artifactId>kapua-device-management-all-internal</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-device-management-all-job</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-device-management-job-internal</artifactId>
         </dependency>
 
         <dependency>
@@ -97,6 +100,12 @@
 
         <dependency>
             <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-locator-guice</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
             <artifactId>kapua-job-engine-commons</artifactId>
         </dependency>
         <dependency>
@@ -105,7 +114,17 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.kapua</groupId>
-            <artifactId>kapua-job-engine-jbatch</artifactId>
+            <artifactId>kapua-job-engine-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-message-internal</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-security-certificate-internal</artifactId>
         </dependency>
 
         <dependency>
@@ -116,6 +135,11 @@
         <dependency>
             <groupId>org.eclipse.kapua</groupId>
             <artifactId>kapua-scheduler-quartz</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-service-elasticsearch-client-rest</artifactId>
         </dependency>
 
         <dependency>
@@ -137,40 +161,40 @@
             <artifactId>kapua-translator-kura-mqtt</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-security-registration-simple</artifactId>
+        </dependency>
         <!-- External dependencies -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Elasticsearch Dependencies -->
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>transport</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch.plugin</groupId>
-            <artifactId>transport-netty3-client</artifactId>
-            <version>${elasticsearch-client-transport.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch.plugin</groupId>
-            <artifactId>transport-netty4-client</artifactId>
-            <version>${elasticsearch-client-transport.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.elasticsearch.plugin</groupId>
             <artifactId>reindex-client</artifactId>
-            <version>${elasticsearch-client-transport.version}</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.plugin</groupId>
             <artifactId>lang-mustache-client</artifactId>
-            <version>${elasticsearch-client-transport.version}</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch.plugin</groupId>
             <artifactId>percolator-client</artifactId>
-            <version>${elasticsearch-client-transport.version}</version>
         </dependency>
         <!-- log4j2 for ES -->
         <dependency>
@@ -198,6 +222,10 @@
             <groupId>com.allen-sauer.gwt.log</groupId>
             <artifactId>gwt-log</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.kapua</groupId>
+            <artifactId>kapua-rest-api-core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -213,6 +241,13 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
+                        <configuration>
+                            <draftCompile>${gwt-maven-plugin.compile.draftCompile}</draftCompile>
+                            <extraJvmArgs>${gwt-maven-plugin.compile.extraJvmArgs}</extraJvmArgs>
+                            <optimizationLevel>${gwt-maven-plugin.compile.optimizationLevel}</optimizationLevel>
+                            <module>${gwt-maven-plugin.compile.module}</module>
+                            <style>${gwt-maven-plugin.compile.style}</style>
+                        </configuration>
                     </execution>
                 </executions>
 
@@ -248,7 +283,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>Copy jBatch configuration files</id>
+                        <id>Copy Console Servlet resources</id>
                         <phase>prepare-package</phase>
                         <goals>
                             <goal>unpack</goal>
@@ -257,8 +292,8 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.eclipse.kapua</groupId>
-                                    <artifactId>kapua-job-engine-jbatch</artifactId>
-                                    <includes>**/batch-services.properties</includes>
+                                    <artifactId>kapua-console-core</artifactId>
+                                    <includes>**/*_template.html</includes>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${site.basedir}/WEB-INF/classes/</outputDirectory>
                                 </artifactItem>
@@ -285,7 +320,7 @@
                                 <directory>${basedir}</directory>
                                 <includes>
                                     <include>about.html</include>
-                                    <include>epl-v10.html</include>
+                                    <include>epl-2.0.html</include>
                                     <include>notice.html</include>
                                 </includes>
                             </resource>
@@ -297,30 +332,26 @@
     </build>
 
     <profiles>
-        <!-- profile to speed up local development builds  -->
         <profile>
+            <!-- Profile to speed up local development builds  -->
             <id>dev</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>gwt-maven-plugin</artifactId>
-                        <configuration>
-                            <!-- we can always enable draft compile -->
-                            <draftCompile>true</draftCompile>
-                            <!-- use "dev" profile, limiting permutations -->
-                            <module>org.eclipse.kapua.app.console.adminDev</module>
-                            <!-- don't optimize -->
-                            <optimizationLevel>0</optimizationLevel>
-                            <!-- enable details -->
-                            <style>DETAILED</style>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
+
+            <properties>
+                <!-- Faster but less optimized -->
+                <gwt-maven-plugin.compile.draftCompile>true</gwt-maven-plugin.compile.draftCompile>
+
+                <!-- Faster but less optimized -->
+                <gwt-maven-plugin.compile.optimizationLevel>0</gwt-maven-plugin.compile.optimizationLevel>
+
+                <!-- Compile less permutation to speed up the process-->
+                <gwt-maven-plugin.compile.module>org.eclipse.kapua.app.console.adminDev</gwt-maven-plugin.compile.module>
+
+                <!-- Faster but less optimized and easier for JS debug-->
+                <gwt-maven-plugin.compile.style>OBF</gwt-maven-plugin.compile.style>
+            </properties>
         </profile>
     </profiles>
 </project>

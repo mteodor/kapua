@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -16,9 +17,11 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.jpa.EntityManager;
 import org.eclipse.kapua.commons.service.internal.ServiceDAO;
+import org.eclipse.kapua.model.KapuaNamedEntityAttributes;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.user.User;
+import org.eclipse.kapua.service.user.UserAttributes;
 import org.eclipse.kapua.service.user.UserCreator;
 import org.eclipse.kapua.service.user.UserListResult;
 
@@ -89,7 +92,7 @@ public class UserDAO extends ServiceDAO {
      * @return
      */
     public static User findByName(EntityManager em, String name) {
-        return ServiceDAO.findByField(em, UserImpl.class, "name", name);
+        return ServiceDAO.findByField(em, UserImpl.class, KapuaNamedEntityAttributes.NAME, name);
     }
 
     /**
@@ -100,7 +103,7 @@ public class UserDAO extends ServiceDAO {
      * @return the user record, may be {@code null}
      */
     public static User findByExternalId(final EntityManager em, final String externalId) {
-        return ServiceDAO.findByField(em, UserImpl.class, "externalId", externalId);
+        return ServiceDAO.findByField(em, UserImpl.class, UserAttributes.EXTERNAL_ID, externalId);
     }
 
     /**
@@ -111,7 +114,7 @@ public class UserDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static UserListResult query(EntityManager em, KapuaQuery<User> userPermissionQuery)
+    public static UserListResult query(EntityManager em, KapuaQuery userPermissionQuery)
             throws KapuaException {
         return ServiceDAO.query(em, User.class, UserImpl.class, new UserListResultImpl(), userPermissionQuery);
     }
@@ -124,7 +127,7 @@ public class UserDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<User> userPermissionQuery)
+    public static long count(EntityManager em, KapuaQuery userPermissionQuery)
             throws KapuaException {
         return ServiceDAO.count(em, User.class, UserImpl.class, userPermissionQuery);
     }
@@ -135,11 +138,12 @@ public class UserDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param userId
+     * @return the deleted {@link User}
      * @throws KapuaEntityNotFoundException If {@link User} is not found.
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId userId)
+    public static User delete(EntityManager em, KapuaId scopeId, KapuaId userId)
             throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, UserImpl.class, scopeId, userId);
+        return ServiceDAO.delete(em, UserImpl.class, scopeId, userId);
     }
 
 }

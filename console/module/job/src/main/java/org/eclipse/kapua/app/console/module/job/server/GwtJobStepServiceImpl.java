@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -59,7 +60,7 @@ public class GwtJobStepServiceImpl extends KapuaRemoteServiceServlet implements 
 
             // query
             JobStepListResult jobStepList = JOB_STEP_SERVICE.query(jobStepQuery);
-            totalLength = (int) JOB_STEP_SERVICE.count(jobStepQuery);
+            totalLength = jobStepList.getTotalCount().intValue();
 
             // Converto to GWT entity
             for (JobStep js : jobStepList.getItems()) {
@@ -74,11 +75,10 @@ public class GwtJobStepServiceImpl extends KapuaRemoteServiceServlet implements 
                 gwtJobStepList.add(gwtJobStep);
             }
 
-        } catch (Throwable t) {
-            KapuaExceptionHandler.handle(t);
+            return new BasePagingLoadResult<GwtJobStep>(gwtJobStepList, loadConfig.getOffset(), totalLength);
+        } catch (Exception e) {
+            throw KapuaExceptionHandler.buildExceptionFromError(e);
         }
-
-        return new BasePagingLoadResult<GwtJobStep>(gwtJobStepList, loadConfig.getOffset(), totalLength);
     }
 
     @Override
@@ -114,13 +114,13 @@ public class GwtJobStepServiceImpl extends KapuaRemoteServiceServlet implements 
             gwtJobStep = KapuaGwtJobModelConverter.convertJobStep(jobStep);
 
             setEnumOnJobStepProperty(gwtJobStep.getStepProperties());
-        } catch (Throwable t) {
-            KapuaExceptionHandler.handle(t);
-        }
 
-        //
-        // Return result
-        return gwtJobStep;
+            //
+            // Return result
+            return gwtJobStep;
+        } catch (Exception e) {
+            throw KapuaExceptionHandler.buildExceptionFromError(e);
+        }
     }
 
     @Override
@@ -132,8 +132,8 @@ public class GwtJobStepServiceImpl extends KapuaRemoteServiceServlet implements 
 
         try {
             JOB_STEP_SERVICE.delete(scopeId, jobTargetId);
-        } catch (Throwable t) {
-            KapuaExceptionHandler.handle(t);
+        } catch (Exception e) {
+            throw KapuaExceptionHandler.buildExceptionFromError(e);
         }
     }
 
@@ -152,8 +152,8 @@ public class GwtJobStepServiceImpl extends KapuaRemoteServiceServlet implements 
 
                 setEnumOnJobStepProperty(gwtJobStep.getStepProperties());
             }
-        } catch (Throwable t) {
-            KapuaExceptionHandler.handle(t);
+        } catch (Exception e) {
+            throw KapuaExceptionHandler.buildExceptionFromError(e);
         }
 
         return gwtJobStep;
@@ -192,10 +192,11 @@ public class GwtJobStepServiceImpl extends KapuaRemoteServiceServlet implements 
 
                 setEnumOnJobStepProperty(gwtJobStep.getStepProperties());
             }
-        } catch (Throwable t) {
-            KapuaExceptionHandler.handle(t);
+
+            return gwtJobStepUpdated;
+        } catch (Exception e) {
+            throw KapuaExceptionHandler.buildExceptionFromError(e);
         }
-        return gwtJobStepUpdated;
     }
 
     /**

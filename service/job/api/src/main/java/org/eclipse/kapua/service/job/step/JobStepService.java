@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,7 +16,6 @@ import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.KapuaEntityService;
 import org.eclipse.kapua.service.KapuaUpdatableEntityService;
-import org.eclipse.kapua.service.config.KapuaConfigurableService;
 
 /**
  * {@link JobStepService} exposes APIs to manage JobStep objects.<br>
@@ -25,8 +25,7 @@ import org.eclipse.kapua.service.config.KapuaConfigurableService;
  * @since 1.0
  */
 public interface JobStepService extends KapuaEntityService<JobStep, JobStepCreator>,
-        KapuaUpdatableEntityService<JobStep>,
-        KapuaConfigurableService {
+        KapuaUpdatableEntityService<JobStep> {
 
     /**
      * Returns the {@link JobStepListResult} with elements matching the provided query.
@@ -37,6 +36,6 @@ public interface JobStepService extends KapuaEntityService<JobStep, JobStepCreat
      * @since 1.0.0
      */
     @Override
-    JobStepListResult query(KapuaQuery<JobStep> query)
+    JobStepListResult query(KapuaQuery query)
             throws KapuaException;
 }

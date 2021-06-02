@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,15 +13,15 @@
 package org.eclipse.kapua.job.engine.jbatch.listener;
 
 import org.eclipse.kapua.KapuaException;
-import org.eclipse.kapua.commons.model.query.FieldSortCriteria;
+import org.eclipse.kapua.model.query.SortOrder;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.job.engine.JobStartOptions;
 import org.eclipse.kapua.job.engine.commons.logger.JobLogger;
 import org.eclipse.kapua.job.engine.commons.model.JobTargetSublist;
 import org.eclipse.kapua.job.engine.commons.wrappers.JobContextWrapper;
 import org.eclipse.kapua.job.engine.jbatch.driver.JbatchDriver;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobAlreadyRunningException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobExecutionEnqueuedException;
+import org.eclipse.kapua.job.engine.exception.JobAlreadyRunningException;
+import org.eclipse.kapua.job.engine.exception.JobExecutionEnqueuedException;
 import org.eclipse.kapua.job.engine.jbatch.setting.JobEngineSetting;
 import org.eclipse.kapua.job.engine.jbatch.setting.JobEngineSettingKeys;
 import org.eclipse.kapua.job.engine.queue.QueuedJobExecution;
@@ -30,6 +31,7 @@ import org.eclipse.kapua.job.engine.queue.QueuedJobExecutionService;
 import org.eclipse.kapua.job.engine.queue.QueuedJobExecutionStatus;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.model.id.KapuaId;
+import org.eclipse.kapua.model.query.predicate.AttributePredicate;
 import org.eclipse.kapua.service.job.Job;
 import org.eclipse.kapua.service.job.execution.JobExecution;
 import org.eclipse.kapua.service.job.execution.JobExecutionAttributes;
@@ -38,11 +40,13 @@ import org.eclipse.kapua.service.job.execution.JobExecutionFactory;
 import org.eclipse.kapua.service.job.execution.JobExecutionListResult;
 import org.eclipse.kapua.service.job.execution.JobExecutionQuery;
 import org.eclipse.kapua.service.job.execution.JobExecutionService;
+import org.eclipse.kapua.service.job.targets.JobTarget;
 import org.eclipse.kapua.service.job.targets.JobTargetAttributes;
 import org.eclipse.kapua.service.job.targets.JobTargetFactory;
 import org.eclipse.kapua.service.job.targets.JobTargetListResult;
 import org.eclipse.kapua.service.job.targets.JobTargetQuery;
 import org.eclipse.kapua.service.job.targets.JobTargetService;
+import org.eclipse.kapua.service.job.targets.JobTargetStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +58,7 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 
@@ -105,6 +110,12 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
         jobLogger.setClassLog(LOG);
 
         jobLogger.info("Running before job...");
+        jobLogger.info("Run configuration:");
+        jobLogger.info("\tTarget count:           {}", jobContextWrapper.getTargetSublist().size() != 0 ? jobContextWrapper.getTargetSublist().size() : "all");
+        jobLogger.info("\tReset step index:       {}", jobContextWrapper.getResetStepIndex());
+        jobLogger.info("\tFrom step index:        {}", jobContextWrapper.getFromStepIndex() != null ? jobContextWrapper.getFromStepIndex() : 0);
+        jobLogger.info("\tResuming job execution: {}", jobContextWrapper.getResumedJobExecutionId() != null ? jobContextWrapper.getResumedJobExecutionId() : "none");
+        jobLogger.info("\tEnqueue:                {}", jobContextWrapper.getEnqueue());
 
         JobExecution jobExecution;
         if (jobContextWrapper.getResumedJobExecutionId() != null) {
@@ -120,10 +131,10 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
             jobLogger.info("Creating job execution...");
             try {
                 jobExecution = createJobExecution(
-                jobContextWrapper.getScopeId(),
-                jobContextWrapper.getJobId(),
-                jobContextWrapper.getTargetSublist(),
-                jobContextWrapper.getExecutionId());
+                        jobContextWrapper.getScopeId(),
+                        jobContextWrapper.getJobId(),
+                        jobContextWrapper.getTargetSublist(),
+                        jobContextWrapper.getExecutionId());
             } catch (Exception e) {
                 jobLogger.error(e, "Creating job execution... ERROR!");
                 throw e;
@@ -138,6 +149,7 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
         JobExecution runningJobExecution = getAnotherJobExecutionRunning(
                 jobExecution.getScopeId(),
                 jobExecution.getJobId(),
+                jobExecution.getId(),
                 jobContextWrapper.getJobName(),
                 jobExecution.getTargetIds());
 
@@ -159,12 +171,34 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
                 }
 
                 KapuaSecurityUtils.doPrivileged(() -> JbatchDriver.stopJob(jobExecution.getScopeId(), jobExecution.getJobId(), jobExecution.getId()));
-                jobLogger.warn("Another execution is running! Stopping and enqueuing this execution... Done! EnqueuedJob id : {}", queuedJobExecution.getJobId());
+                jobLogger.warn("Another execution is running! Stopping and enqueuing this execution... DONE! EnqueuedJob id : {}", queuedJobExecution.getJobId());
 
             } else {
                 jobLogger.error("Another execution is running! Aborting this execution...");
                 throw new JobAlreadyRunningException(jobExecution.getScopeId(), jobExecution.getJobId(), jobExecution.getId(), jobExecution.getTargetIds());
             }
+        }
+
+        if (jobContextWrapper.getResetStepIndex()) {
+            int resetToStepIndex = jobContextWrapper.getFromStepIndex() != null ? jobContextWrapper.getFromStepIndex() : 0;
+
+            try {
+                jobLogger.info("Resetting {} targets to step index: {}...", jobExecution.getTargetIds().size(), resetToStepIndex);
+
+                for (KapuaId jobTargetId : jobExecution.getTargetIds()) {
+                    JobTarget jobTarget = KapuaSecurityUtils.doPrivileged(() -> JOB_TARGET_SERVICE.find(jobExecution.getScopeId(), jobTargetId));
+
+                    jobTarget.setStepIndex(resetToStepIndex);
+                    jobTarget.setStatus(JobTargetStatus.PROCESS_AWAITING);
+                    jobTarget.setStatusMessage(null);
+                    jobTarget.setException(null);
+
+                    KapuaSecurityUtils.doPrivileged(() -> JOB_TARGET_SERVICE.update(jobTarget));
+                }
+            } catch (KapuaException e) {
+                jobLogger.error(e, "Resetting {} targets to step index: {}... ERROR!", jobExecution.getTargetIds().size(), resetToStepIndex);
+            }
+            jobLogger.info("Resetting {} targets to step index: {}... DONE!", jobExecution.getTargetIds().size(), resetToStepIndex);
         }
 
         jobLogger.info("Running before job... DONE!");
@@ -182,21 +216,24 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
 
         KapuaId kapuaExecutionId = jobContextWrapper.getKapuaExecutionId();
         if (kapuaExecutionId == null) {
-            String msg = String.format("Cannot update job execution (internal reference [%d]). Cannot find 'executionId' in JobContext", jobContextWrapper.getExecutionId());
-            LOG.error(msg);
+            LOG.error("Cannot update job execution (internal reference [{}]). Cannot find 'executionId' in JobContext", jobContextWrapper.getExecutionId());
             // Don't send any exception to prevent the job engine to set the job exit status as failed!
         } else {
             JobExecution jobExecution = KapuaSecurityUtils.doPrivileged(() -> JOB_EXECUTION_SERVICE.find(jobContextWrapper.getScopeId(), kapuaExecutionId));
 
-            jobExecution.setLog(jobLogger.flush());
-            jobExecution.setEndedOn(new Date());
+            if (jobExecution != null) {
+                jobExecution.setLog(jobLogger.flush());
+                jobExecution.setEndedOn(new Date());
 
-            KapuaSecurityUtils.doPrivileged(() -> JOB_EXECUTION_SERVICE.update(jobExecution));
+                KapuaSecurityUtils.doPrivileged(() -> JOB_EXECUTION_SERVICE.update(jobExecution));
 
-            checkQueuedJobExecutions(
-                    jobContextWrapper.getScopeId(),
-                    jobContextWrapper.getJobId(),
-                    jobContextWrapper.getKapuaExecutionId());
+                checkQueuedJobExecutions(
+                        jobContextWrapper.getScopeId(),
+                        jobContextWrapper.getJobId(),
+                        jobContextWrapper.getKapuaExecutionId());
+            } else {
+                LOG.warn("Cannot find job execution with id: {}. This is likely to happen with the Job has been forcibly deleted.", kapuaExecutionId);
+            }
         }
         jobLogger.info("Running after job... DONE!");
     }
@@ -216,11 +253,15 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
      * @since 1.1.0
      */
     private JobExecution createJobExecution(KapuaId scopeId, KapuaId jobId, JobTargetSublist jobTargetSublist, Long jBatchExecutionId) throws KapuaException {
+
+        Properties jobExecutionProperties = new Properties();
+        jobExecutionProperties.put(JBATCH_EXECUTION_ID, Long.toString(jBatchExecutionId));
+
         JobExecutionCreator jobExecutionCreator = JOB_EXECUTION_FACTORY.newCreator(scopeId);
 
         jobExecutionCreator.setJobId(jobId);
         jobExecutionCreator.setStartedOn(new Date());
-        jobExecutionCreator.getEntityAttributes().put(JBATCH_EXECUTION_ID, Long.toString(jBatchExecutionId));
+        jobExecutionCreator.setEntityAttributes(jobExecutionProperties);
 
         if (jobTargetSublist.isEmpty()) {
             JobTargetQuery jobTargetQuery = JOB_TARGET_FACTORY.newQuery(scopeId);
@@ -257,15 +298,16 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
      * <p>
      * In other all other cases returns {@code null}.
      *
-     * @param scopeId           The current {@link JobExecution#getScopeId()}
-     * @param jobId             The current {@link JobExecution#getJobId()}
-     * @param jobName           The current {@link JobContextWrapper#getJobName()}
-     * @param jobTargetIdSubset The current {@link JobExecution#getTargetIds()} }
-     * @return The current running {@link JobExecution} or {@code null} if there is no running {@link JobExecution}
+     * @param scopeId               The current {@link JobExecution#getScopeId()}.
+     * @param jobId                 The current {@link JobExecution#getJobId()}.
+     * @param currentJobExecutionId The current {@link JobExecution#getId()}.
+     * @param jobName               The current {@link JobContextWrapper#getJobName()}.
+     * @param jobTargetIdSubset     The current {@link JobExecution#getTargetIds()} }.
+     * @return The other running {@link JobExecution} or {@code null} if there is no other running {@link JobExecution}.
      * @throws KapuaException If any error happens during the processing.
      * @since 1.1.0
      */
-    private JobExecution getAnotherJobExecutionRunning(KapuaId scopeId, KapuaId jobId, String jobName, Set<KapuaId> jobTargetIdSubset) throws KapuaException {
+    private JobExecution getAnotherJobExecutionRunning(KapuaId scopeId, KapuaId jobId, KapuaId currentJobExecutionId, String jobName, Set<KapuaId> jobTargetIdSubset) throws KapuaException {
         List<Long> runningExecutionsIds = BatchRuntime.getJobOperator().getRunningExecutions(jobName);
         if (runningExecutionsIds.size() > 1) {
 
@@ -274,12 +316,13 @@ public class KapuaJobListener extends AbstractJobListener implements JobListener
             jobExecutionQuery.setPredicate(
                     jobExecutionQuery.andPredicate(
                             jobExecutionQuery.attributePredicate(JobExecutionAttributes.JOB_ID, jobId),
+                            jobExecutionQuery.attributePredicate(JobExecutionAttributes.ENTITY_ID, currentJobExecutionId, AttributePredicate.Operator.NOT_EQUAL),
                             jobExecutionQuery.attributePredicate(JobExecutionAttributes.ENDED_ON, null),
                             jobExecutionQuery.attributePredicate(JobExecutionAttributes.TARGET_IDS, jobTargetIdSubset.toArray())
                     )
             );
 
-            jobExecutionQuery.setSortCriteria(new FieldSortCriteria(JobExecutionAttributes.STARTED_ON, FieldSortCriteria.SortOrder.ASCENDING));
+            jobExecutionQuery.setSortCriteria(jobExecutionQuery.fieldSortCriteria(JobExecutionAttributes.STARTED_ON, SortOrder.ASCENDING));
 
             JobExecutionListResult jobExecutions = KapuaSecurityUtils.doPrivileged(() -> JOB_EXECUTION_SERVICE.query(jobExecutionQuery));
 

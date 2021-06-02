@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,18 +13,19 @@
 package org.eclipse.kapua.app.console.core.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import org.eclipse.kapua.KapuaIllegalArgumentException;
 import org.eclipse.kapua.app.console.core.server.util.SsoHelper;
 import org.eclipse.kapua.app.console.core.server.util.SsoLocator;
 import org.eclipse.kapua.app.console.core.shared.model.GwtProductInformation;
 import org.eclipse.kapua.app.console.core.shared.service.GwtSettingsService;
+import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
+import org.eclipse.kapua.app.console.module.api.server.util.KapuaExceptionHandler;
 import org.eclipse.kapua.app.console.module.api.setting.ConsoleSetting;
 import org.eclipse.kapua.app.console.module.api.setting.ConsoleSettingKeys;
 
+import java.net.URI;
 import java.util.UUID;
 
-/**
- * This is the security token service, a concrete implementation to fix the XSFR security problem.
- */
 public class GwtSettingsServiceImpl extends RemoteServiceServlet implements GwtSettingsService {
 
     private static final long serialVersionUID = -6876999298300071273L;
@@ -40,17 +42,43 @@ public class GwtSettingsServiceImpl extends RemoteServiceServlet implements GwtS
     }
 
     @Override
-    public String getSsoLoginUri() {
-        return SsoLocator.getLocator(this).getService().getLoginUri(UUID.randomUUID().toString(), SsoHelper.getRedirectUri());
+    public String getOpenIDLoginUri() throws GwtKapuaException {
+        try {
+            return SsoLocator.getLocator(this).getService().getLoginUri(UUID.randomUUID().toString(), SsoHelper.getRedirectUri());
+        } catch (Throwable t) {
+            KapuaExceptionHandler.handle(t);
+            return null;
+        }
     }
 
     @Override
-    public boolean getSsoEnabled() {
+    public String getOpenIDLogoutUri(String idToken) throws GwtKapuaException {
+        try {
+            if (SETTINGS.getBoolean(ConsoleSettingKeys.SSO_OPENID_USER_LOGOUT_ENABLED, true)) {
+                if (idToken.isEmpty()) {
+                    throw new KapuaIllegalArgumentException("ssoIdToken", idToken);
+                }
+                return SsoLocator.getLocator(this).getService().getLogoutUri(
+                        idToken, URI.create(SsoHelper.getHomeUri()), UUID.randomUUID().toString());}
+            return "";  // return empty string instead of using a dedicated callback just to check if the logout is enabled
+        } catch (Throwable t) {
+            KapuaExceptionHandler.handle(t);
+            return null;
+        }
+    }
+
+    @Override
+    public boolean getOpenIDEnabled() {
         return SsoLocator.getLocator(this).getService().isEnabled();
     }
 
     @Override
-    public String getHomeUri() {
-        return SETTINGS.getString(ConsoleSettingKeys.SITE_HOME_URI);
+    public String getHomeUri() throws GwtKapuaException {
+        try {
+            return SsoHelper.getHomeUri();
+        } catch (Throwable t) {
+            KapuaExceptionHandler.handle(t);
+            return null;
+        }
     }
 }

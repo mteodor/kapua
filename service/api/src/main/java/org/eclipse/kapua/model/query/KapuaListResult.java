@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2016, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -33,7 +34,7 @@ import java.util.List;
  */
 @XmlRootElement(name = "result")
 @XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlType(propOrder = {"limitExceeded", "size", "items"})
+@XmlType(propOrder = {"limitExceeded", "size", "items", "totalCount"})
 public interface KapuaListResult<E extends KapuaEntity> extends KapuaSerializable {
 
     /**
@@ -82,7 +83,8 @@ public interface KapuaListResult<E extends KapuaEntity> extends KapuaSerializabl
     E getItem(int i);
 
     /**
-     * Gets the first {@link KapuaEntity} in the {@link KapuaListResult}.<br>
+     * Gets the first {@link KapuaEntity} in the {@link KapuaListResult}.
+     * <p>
      * It returns {@code null} if {@link KapuaListResult#isEmpty()}.
      *
      * @return The first element in the {@link KapuaListResult} or {@code null} if not present.
@@ -91,7 +93,7 @@ public interface KapuaListResult<E extends KapuaEntity> extends KapuaSerializabl
     E getFirstItem();
 
     /**
-     * Gets the result {@link List} size
+     * Gets the result {@link KapuaListResult} size
      *
      * @return The result list size
      * @see List#size()
@@ -101,7 +103,7 @@ public interface KapuaListResult<E extends KapuaEntity> extends KapuaSerializabl
     int getSize();
 
     /**
-     * Checks if the result {@link List} is empty
+     * Checks if the result {@link KapuaListResult} is empty
      *
      * @return {@code true} if the result list is empty, {@code false} otherwise
      * @see List#isEmpty()
@@ -110,7 +112,7 @@ public interface KapuaListResult<E extends KapuaEntity> extends KapuaSerializabl
     boolean isEmpty();
 
     /**
-     * Adds {@link KapuaEntity}s to the result {@link List}
+     * Adds {@link KapuaEntity}s to the result {@link KapuaListResult}
      *
      * @param items The {@link KapuaEntity}s to add.
      * @see List#addAll(Collection)
@@ -119,7 +121,14 @@ public interface KapuaListResult<E extends KapuaEntity> extends KapuaSerializabl
     void addItems(@NotNull Collection<? extends E> items);
 
     /**
-     * Clears {@link KapuaEntity} result {@link List}
+     * Adds a {@link KapuaEntity} to the {@link KapuaListResult}.
+     *
+     * @param item The {@link KapuaEntity} to add.
+     */
+    void addItem(@NotNull E item);
+
+    /**
+     * Clears {@link KapuaEntity} result {@link KapuaListResult}
      *
      * @see List#clear()
      * @since 1.0.0
@@ -135,4 +144,19 @@ public interface KapuaListResult<E extends KapuaEntity> extends KapuaSerializabl
      * @since 1.0.0
      */
     void sort(@NotNull Comparator<E> comparator);
+
+    /**
+     * Gets the total count of entries that match the {@link KapuaQuery#getPredicate()}s regardless of {@link KapuaQuery#getLimit()} and {@link KapuaQuery#getOffset()}
+     *
+     * @return The total count
+     * @since 1.2.0
+     */
+    Long getTotalCount();
+
+    /**
+     * Sets the total count of entries that match the {@link KapuaQuery#getPredicate()}s regardless of {@link KapuaQuery#getLimit()} and {@link KapuaQuery#getOffset()}.
+     *
+     * @since 1.2.0
+     */
+    void setTotalCount(Long totalCount);
 }

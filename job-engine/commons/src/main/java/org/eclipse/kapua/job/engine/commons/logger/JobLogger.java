@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2019, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -51,6 +52,8 @@ public class JobLogger {
     private static final String PRE_EXEC_LOG_FORMAT_LEVEL_ERROR = "[ERROR] ";
     private static final String PRE_EXEC_LOG_FORMAT_DATE = "{} - ";
     private static final String POST_EXEC_LOG_FORMAT_ERROR = " {}";
+
+    private static final String CANNOT_LOG_THIS_LINE = "Cannot log this line: ";
 
     private Logger containerClassLog;
 
@@ -145,7 +148,7 @@ public class JobLogger {
 
             logSb.append(MessageFormat.format(formatSb.toString(), finalArguments.toArray())).append(LF);
         } catch (Exception e) {
-            LOG.error("Cannot log this line: " + format, e);
+            LOG.error(CANNOT_LOG_THIS_LINE + format, e);
         }
     }
 
@@ -230,7 +233,7 @@ public class JobLogger {
 
             logSb.append(MessageFormat.format(formatSb.toString(), finalArguments.toArray())).append(LF);
         } catch (Exception e) {
-            LOG.error("Cannot log this line: " + format, e);
+            LOG.error(CANNOT_LOG_THIS_LINE + format, e);
         }
     }
 
@@ -315,7 +318,7 @@ public class JobLogger {
 
             logSb.append(MessageFormat.format(formatSb.toString(), finalArguments.toArray())).append(LF);
         } catch (Exception e) {
-            LOG.error("Cannot log this line: " + format, e);
+            LOG.error(CANNOT_LOG_THIS_LINE + format, e);
         }
     }
 

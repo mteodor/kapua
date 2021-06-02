@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,28 +15,19 @@ package org.eclipse.kapua.service.device.management.bundle.internal;
 
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.util.ArgumentValidator;
-import org.eclipse.kapua.commons.util.xml.XmlUtil;
 import org.eclipse.kapua.locator.KapuaProvider;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.device.management.DeviceManagementDomains;
 import org.eclipse.kapua.service.device.management.bundle.DeviceBundleManagementService;
 import org.eclipse.kapua.service.device.management.bundle.DeviceBundles;
-import org.eclipse.kapua.service.device.management.bundle.internal.exception.BundleGetManagementException;
-import org.eclipse.kapua.service.device.management.bundle.internal.exception.BundleManagementResponseErrorCodes;
 import org.eclipse.kapua.service.device.management.bundle.message.internal.BundleRequestChannel;
 import org.eclipse.kapua.service.device.management.bundle.message.internal.BundleRequestMessage;
 import org.eclipse.kapua.service.device.management.bundle.message.internal.BundleRequestPayload;
 import org.eclipse.kapua.service.device.management.bundle.message.internal.BundleResponseMessage;
-import org.eclipse.kapua.service.device.management.bundle.message.internal.BundleResponsePayload;
 import org.eclipse.kapua.service.device.management.commons.AbstractDeviceManagementServiceImpl;
 import org.eclipse.kapua.service.device.management.commons.call.DeviceCallExecutor;
-import org.eclipse.kapua.service.device.management.commons.exception.DeviceManagementErrorCodes;
-import org.eclipse.kapua.service.device.management.commons.exception.DeviceManagementException;
-import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSetting;
-import org.eclipse.kapua.service.device.management.commons.setting.DeviceManagementSettingKey;
 import org.eclipse.kapua.service.device.management.message.KapuaMethod;
-import org.eclipse.kapua.service.device.management.message.response.KapuaResponsePayload;
 
 import java.util.Date;
 
@@ -47,13 +39,16 @@ import java.util.Date;
 @KapuaProvider
 public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementServiceImpl implements DeviceBundleManagementService {
 
+    private static final String SCOPE_ID = "scopeId";
+    private static final String DEVICE_ID = "deviceId";
+
     @Override
     public DeviceBundles get(KapuaId scopeId, KapuaId deviceId, Long timeout)
             throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(deviceId, "deviceId");
+        ArgumentValidator.notNull(scopeId, SCOPE_ID);
+        ArgumentValidator.notNull(deviceId, DEVICE_ID);
 
         //
         // Check Access
@@ -77,7 +72,7 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
 
         //
         // Do get
-        DeviceCallExecutor<BundleRequestChannel, BundleRequestPayload, BundleRequestMessage, BundleResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(bundleRequestMessage, timeout);
+        DeviceCallExecutor<?, ?, ?, BundleResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(bundleRequestMessage, timeout);
         BundleResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
@@ -86,34 +81,7 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
 
         //
         // Check response
-        if (responseMessage.getResponseCode().isAccepted()) {
-            BundleResponsePayload responsePayload = responseMessage.getPayload();
-
-            DeviceManagementSetting config = DeviceManagementSetting.getInstance();
-            String charEncoding = config.getString(DeviceManagementSettingKey.CHAR_ENCODING);
-
-            String body = null;
-            try {
-                body = new String(responsePayload.getBody(), charEncoding);
-            } catch (Exception e) {
-                throw new DeviceManagementException(DeviceManagementErrorCodes.RESPONSE_PARSE_EXCEPTION, e, (Object) responsePayload.getBody());
-            }
-
-            DeviceBundles deviceBundleList = null;
-            try {
-                deviceBundleList = XmlUtil.unmarshal(body, DeviceBundlesImpl.class);
-            } catch (Exception e) {
-                throw new DeviceManagementException(DeviceManagementErrorCodes.RESPONSE_PARSE_EXCEPTION,
-                        e,
-                        body);
-            }
-
-            return deviceBundleList;
-        } else {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new BundleGetManagementException(responseMessage.getResponseCode(), responsePayload.getExceptionMessage(), responsePayload.getExceptionStack());
-        }
+        return checkResponseAcceptedOrThrowError(responseMessage, () -> responseMessage.getPayload().getDeviceBundles());
     }
 
     @Override
@@ -121,8 +89,8 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
             throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(deviceId, "deviceId");
+        ArgumentValidator.notNull(scopeId, SCOPE_ID);
+        ArgumentValidator.notNull(deviceId, DEVICE_ID);
         ArgumentValidator.notEmptyOrNull(bundleId, "bundleId");
 
         //
@@ -149,8 +117,8 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
 
         //
         // Do start
-        DeviceCallExecutor deviceApplicationCall = new DeviceCallExecutor(bundleRequestMessage, timeout);
-        BundleResponseMessage responseMessage = (BundleResponseMessage) deviceApplicationCall.send();
+        DeviceCallExecutor<?, ?, ?, BundleResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(bundleRequestMessage, timeout);
+        BundleResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
         // Create event
@@ -158,11 +126,7 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
 
         //
         // Check response
-        if (!responseMessage.getResponseCode().isAccepted()) {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new KapuaException(BundleManagementResponseErrorCodes.BUNDLE_START_ERROR);
-        }
+        checkResponseAcceptedOrThrowError(responseMessage);
     }
 
     @Override
@@ -170,8 +134,8 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
             throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(deviceId, "deviceId");
+        ArgumentValidator.notNull(scopeId, SCOPE_ID);
+        ArgumentValidator.notNull(deviceId, DEVICE_ID);
         ArgumentValidator.notEmptyOrNull(bundleId, "bundleId");
 
         //
@@ -198,8 +162,8 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
 
         //
         // Do stop
-        DeviceCallExecutor deviceApplicationCall = new DeviceCallExecutor(bundleRequestMessage, timeout);
-        BundleResponseMessage responseMessage = (BundleResponseMessage) deviceApplicationCall.send();
+        DeviceCallExecutor<?, ?, ?, BundleResponseMessage> deviceApplicationCall = new DeviceCallExecutor<>(bundleRequestMessage, timeout);
+        BundleResponseMessage responseMessage = deviceApplicationCall.send();
 
         //
         // Create event
@@ -207,11 +171,7 @@ public class DeviceBundleManagementServiceImpl extends AbstractDeviceManagementS
 
         //
         // Check response
-        if (!responseMessage.getResponseCode().isAccepted()) {
-            KapuaResponsePayload responsePayload = responseMessage.getPayload();
-
-            throw new KapuaException(BundleManagementResponseErrorCodes.BUNDLE_STOP_ERROR);
-        }
+        checkResponseAcceptedOrThrowError(responseMessage);
     }
 
 }

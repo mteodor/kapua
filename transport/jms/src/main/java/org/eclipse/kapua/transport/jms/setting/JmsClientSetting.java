@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -22,21 +23,21 @@ public class JmsClientSetting extends AbstractKapuaSetting<JmsClientSettingKeys>
 
     /**
      * Resource file from which source properties.
-     * 
+     *
      * @since 1.0.0
      */
     private static final String JMS_CLIENT_CONFIG_RESOURCE = "jms-client-setting.properties";
 
     /**
      * Singleton instance of this {@link Class}.
-     * 
+     *
      * @since 1.0.0
      */
     private static final JmsClientSetting INSTANCE = new JmsClientSetting();
 
     /**
      * Initialize the {@link AbstractKapuaSetting} with the {@link JmsClientSetting#JMS_CLIENT_CONFIG_RESOURCE} value.
-     * 
+     *
      * @since 1.0.0
      */
     private JmsClientSetting() {
@@ -45,7 +46,7 @@ public class JmsClientSetting extends AbstractKapuaSetting<JmsClientSettingKeys>
 
     /**
      * Gets a singleton instance of {@link JmsClientSetting}.
-     * 
+     *
      * @return A singleton instance of JmsClientSetting.
      * @since 1.0.0
      */

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -23,14 +24,14 @@ import org.eclipse.kapua.service.authorization.access.AccessRoleListResult;
 
 /**
  * {@link AccessRole} {@link ServiceDAO}
- * 
+ *
  * @since 1.0
  */
 public class AccessRoleDAO extends ServiceDAO {
 
     /**
      * Creates and return new access permission
-     * 
+     *
      * @param em
      * @param creator
      * @return
@@ -48,7 +49,7 @@ public class AccessRoleDAO extends ServiceDAO {
 
     /**
      * Find the access info by access permission identifier
-     * 
+     *
      * @param em
      * @param scopeId
      * @param accessRoleId
@@ -66,7 +67,7 @@ public class AccessRoleDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static AccessRoleListResult query(EntityManager em, KapuaQuery<AccessRole> accessInfoPermissionQuery)
+    public static AccessRoleListResult query(EntityManager em, KapuaQuery accessInfoPermissionQuery)
             throws KapuaException {
         return ServiceDAO.query(em, AccessRole.class, AccessRoleImpl.class, new AccessRoleListResultImpl(), accessInfoPermissionQuery);
     }
@@ -79,7 +80,7 @@ public class AccessRoleDAO extends ServiceDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<AccessRole> accessPermissionQuery)
+    public static long count(EntityManager em, KapuaQuery accessPermissionQuery)
             throws KapuaException {
         return ServiceDAO.count(em, AccessRole.class, AccessRoleImpl.class, accessPermissionQuery);
     }
@@ -90,10 +91,11 @@ public class AccessRoleDAO extends ServiceDAO {
      * @param em
      * @param scopeId
      * @param accessRoleId
+     * @return the deleted {@link AccessRole}
      * @throws KapuaEntityNotFoundException
      *             If {@link AccessRole} is not found.
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId accessRoleId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, AccessRoleImpl.class, scopeId, accessRoleId);
+    public static AccessRole delete(EntityManager em, KapuaId scopeId, KapuaId accessRoleId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, AccessRoleImpl.class, scopeId, accessRoleId);
     }
 }

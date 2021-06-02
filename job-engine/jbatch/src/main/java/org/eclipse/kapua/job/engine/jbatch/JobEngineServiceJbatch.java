@@ -1,15 +1,20 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.job.engine.jbatch;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
@@ -18,17 +23,19 @@ import org.eclipse.kapua.commons.util.ArgumentValidator;
 import org.eclipse.kapua.job.engine.JobEngineService;
 import org.eclipse.kapua.job.engine.JobStartOptions;
 import org.eclipse.kapua.job.engine.jbatch.driver.JbatchDriver;
-import org.eclipse.kapua.job.engine.jbatch.exception.CleanJobDataException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobCheckRunningException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobInvalidTargetException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobNotRunningException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobRunningException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobStartingException;
-import org.eclipse.kapua.job.engine.jbatch.exception.JobStopppingException;
-import org.eclipse.kapua.job.engine.jbatch.exception.KapuaJobEngineErrorCodes;
-import org.eclipse.kapua.job.engine.jbatch.exception.KapuaJobEngineException;
+import org.eclipse.kapua.job.engine.exception.CleanJobDataException;
+import org.eclipse.kapua.job.engine.exception.JobCheckRunningException;
+import org.eclipse.kapua.job.engine.exception.JobInvalidTargetException;
+import org.eclipse.kapua.job.engine.exception.JobMissingStepException;
+import org.eclipse.kapua.job.engine.exception.JobMissingTargetException;
+import org.eclipse.kapua.job.engine.exception.JobNotRunningException;
+import org.eclipse.kapua.job.engine.exception.JobResumingException;
+import org.eclipse.kapua.job.engine.exception.JobRunningException;
+import org.eclipse.kapua.job.engine.exception.JobStartingException;
+import org.eclipse.kapua.job.engine.exception.JobStoppingException;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.locator.KapuaProvider;
+import org.eclipse.kapua.model.KapuaEntityAttributes;
 import org.eclipse.kapua.model.domain.Actions;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.authorization.AuthorizationService;
@@ -65,6 +72,8 @@ public class JobEngineServiceJbatch implements JobEngineService {
     private static final JobTargetService JOB_TARGET_SERVICE = LOCATOR.getService(JobTargetService.class);
     private static final JobTargetFactory JOB_TARGET_FACTORY = LOCATOR.getFactory(JobTargetFactory.class);
 
+    private static final String JOB_EXECUTION_ID = "jobExecutionId";
+
     @Override
     public void startJob(KapuaId scopeId, KapuaId jobId) throws KapuaException {
         startJob(scopeId, jobId, new JobStartOptionsImpl());
@@ -74,8 +83,8 @@ public class JobEngineServiceJbatch implements JobEngineService {
     public void startJob(KapuaId scopeId, KapuaId jobId, JobStartOptions jobStartOptions) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
         ArgumentValidator.notNull(jobStartOptions, "jobStartOptions");
 
         //
@@ -94,7 +103,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
         JobTargetQuery jobTargetQuery = JOB_TARGET_FACTORY.newQuery(scopeId);
         jobTargetQuery.setPredicate(jobTargetQuery.attributePredicate(JobTargetAttributes.JOB_ID, jobId));
         if (JOB_TARGET_SERVICE.count(jobTargetQuery) <= 0) {
-            throw new KapuaJobEngineException(KapuaJobEngineErrorCodes.JOB_TARGET_MISSING);
+            throw new JobMissingTargetException(scopeId, jobId);
         }
 
         //
@@ -103,7 +112,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
             jobTargetQuery.setPredicate(
                     jobTargetQuery.andPredicate(
                             jobTargetQuery.getPredicate(),
-                            jobTargetQuery.attributePredicate(JobTargetAttributes.ENTITY_ID, jobStartOptions.getTargetIdSublist().toArray())
+                            jobTargetQuery.attributePredicate(KapuaEntityAttributes.ENTITY_ID, jobStartOptions.getTargetIdSublist().toArray())
                     )
             );
 
@@ -117,7 +126,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
         JobStepQuery jobStepQuery = JOB_STEP_FACTORY.newQuery(scopeId);
         jobStepQuery.setPredicate(jobStepQuery.attributePredicate(JobStepAttributes.JOB_ID, jobId));
         if (JOB_STEP_SERVICE.count(jobStepQuery) <= 0) {
-            throw new KapuaJobEngineException(KapuaJobEngineErrorCodes.JOB_STEP_MISSING);
+            throw new JobMissingStepException(scopeId, jobId);
         }
 
         //
@@ -133,13 +142,17 @@ public class JobEngineServiceJbatch implements JobEngineService {
     public boolean isRunning(KapuaId scopeId, KapuaId jobId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
-        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.execute, scopeId));
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.read, scopeId));
 
+        return internalIsRunning(scopeId, jobId);
+    }
+
+    private boolean internalIsRunning(KapuaId scopeId, KapuaId jobId) throws KapuaException {
         //
         // Check existence
         Job job = JOB_SERVICE.find(scopeId, jobId);
@@ -157,11 +170,34 @@ public class JobEngineServiceJbatch implements JobEngineService {
     }
 
     @Override
+    public Map<KapuaId, Boolean> isRunning(KapuaId scopeId, Set<KapuaId> jobIds) throws KapuaException {
+        //
+        // Argument Validation
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+
+        //
+        // Check Access
+        AUTHORIZATION_SERVICE.checkPermission(PERMISSION_FACTORY.newPermission(JobDomains.JOB_DOMAIN, Actions.read, scopeId));
+
+        Map<KapuaId, Boolean> isRunningMap = new HashMap<>();
+        jobIds.forEach(jobId -> {
+            try {
+                ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
+                isRunningMap.put(jobId, internalIsRunning(scopeId, jobId));
+            } catch (KapuaException kapuaException) {
+                // No other way to report an error?
+                isRunningMap.put(jobId, null);
+            }
+        });
+        return isRunningMap;
+    }
+
+    @Override
     public void stopJob(KapuaId scopeId, KapuaId jobId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
@@ -185,7 +221,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
         try {
             JbatchDriver.stopJob(scopeId, jobId, null);
         } catch (Exception e) {
-            throw new JobStopppingException(e, scopeId, jobId);
+            throw new JobStoppingException(e, scopeId, jobId);
         }
     }
 
@@ -193,9 +229,9 @@ public class JobEngineServiceJbatch implements JobEngineService {
     public void stopJobExecution(KapuaId scopeId, KapuaId jobId, KapuaId jobExecutionId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
-        ArgumentValidator.notNull(jobExecutionId, "jobExecutionId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
+        ArgumentValidator.notNull(jobExecutionId, JOB_EXECUTION_ID);
 
         //
         // Check Access
@@ -218,7 +254,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
         //
         // Check that JobExecution belongs to the Job
         if (!jobExecution.getJobId().equals(jobId)) {
-            throw new KapuaIllegalArgumentException("jobExecutionId", jobExecutionId.toString());
+            throw new KapuaIllegalArgumentException(JOB_EXECUTION_ID, jobExecutionId.toString());
         }
 
         //
@@ -226,7 +262,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
         try {
             JbatchDriver.stopJob(scopeId, jobId, jobExecutionId);
         } catch (Exception e) {
-            throw new JobStopppingException(e, scopeId, jobId, jobExecutionId);
+            throw new JobStoppingException(e, scopeId, jobId, jobExecutionId);
         }
 
     }
@@ -235,9 +271,9 @@ public class JobEngineServiceJbatch implements JobEngineService {
     public void resumeJobExecution(KapuaId scopeId, KapuaId jobId, KapuaId jobExecutionId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
-        ArgumentValidator.notNull(jobExecutionId, "jobExecutionId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
+        ArgumentValidator.notNull(jobExecutionId, JOB_EXECUTION_ID);
 
         //
         // Check Access
@@ -253,6 +289,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
         //
         // Check execution existence
         JobExecution jobExecution = JOB_EXECUTION_SERVICE.find(scopeId, jobExecutionId);
+
         if (jobExecution == null) {
             throw new KapuaEntityNotFoundException(Job.TYPE, jobId);
         }
@@ -260,25 +297,24 @@ public class JobEngineServiceJbatch implements JobEngineService {
         //
         // Check that JobExecution belongs to the Job
         if (!jobExecution.getJobId().equals(jobId)) {
-            throw new KapuaIllegalArgumentException("jobExecutionId", jobExecutionId.toString());
+            throw new KapuaIllegalArgumentException(JOB_EXECUTION_ID, jobExecutionId.toString());
         }
 
         //
-        // Stop the JobExecution
+        // Resume the JobExecution
         try {
             JbatchDriver.resumeJob(scopeId, jobId, jobExecutionId);
         } catch (Exception e) {
-            throw new JobStopppingException(e, scopeId, jobId, jobExecutionId);
+            throw new JobResumingException(e, scopeId, jobId, jobExecutionId);
         }
-
     }
 
     @Override
     public void cleanJobData(KapuaId scopeId, KapuaId jobId) throws KapuaException {
         //
         // Argument Validation
-        ArgumentValidator.notNull(scopeId, "scopeId");
-        ArgumentValidator.notNull(jobId, "jobId");
+        ArgumentValidator.notNull(scopeId, KapuaEntityAttributes.SCOPE_ID);
+        ArgumentValidator.notNull(jobId, KapuaEntityAttributes.ENTITY_ID);
 
         //
         // Check Access
@@ -296,6 +332,7 @@ public class JobEngineServiceJbatch implements JobEngineService {
         if (JbatchDriver.isRunningJob(scopeId, jobId)) {
             throw new JobRunningException(scopeId, jobId);
         }
+
         try {
             JbatchDriver.cleanJobData(scopeId, jobId);
         } catch (Exception ex) {

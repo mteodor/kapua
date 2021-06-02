@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,7 +16,7 @@ import org.eclipse.kapua.commons.model.AbstractKapuaNamedEntityCreator;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.scheduler.trigger.Trigger;
 import org.eclipse.kapua.service.scheduler.trigger.TriggerCreator;
-import org.eclipse.kapua.service.scheduler.trigger.TriggerProperty;
+import org.eclipse.kapua.service.scheduler.trigger.definition.TriggerProperty;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,13 +35,15 @@ public class TriggerCreatorImpl extends AbstractKapuaNamedEntityCreator<Trigger>
     private Date endsOn;
     private String cronScheduling;
     private Long retryInterval;
+    private KapuaId triggerDefinitionId;
     private List<TriggerProperty> triggerProperties;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param scopeId
-     * @param name    trigger name
+     * @param scopeId The scope {@link KapuaId}.
+     * @param name    The name.
+     * @since 1.0.0
      */
     public TriggerCreatorImpl(KapuaId scopeId, String name) {
         super(scopeId, name);
@@ -87,12 +90,27 @@ public class TriggerCreatorImpl extends AbstractKapuaNamedEntityCreator<Trigger>
     }
 
     @Override
+    public KapuaId getTriggerDefinitionId() {
+        return triggerDefinitionId;
+    }
+
+    @Override
+    public void setTriggerDefinitionId(KapuaId triggerDefinitionId) {
+        this.triggerDefinitionId = triggerDefinitionId;
+    }
+
+    @Override
     public List<TriggerProperty> getTriggerProperties() {
         if (triggerProperties == null) {
             triggerProperties = new ArrayList<>();
         }
 
         return triggerProperties;
+    }
+
+    @Override
+    public TriggerProperty getTriggerProperty(String name) {
+        return getTriggerProperties().stream().filter(tp -> tp.getName().equals(name)).findAny().orElse(null);
     }
 
     @Override

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -23,6 +24,7 @@ import org.eclipse.kapua.commons.event.ServiceEventBusDriver;
 import org.eclipse.kapua.commons.event.ServiceEventBusManager;
 import org.eclipse.kapua.commons.event.ServiceEventMarshaler;
 import org.eclipse.kapua.commons.event.ServiceEventScope;
+import org.eclipse.kapua.commons.metric.MetricServiceFactory;
 import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.commons.security.KapuaSession;
 import org.eclipse.kapua.commons.setting.system.SystemSetting;
@@ -34,13 +36,13 @@ import org.eclipse.kapua.event.ServiceEventBusListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.Counter;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
@@ -54,12 +56,36 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.kapua.KapuaException;
+import org.eclipse.kapua.KapuaRuntimeException;
+import org.eclipse.kapua.commons.event.ServiceEventBusDriver;
+import org.eclipse.kapua.commons.event.ServiceEventBusManager;
+import org.eclipse.kapua.commons.event.ServiceEventMarshaler;
+import org.eclipse.kapua.commons.event.ServiceEventScope;
+import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
+import org.eclipse.kapua.commons.security.KapuaSession;
+import org.eclipse.kapua.commons.setting.system.SystemSetting;
+import org.eclipse.kapua.commons.setting.system.SystemSettingKey;
+import org.eclipse.kapua.event.ServiceEvent;
+import org.eclipse.kapua.event.ServiceEventBus;
+import org.eclipse.kapua.event.ServiceEventBusException;
+import org.eclipse.kapua.event.ServiceEventBusListener;
+
+import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.qpid.jms.jndi.JmsInitialContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * JMS event bus implementation
  *
  * @since 1.0
  */
-public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDriver, ExceptionListener {
+public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDriver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JMSServiceEventBus.class);
 
@@ -75,6 +101,9 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
     private EventBusJMSConnectionBridge eventBusJMSConnectionBridge;
     private ServiceEventMarshaler eventBusMarshaler;
 
+    private Counter reconnectionRetryCount;
+    private Counter connectionErrorCount;
+
     /**
      * Default constructor
      *
@@ -82,7 +111,9 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
      * @throws NamingException
      */
     public JMSServiceEventBus() throws JMSException, NamingException {
-        eventBusJMSConnectionBridge = new EventBusJMSConnectionBridge(this);
+        reconnectionRetryCount = MetricServiceFactory.getInstance().getCounter("event_bus", "handler", "reconnection_retry", "count");
+        connectionErrorCount = MetricServiceFactory.getInstance().getCounter("event_bus", "handler", "connection_error", "count");
+        eventBusJMSConnectionBridge = new EventBusJMSConnectionBridge();
     }
 
     @Override
@@ -148,25 +179,6 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
         return this;
     }
 
-    @Override
-    public void onException(JMSException e) {
-        LOGGER.error("Connection to the event bus thrown exception: {}", e.getMessage(), e);
-        int i = 1;
-        while (true) {
-            LOGGER.info("EventBus restarting attempt... {}", i);
-            try {
-                restart();
-                LOGGER.info("EventBus restarting attempt... {} DONE", i);
-                LOGGER.info("EventBus connection RESTORED");
-                break;
-            } catch (ServiceEventBusException | JMSException e1) {
-                LOGGER.error("Cannot start new event bus connection... try again...", e1);
-                waitBeforeRetry();
-            }
-            i++;
-        }
-    }
-
     private void waitBeforeRetry() {
         // wait a bit
         try {
@@ -176,12 +188,13 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
         }
     }
 
-    private void restart() throws ServiceEventBusException, JMSException {
+    private synchronized void restart() throws ServiceEventBusException, JMSException {
         // restart the event bus connection bridge with a new instance
         // so no synchronization is needed
         EventBusJMSConnectionBridge instanceToCleanUp = null;
+        EventBusJMSConnectionBridge newInstance = null;
         try {
-            EventBusJMSConnectionBridge newInstance = new EventBusJMSConnectionBridge(this);
+            newInstance = new EventBusJMSConnectionBridge();
             newInstance.start();
             // restore subscriptions
             for (Subscription subscription : subscriptionList) {
@@ -189,18 +202,31 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
             }
             instanceToCleanUp = eventBusJMSConnectionBridge;
             eventBusJMSConnectionBridge = newInstance;
-        } catch (Throwable t) {
-            throw new ServiceEventBusException(t);
+        } catch (Exception e) {
+            LOGGER.warn("Error while creating new Service Event Bus instance: {}", e.getMessage());
+            //try to cleanup the messy instance
+            if (newInstance!=null) {
+                try {
+                    LOGGER.warn("Stopping new Service Event Bus instance...");
+                    newInstance.stop();
+                    LOGGER.warn("Stopping new Service Event Bus instance... DONE");
+                }
+                catch(Exception e1) {
+                    //don't throw this exception since the real exception is the first one
+                    LOGGER.warn("Stopping new Service Event Bus instance error: {}", e1.getMessage(), e1);
+                }
+            }
+            throw new ServiceEventBusException(e);
         } finally {
             try {
                 if (instanceToCleanUp != null) {
-                    LOGGER.info("Cleanup old JMSConnectionBridge instance...");
+                    LOGGER.info("Stopping old Service Event Bus instance...");
                     instanceToCleanUp.stop();
                 } else {
-                    LOGGER.warn("Null old JMSConnectionBridge instance. no cleanup will be done...");
+                    LOGGER.warn("Stopping old Service Event Bus instance. Null instance found so nothig to do...");
                 }
             } catch (ServiceEventBusException e) {
-                LOGGER.error("Cannot destroy old event bus connection: {}", e.getMessage(), e);
+                LOGGER.error("Stopping old Service Event Bus instance. Cannot destroy instance: {}", e.getMessage(), e);
             } finally {
                 instanceToCleanUp = null;
             }
@@ -211,10 +237,10 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
 
         private Connection jmsConnection;
         private Map<String, SenderPool> senders = new HashMap<>();
-        private ExceptionListener exceptionListener;
+        private ExceptionListenerImpl exceptionListener;
 
-        public EventBusJMSConnectionBridge(ExceptionListener exceptionListener) {
-            this.exceptionListener = exceptionListener;
+        public EventBusJMSConnectionBridge() {
+            this.exceptionListener = new ExceptionListenerImpl();
         }
 
         void start() throws JMSException, NamingException, ServiceEventBusException {
@@ -239,6 +265,8 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
         void stop() throws ServiceEventBusException {
             try {
                 if (jmsConnection != null) {
+                    exceptionListener.stop();
+                    jmsConnection.setExceptionListener(null);
                     jmsConnection.close();
                 }
             } catch (JMSException e) {
@@ -297,33 +325,29 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
                     final Session jmsSession = jmsConnection.createSession(false, Session.AUTO_ACKNOWLEDGE);
                     Topic jmsTopic = jmsSession.createTopic(subscriptionStr);
                     MessageConsumer jmsConsumer = jmsSession.createSharedDurableConsumer(jmsTopic, subscription.getName());
-                    jmsConsumer.setMessageListener(new MessageListener() {
+                    jmsConsumer.setMessageListener(message -> {
+                        try {
+                            if (message instanceof TextMessage) {
+                                TextMessage textMessage = (TextMessage) message;
+                                final ServiceEvent kapuaEvent = eventBusMarshaler.unmarshal(textMessage.getText());
+                                setSession(kapuaEvent);
+                                KapuaSecurityUtils.doPrivileged(() -> {
+                                    try {
+                                        // restore event context
+                                        ServiceEventScope.set(kapuaEvent);
+                                        subscription.getKapuaEventListener().onKapuaEvent(kapuaEvent);
+                                    } finally {
+                                        ServiceEventScope.end();
+                                    }
+                                });
 
-                        @Override
-                        public void onMessage(Message message) {
-                            try {
-                                if (message instanceof TextMessage) {
-                                    TextMessage textMessage = (TextMessage) message;
-                                    final ServiceEvent kapuaEvent = eventBusMarshaler.unmarshal(textMessage.getText());
-                                    setSession(kapuaEvent);
-                                    KapuaSecurityUtils.doPrivileged(() -> {
-                                        try {
-                                            // restore event context
-                                            ServiceEventScope.set(kapuaEvent);
-                                            subscription.getKapuaEventListener().onKapuaEvent(kapuaEvent);
-                                        } finally {
-                                            ServiceEventScope.end();
-                                        }
-                                    });
-
-                                } else {
-                                    LOGGER.error("Discarding wrong event message type '{}'", message != null ? message.getClass() : "null");
-                                }
-                            } catch (Throwable t) {
-                                LOGGER.error(t.getMessage(), t);
-                                // throwing the exception to prevent the message acknowledging (https://docs.oracle.com/javaee/7/api/javax/jms/Session.html#AUTO_ACKNOWLEDGE)
-                                throw KapuaRuntimeException.internalError(t);
+                            } else {
+                                LOGGER.error("Discarding wrong event message type '{}'", message != null ? message.getClass() : "null");
                             }
+                        } catch (Throwable t) {
+                            LOGGER.error(t.getMessage(), t);
+                            // throwing the exception to prevent the message acknowledging (https://docs.oracle.com/javaee/7/api/javax/jms/Session.html#AUTO_ACKNOWLEDGE)
+                            throw KapuaRuntimeException.internalError(t);
                         }
                     });
                 }
@@ -424,6 +448,34 @@ public class JMSServiceEventBus implements ServiceEventBus, ServiceEventBusDrive
 
         }
 
+        private class ExceptionListenerImpl implements ExceptionListener {
+
+            private boolean active = true;
+
+            @Override
+            public void onException(JMSException e) {
+                LOGGER.error("EventBus Listener {} -  Connection thrown exception: {}", this, e.getMessage(), e);
+                connectionErrorCount.inc();
+                int i = 1;
+                while (active) {
+                    LOGGER.info("EventBus Listener {} - restarting attempt... {}", this, i);
+                    try {
+                        reconnectionRetryCount.inc();
+                        restart();
+                        LOGGER.info("EventBus Listener {} - EventBus restarting attempt... {} DONE (Connection restored)", this, i);
+                        break;
+                    } catch (ServiceEventBusException | JMSException e1) {
+                        LOGGER.error("EventBus Listener {} - Cannot start new event bus connection... try again...", this, e1);
+                        waitBeforeRetry();
+                    }
+                    i++;
+                }
+            }
+
+            public void stop() {
+                active = false;
+            }
+        }
     }
 
     private class Subscription {

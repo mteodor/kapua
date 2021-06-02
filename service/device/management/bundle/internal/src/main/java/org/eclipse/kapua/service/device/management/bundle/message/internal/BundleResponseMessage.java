@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -12,26 +13,17 @@
  *******************************************************************************/
 package org.eclipse.kapua.service.device.management.bundle.message.internal;
 
-import org.eclipse.kapua.message.internal.KapuaMessageImpl;
-import org.eclipse.kapua.service.device.management.message.response.KapuaResponseCode;
+import org.eclipse.kapua.service.device.management.bundle.DeviceBundle;
+import org.eclipse.kapua.service.device.management.commons.message.response.KapuaResponseMessageImpl;
 import org.eclipse.kapua.service.device.management.message.response.KapuaResponseMessage;
 
 /**
- * Device bundle information response message.
+ * {@link DeviceBundle} {@link KapuaResponseMessage} implementation.
+ *
+ * @since 1.0.0
  */
-public class BundleResponseMessage extends KapuaMessageImpl<BundleResponseChannel, BundleResponsePayload>
+public class BundleResponseMessage extends KapuaResponseMessageImpl<BundleResponseChannel, BundleResponsePayload>
         implements KapuaResponseMessage<BundleResponseChannel, BundleResponsePayload> {
 
-    private static final long serialVersionUID = 1L;
-    private KapuaResponseCode responseCode;
-
-    @Override
-    public KapuaResponseCode getResponseCode() {
-        return responseCode;
-    }
-
-    @Override
-    public void setResponseCode(KapuaResponseCode responseCode) {
-        this.responseCode = responseCode;
-    }
+    private static final long serialVersionUID = 7601989030774908547L;
 }

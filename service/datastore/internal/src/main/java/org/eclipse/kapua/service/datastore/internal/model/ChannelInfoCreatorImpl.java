@@ -1,25 +1,26 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.service.datastore.internal.model;
 
-import java.util.Date;
-
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.service.datastore.model.ChannelInfoCreator;
-import org.eclipse.kapua.service.datastore.model.StorableId;
+import org.eclipse.kapua.service.storable.model.id.StorableId;
+
+import java.util.Date;
 
 /**
- * Channel information schema creator implementation
- * 
+ * {@link ChannelInfoCreator} implementation.
+ *
  * @since 1.0.0
  */
 public class ChannelInfoCreatorImpl implements ChannelInfoCreator {
@@ -31,14 +32,13 @@ public class ChannelInfoCreatorImpl implements ChannelInfoCreator {
     private Date messageTimestamp;
 
     /**
-     * Construct a channel information creator for the given account
-     * 
-     * @param scopeId
-     * 
+     * Constructor.
+     *
+     * @param scopeId The scope {@link KapuaId}.
      * @since 1.0.0
      */
     public ChannelInfoCreatorImpl(KapuaId scopeId) {
-        this.scopeId = scopeId;
+        setScopeId(scopeId);
     }
 
     @Override
@@ -46,8 +46,9 @@ public class ChannelInfoCreatorImpl implements ChannelInfoCreator {
         return scopeId;
     }
 
-    protected void setScopeId(KapuaId scopeId) {
-        this.scopeId = scopeId != null ? scopeId : null;
+    @Override
+    public void setScopeId(KapuaId scopeId) {
+        this.scopeId = scopeId;
     }
 
     @Override
@@ -55,11 +56,7 @@ public class ChannelInfoCreatorImpl implements ChannelInfoCreator {
         return this.clientId;
     }
 
-    /**
-     * Set the client identifier
-     * 
-     * @param clientId
-     */
+    @Override
     public void setClientId(String clientId) {
         this.clientId = clientId;
     }

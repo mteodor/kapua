@@ -1,17 +1,17 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2018, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.api.client.ui.widget;
 
-import org.eclipse.kapua.app.console.module.api.client.ui.dialog.ActionDialog;
 import com.extjs.gxt.ui.client.event.BaseEvent;
 import com.extjs.gxt.ui.client.event.ComponentEvent;
 import com.extjs.gxt.ui.client.event.Events;
@@ -22,11 +22,12 @@ import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Timer;
+import org.eclipse.kapua.app.console.module.api.client.ui.dialog.ActionDialog;
 
 public class KapuaDateField extends DateField {
 
     private ActionDialog dialog;
-    private Boolean enabledDateFieldEvents = false;
+    private boolean enabledDateFieldEvents;
 
     public KapuaDateField() {
         super();
@@ -36,6 +37,7 @@ public class KapuaDateField extends DateField {
         super();
         this.dialog = actionDialog;
         this.enabledDateFieldEvents = true;
+
     }
 
     @Override
@@ -72,13 +74,15 @@ public class KapuaDateField extends DateField {
                         }
                     };
                     timer.schedule(100);
-                };
+                }
             }
         };
 
-        KeyNav<ComponentEvent> keyNav = new KeyNav<ComponentEvent>(KapuaDateField.this) {
+        new KeyNav<ComponentEvent>(KapuaDateField.this) {
+
+            @Override
             public void onKeyPress(ComponentEvent ce) {
-                if (ce.getKeyCode() == KeyCodes.KEY_TAB || ce.getKeyCode() == KeyCodes.KEY_ENTER ) {
+                if (ce.getKeyCode() == KeyCodes.KEY_TAB || ce.getKeyCode() == KeyCodes.KEY_ENTER) {
                     setDateFieldState();
                 }
             }
@@ -94,11 +98,7 @@ public class KapuaDateField extends DateField {
 
     private void setDateFieldState() {
         if (dialog != null) {
-            if (!KapuaDateField.this.getRawValue().isEmpty() && KapuaDateField.this.getOriginalValue() == null) {
-                dialog.setDateValueNotNull(true);
-            } else {
-                dialog.setDateValueNotNull(false);
-            }
+            dialog.setDateValueNotNull(!KapuaDateField.this.getRawValue().isEmpty() && KapuaDateField.this.getOriginalValue() == null);
         }
     }
 }

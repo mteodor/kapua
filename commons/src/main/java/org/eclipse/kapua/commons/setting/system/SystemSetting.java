@@ -1,15 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2016 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.commons.setting.system;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.kapua.KapuaErrorCodes;
 import org.eclipse.kapua.KapuaRuntimeException;
@@ -31,15 +35,17 @@ public class SystemSetting extends AbstractKapuaSetting<SystemSettingKey> {
     private static final SystemSetting INSTANCE = new SystemSetting();
     private static final String COMMONS_CONTROL_MESSAGE_CLASSIFIER = "commons.control_message.classifier";
 
+    private static final Pattern PATTERN = Pattern.compile("([#>./+*‌​])");
     // Constructors
 
     private SystemSetting() {
         super(CONFIG_RESOURCE_NAME);
     }
 
-    public String getMessageClassifier() throws KapuaRuntimeException {
+    public String getMessageClassifier() {
         String classifier = config.getString(COMMONS_CONTROL_MESSAGE_CLASSIFIER);
-        if (classifier.matches("([#>\\./\\+\\*‌​])")) {
+        Matcher matcher = PATTERN.matcher(classifier);
+        if (matcher.matches()) {
             throw new KapuaRuntimeException(KapuaErrorCodes.INTERNAL_ERROR, "The message classifier cannot contains special chars ('.', '/', '+', '*', '/', '>'");
         }
         return classifier;

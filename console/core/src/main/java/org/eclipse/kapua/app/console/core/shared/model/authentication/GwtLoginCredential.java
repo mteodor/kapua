@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -43,4 +44,35 @@ public class GwtLoginCredential extends KapuaBaseModel {
     public void setPassword(String password) {
         set("password", password);
     }
+
+    public String getAuthenticationCode() {
+        if (get("authenticationCode") != null) {
+            return KapuaSafeHtmlUtils.htmlUnescape(get("authenticationCode").toString());
+        }
+        return null;
+    }
+
+    public void setAuthenticationCode(String authenticationCode) {
+        set("authenticationCode", authenticationCode);
+    }
+
+    public String getTrustKey() {
+        if (get("trustKey") != null) {
+            return KapuaSafeHtmlUtils.htmlUnescape(get("trustKey").toString());
+        }
+        return null;
+    }
+
+    public void setTrustKey(String trustKey) {
+        set("trustKey", trustKey);
+    }
+
+    public boolean isTrustReq() {
+        return get("trustReq");
+    }
+
+    public void setTrustReq(boolean trustReq) {
+        set("trustReq", trustReq);
+    }
+
 }

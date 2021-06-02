@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -27,7 +28,7 @@ public class EventStoreDAO {
 
     /**
      * Creates and return new KapuaEvent
-     * 
+     *
      * @param em
      * @param kapuaEvent
      * @return
@@ -40,7 +41,7 @@ public class EventStoreDAO {
 
     /**
      * Updates the provided KapuaEvent
-     * 
+     *
      * @param em
      * @param kapuaEvent
      * @return
@@ -74,7 +75,7 @@ public class EventStoreDAO {
      * @return
      * @throws KapuaException
      */
-    public static EventStoreRecordListResult query(EntityManager em, KapuaQuery<EventStoreRecord> kapuaEventQuery)
+    public static EventStoreRecordListResult query(EntityManager em, KapuaQuery kapuaEventQuery)
             throws KapuaException {
         return ServiceDAO.query(em, EventStoreRecord.class, EventStoreRecordImpl.class, new EventStoreRecordListResultImpl(), kapuaEventQuery);
     }
@@ -87,7 +88,7 @@ public class EventStoreDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<EventStoreRecord> kapuaEventQuery)
+    public static long count(EntityManager em, KapuaQuery kapuaEventQuery)
             throws KapuaException {
         return ServiceDAO.count(em, EventStoreRecord.class, EventStoreRecordImpl.class, kapuaEventQuery);
     }
@@ -98,9 +99,10 @@ public class EventStoreDAO {
      * @param em
      * @param scopeId
      * @param eventId
+     * @return deleted entity
      * @throws KapuaEntityNotFoundException
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId eventId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, EventStoreRecordImpl.class, scopeId, eventId);
+    public static EventStoreRecord delete(EntityManager em, KapuaId scopeId, KapuaId eventId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, EventStoreRecordImpl.class, scopeId, eventId);
     }
 }

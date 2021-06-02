@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,6 +15,7 @@ package org.eclipse.kapua.app.console.core.shared.service;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import org.eclipse.kapua.app.console.core.shared.model.authentication.GwtJwtCredential;
+import org.eclipse.kapua.app.console.core.shared.model.authentication.GwtJwtIdToken;
 import org.eclipse.kapua.app.console.core.shared.model.authentication.GwtLoginCredential;
 import org.eclipse.kapua.app.console.module.api.client.GwtKapuaException;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
@@ -32,17 +34,19 @@ public interface GwtAuthorizationService extends RemoteService {
      * @throws GwtKapuaException If credentials are not valid.
      * @since 1.0.0
      */
-    public GwtSession login(GwtLoginCredential gwtLoginCredentials) throws GwtKapuaException;
+    public GwtSession login(GwtLoginCredential gwtLoginCredentials, boolean trustReq) throws GwtKapuaException;
 
     /**
-     * Logins a session based on the given access token. If the access token is correct a session is established and returned
+     * Logins a session based on the given access token. If the access token is correct a session is established and returned.
+     * An id token is also passed for identity information about the user.
      *
-     * @param gwtAccessTokenCredentials The access token to authenticate
+     * @param gwtAccessTokenCredentials The access token to authenticate.
+     * @param gwtJwtIdToken The id token which identifies the user.
      * @return The session info established.
      * @throws GwtKapuaException If the access token is not valid.
      * @since 1.0.0
      */
-    public GwtSession login(GwtJwtCredential gwtAccessTokenCredentials) throws GwtKapuaException;
+    public GwtSession login(GwtJwtCredential gwtAccessTokenCredentials, GwtJwtIdToken gwtJwtIdToken) throws GwtKapuaException;
 
     /**
      * Return the currently authenticated user or null if no session has been established.
@@ -62,5 +66,7 @@ public interface GwtAuthorizationService extends RemoteService {
      */
     public void logout()
             throws GwtKapuaException;
+
+    public boolean hasMfa(String username) throws GwtKapuaException;
 
 }

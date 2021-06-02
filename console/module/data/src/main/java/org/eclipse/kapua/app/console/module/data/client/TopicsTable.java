@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -42,7 +43,8 @@ import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
-import org.eclipse.kapua.app.console.module.api.client.ui.button.Button;
+import org.eclipse.kapua.app.console.module.api.client.ui.button.KapuaButton;
+import org.eclipse.kapua.app.console.module.api.client.ui.grid.KapuaTreeGrid;
 import org.eclipse.kapua.app.console.module.api.client.util.FailureHandler;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.data.client.messages.ConsoleDataMessages;
@@ -62,9 +64,11 @@ public class TopicsTable extends LayoutContainer {
     private ContentPanel tableContainer;
     private List<SelectionChangedListener<GwtTopic>> listeners = new ArrayList<SelectionChangedListener<GwtTopic>>();
     private TreeStore<GwtTopic> store;
-    private Button refreshButton;
+    private KapuaButton refreshButton;
 
     AsyncCallback<List<GwtTopic>> topicsCallback;
+
+    private static final String TOPIC_NAME = "topicName";
 
     public TopicsTable(GwtSession currentGwtSession) {
         this.currentSession = currentGwtSession;
@@ -73,9 +77,10 @@ public class TopicsTable extends LayoutContainer {
             @Override
             public void onSuccess(List<GwtTopic> topics) {
                 store.add(topics, true);
-                store.sort("topicName", Style.SortDir.ASC);
+                store.sort(TOPIC_NAME, Style.SortDir.ASC);
                 updateTimestamps(new ArrayList<ModelData>(topics));
                 topicInfoGrid.unmask();
+                topicInfoGrid.getView().scrollToTop();
                 refreshButton.enable();
             }
 
@@ -132,7 +137,7 @@ public class TopicsTable extends LayoutContainer {
         tableContainer.setLayout(new FitLayout());
         tableContainer.add(topicInfoGrid);
 
-        refreshButton = new Button(MSGS.refresh(), new KapuaIcon(IconSet.REFRESH), new SelectionListener<ButtonEvent>() {
+        refreshButton = new KapuaButton(MSGS.refresh(), new KapuaIcon(IconSet.REFRESH), new SelectionListener<ButtonEvent>() {
 
             @Override
             public void componentSelected(ButtonEvent ce) {
@@ -148,7 +153,7 @@ public class TopicsTable extends LayoutContainer {
     private void initTopicInfoGrid() {
         List<ColumnConfig> configs = new ArrayList<ColumnConfig>();
 
-        ColumnConfig column = new ColumnConfig("topicName", MSGS.topicInfoTableTopicHeader(), 150);
+        ColumnConfig column = new ColumnConfig(TOPIC_NAME, MSGS.topicInfoTableTopicHeader(), 150);
         column.setRenderer(new TreeGridCellRenderer<GwtTopic>());
         configs.add(column);
 
@@ -157,9 +162,9 @@ public class TopicsTable extends LayoutContainer {
         configs.add(column);
 
         store = new TreeStore<GwtTopic>();
-        store.setSortInfo(new SortInfo("topicName", Style.SortDir.ASC));
+        store.setSortInfo(new SortInfo(TOPIC_NAME, Style.SortDir.ASC));
         dataService.findTopicsTree(currentSession.getSelectedAccountId(), topicsCallback);
-        topicInfoGrid = new TreeGrid<GwtTopic>(store, new ColumnModel(configs));
+        topicInfoGrid = new KapuaTreeGrid<GwtTopic>(store, new ColumnModel(configs));
         topicInfoGrid.getView().setViewConfig(new GridViewConfig() {
             @Override
             public String getRowStyle(ModelData model, int rowIndex, ListStore<ModelData> ds) {

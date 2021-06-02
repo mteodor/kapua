@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -22,7 +23,6 @@ import com.extjs.gxt.ui.client.widget.grid.Grid;
 import com.extjs.gxt.ui.client.widget.grid.GridCellRenderer;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-
 import org.eclipse.kapua.app.console.module.api.client.messages.ConsoleMessages;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.IconSet;
 import org.eclipse.kapua.app.console.module.api.client.resources.icons.KapuaIcon;
@@ -35,8 +35,8 @@ import org.eclipse.kapua.app.console.module.api.shared.model.query.GwtQuery;
 import org.eclipse.kapua.app.console.module.api.shared.model.session.GwtSession;
 import org.eclipse.kapua.app.console.module.device.client.connection.toolbar.ConnectionGridToolbar;
 import org.eclipse.kapua.app.console.module.device.client.messages.ConsoleConnectionMessages;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnection;
-import org.eclipse.kapua.app.console.module.device.shared.model.GwtDeviceConnectionQuery;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnection;
+import org.eclipse.kapua.app.console.module.device.shared.model.connection.GwtDeviceConnectionQuery;
 import org.eclipse.kapua.app.console.module.device.shared.model.permission.DeviceConnectionSessionPermission;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceConnectionService;
 import org.eclipse.kapua.app.console.module.device.shared.service.GwtDeviceConnectionServiceAsync;
@@ -101,32 +101,32 @@ public class ConnectionGrid extends EntityGrid<GwtDeviceConnection> {
 
             @Override
             public String render(GwtDeviceConnection gwtDeviceConnection, String property, ColumnData config, int rowIndex, int colIndex, ListStore<GwtDeviceConnection> deviceList,
-                    Grid<GwtDeviceConnection> grid) {
+                                 Grid<GwtDeviceConnection> grid) {
 
                 KapuaIcon icon;
                 if (gwtDeviceConnection.getConnectionStatusEnum() != null) {
                     switch (gwtDeviceConnection.getConnectionStatusEnum()) {
-                    case CONNECTED:
-                        icon = new KapuaIcon(IconSet.PLUG);
-                        icon.setColor(Color.GREEN);
-                        icon.setTitle(CONNECTION_MSGS.connected());
-                        break;
-                    case DISCONNECTED:
-                        icon = new KapuaIcon(IconSet.PLUG);
-                        icon.setColor(Color.YELLOW);
-                        icon.setTitle(CONNECTION_MSGS.disconnected());
-                        break;
-                    case MISSING:
-                        icon = new KapuaIcon(IconSet.PLUG);
-                        icon.setColor(Color.RED);
-                        icon.setTitle(CONNECTION_MSGS.missing());
-                        break;
-                    default:
-                        icon = new KapuaIcon(IconSet.PLUG);
-                        icon.setColor(Color.GREY);
-                        icon.setTitle(CONNECTION_MSGS.unknown());
+                        case CONNECTED:
+                            icon = new KapuaIcon(IconSet.PLUG);
+                            icon.setColor(Color.GREEN);
+                            icon.setTitle(CONNECTION_MSGS.connected());
+                            break;
+                        case DISCONNECTED:
+                            icon = new KapuaIcon(IconSet.PLUG);
+                            icon.setColor(Color.YELLOW);
+                            icon.setTitle(CONNECTION_MSGS.disconnected());
+                            break;
+                        case MISSING:
+                            icon = new KapuaIcon(IconSet.PLUG);
+                            icon.setColor(Color.RED);
+                            icon.setTitle(CONNECTION_MSGS.missing());
+                            break;
+                        default:
+                            icon = new KapuaIcon(IconSet.PLUG);
+                            icon.setColor(Color.GREY);
+                            icon.setTitle(CONNECTION_MSGS.unknown());
 
-                        break;
+                            break;
                     }
                 } else {
                     icon = new KapuaIcon(IconSet.PLUG);

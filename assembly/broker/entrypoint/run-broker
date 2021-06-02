@@ -1,22 +1,18 @@
 #!/bin/bash
 ################################################################################
-#    Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+#    Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
 #
-#    All rights reserved. This program and the accompanying materials
-#    are made available under the terms of the Eclipse Public License v1.0
-#    which accompanies this distribution, and is available at
-#    http://www.eclipse.org/legal/epl-v10.html
+#    This program and the accompanying materials are made
+#    available under the terms of the Eclipse Public License 2.0
+#    which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+#    SPDX-License-Identifier: EPL-2.0
 #
 #    Contributors:
 #        Eurotech
 ################################################################################
 
 ACTIVEMQ_BASE="/var/opt/activemq"
-
-# Generate X509 certificate and private key
-openssl req -x509 -newkey rsa:4096 -keyout ${ACTIVEMQ_BASE}/key.pem -out ${ACTIVEMQ_BASE}/cert.pem -days 365 -nodes -subj '/O=Eclipse Kapua/C=XX'
-openssl pkcs8 -topk8 -in ${ACTIVEMQ_BASE}/key.pem -out ${ACTIVEMQ_BASE}/key.pk8 -nocrypt
-rm ${ACTIVEMQ_BASE}/key.pem
 
 ## Certificate Options
 
@@ -52,6 +48,11 @@ if [ "${KAPUA_DISABLE_SSL}" == "false" ]; then
     ACTIVEMQ_SSL_OPTS="${ACTIVEMQ_SSL_OPTS} -Djavax.net.ssl.trustStorePassword=${KAPUA_KEYSTORE_PASSWORD}"
 
     export ACTIVEMQ_SSL_OPTS
+fi
+
+if [ "${KAPUA_DISABLE_DATASTORE:-false}" == "true" ]; then
+  sed -i '/BEGIN DATASTORE PERSISTENCE/,/END DATASTORE PERSISTENCE/d' /opt/activemq/conf/camel.xml
+  sed -i '/BEGIN DATASTORE PERSISTENCE/,/END DATASTORE PERSISTENCE/d' /opt/activemq/conf/camel-routes.xml
 fi
 
 # Run broker

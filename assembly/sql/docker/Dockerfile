@@ -1,10 +1,11 @@
 ###############################################################################
-# Copyright (c) 2018 Eurotech and/or its affiliates and others
+# Copyright (c) 2018, 2021 Eurotech and/or its affiliates and others
 #
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
-# which accompanies this distribution, and is available at
-# http://www.eclipse.org/legal/epl-v10.html
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
 #
 # Contributors:
 #     Eurotech - initial API and implementation
@@ -21,7 +22,7 @@ RUN useradd -u 1001 -g 0 -d '/var/opt/h2' -s '/sbin/nologin' h2 && \
     mkdir -p /var/opt/h2/data && chmod -R a+rw /var/opt/h2 && \
     mkdir -p /opt/h2 && chmod a+r /opt/h2 && \
     cd /opt/h2 && \
-    curl -s http://repo2.maven.org/maven2/com/h2database/h2/1.4.193/h2-1.4.193.jar -o h2.jar
+    curl -s https://repo1.maven.org/maven2/com/h2database/h2/1.4.193/h2-1.4.193.jar -o h2.jar
 
 VOLUME /var/opt/h2/data
 

@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -24,6 +25,9 @@ public class GwtTopic extends KapuaBaseTreeModel implements Serializable, IsSeri
 
     static final Date NO_TIMESTAMP = new Date(0);
 
+    private static final String SEMANTIC_TOPIC = "semanticTopic";
+    private static final String TIMESTAMP = "timestamp";
+
     public GwtTopic() {
         super();
     }
@@ -32,8 +36,8 @@ public class GwtTopic extends KapuaBaseTreeModel implements Serializable, IsSeri
         this();
         set("topicName", topicName);
         set("baseTopic", baseTopic);
-        set("semanticTopic", semanticTopic);
-        set("timestamp", timestamp);
+        set(SEMANTIC_TOPIC, semanticTopic);
+        set(TIMESTAMP, timestamp);
 
         if (semanticTopic.split("/").length > 6) {
             int charIndex = 0;
@@ -83,19 +87,19 @@ public class GwtTopic extends KapuaBaseTreeModel implements Serializable, IsSeri
     }
 
     public String getSemanticTopic() {
-        return get("semanticTopic");
+        return get(SEMANTIC_TOPIC);
     }
 
     public String getUnescapedSemanticTopic() {
-        return getUnescaped("semanticTopic");
+        return getUnescaped(SEMANTIC_TOPIC);
     }
 
     public void setTimestamp(Date timestamp) {
-        set("timestamp", timestamp);
+        set(TIMESTAMP, timestamp);
     }
 
     public Date getTimestamp() {
-        return get("timestamp");
+        return get(TIMESTAMP);
     }
 
     public String getTimestampFormatted() {
@@ -103,7 +107,7 @@ public class GwtTopic extends KapuaBaseTreeModel implements Serializable, IsSeri
     }
 
     public String[] getTopicFragments() {
-        return ((String) get("semanticTopic")).split("/");
+        return ((String) get(SEMANTIC_TOPIC)).split("/");
     }
 
     @Override
@@ -113,4 +117,10 @@ public class GwtTopic extends KapuaBaseTreeModel implements Serializable, IsSeri
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
 }

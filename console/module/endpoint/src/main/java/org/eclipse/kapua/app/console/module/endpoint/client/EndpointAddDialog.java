@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 Eurotech and/or its affiliates and others
+ * Copyright (c) 2018, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -28,6 +29,7 @@ import org.eclipse.kapua.app.console.module.endpoint.shared.model.GwtEndpointCre
 import org.eclipse.kapua.app.console.module.endpoint.shared.model.validation.GwtEndpointValidationRegex;
 import org.eclipse.kapua.app.console.module.endpoint.shared.service.GwtEndpointService;
 import org.eclipse.kapua.app.console.module.endpoint.shared.service.GwtEndpointServiceAsync;
+import org.eclipse.kapua.service.endpoint.EndpointInfo;
 
 import com.extjs.gxt.ui.client.widget.form.CheckBox;
 import com.extjs.gxt.ui.client.widget.form.CheckBoxGroup;
@@ -101,15 +103,15 @@ public class EndpointAddDialog extends EntityAddEditDialog {
 
     public void validateEndPoint() {
         if (endpointSchemaField.getValue() == null || endpointDnsField.getValue() == null) {
-            ConsoleInfo.display("Error", CMSGS.allFieldsRequired());
+            ConsoleInfo.display(CMSGS.error(), CMSGS.allFieldsRequired());
         } else if (endpointPortField.getValue() == null) {
-            ConsoleInfo.display("Error", MSGS.portFieldEmptyOrInvalid());
+            ConsoleInfo.display(CMSGS.error(), MSGS.portFieldEmptyOrInvalid());
         } else if (!endpointSchemaField.isValid()) {
-            ConsoleInfo.display("Error", endpointSchemaField.getErrorMessage());
+            ConsoleInfo.display(CMSGS.error(), endpointSchemaField.getErrorMessage());
         } else if (!endpointDnsField.isValid()) {
-            ConsoleInfo.display("Error", endpointDnsField.getErrorMessage());
+            ConsoleInfo.display(CMSGS.error(), endpointDnsField.getErrorMessage());
         } else if (!endpointPortField.isValid()) {
-            ConsoleInfo.display("Error", endpointPortField.getErrorMessage());
+            ConsoleInfo.display(CMSGS.error(), endpointPortField.getErrorMessage());
         }
     }
 
@@ -127,6 +129,7 @@ public class EndpointAddDialog extends EntityAddEditDialog {
         gwtEndpointCreator.setDns(endpointDnsField.getValue());
         gwtEndpointCreator.setPort(endpointPortField.getValue());
         gwtEndpointCreator.setSecure(endpointSecureCheckboxGroup.getValue() != null);
+        gwtEndpointCreator.setEndpointType(EndpointInfo.ENDPOINT_TYPE_RESOURCE);
 
         GWT_ENDPOINT_SERVICE.create(gwtEndpointCreator, new AsyncCallback<GwtEndpoint>() {
 

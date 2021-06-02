@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -15,6 +16,7 @@ import org.eclipse.kapua.KapuaEntityNotFoundException;
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.jpa.EntityManager;
 import org.eclipse.kapua.commons.service.internal.ServiceDAO;
+import org.eclipse.kapua.model.KapuaNamedEntityAttributes;
 import org.eclipse.kapua.model.id.KapuaId;
 import org.eclipse.kapua.model.query.KapuaQuery;
 import org.eclipse.kapua.service.job.step.JobStep;
@@ -92,7 +94,7 @@ public class JobStepDAO {
      * @return
      */
     public static JobStep findByName(EntityManager em, String name) {
-        return ServiceDAO.findByField(em, JobStepImpl.class, "name", name);
+        return ServiceDAO.findByField(em, JobStepImpl.class, KapuaNamedEntityAttributes.NAME, name);
     }
 
     /**
@@ -103,7 +105,7 @@ public class JobStepDAO {
      * @return
      * @throws KapuaException
      */
-    public static JobStepListResult query(EntityManager em, KapuaQuery<JobStep> jobStepQuery)
+    public static JobStepListResult query(EntityManager em, KapuaQuery jobStepQuery)
             throws KapuaException {
         return ServiceDAO.query(em, JobStep.class, JobStepImpl.class, new JobStepListResultImpl(), jobStepQuery);
     }
@@ -116,7 +118,7 @@ public class JobStepDAO {
      * @return
      * @throws KapuaException
      */
-    public static long count(EntityManager em, KapuaQuery<JobStep> jobStepQuery)
+    public static long count(EntityManager em, KapuaQuery jobStepQuery)
             throws KapuaException {
         return ServiceDAO.count(em, JobStep.class, JobStepImpl.class, jobStepQuery);
     }
@@ -128,9 +130,10 @@ public class JobStepDAO {
      * @param em
      * @param scopeId
      * @param jobStepId
+     * @return the deleted entity
      * @throws KapuaEntityNotFoundException If the {@link JobStep} is not found
      */
-    public static void delete(EntityManager em, KapuaId scopeId, KapuaId jobStepId) throws KapuaEntityNotFoundException {
-        ServiceDAO.delete(em, JobStepImpl.class, scopeId, jobStepId);
+    public static JobStep delete(EntityManager em, KapuaId scopeId, KapuaId jobStepId) throws KapuaEntityNotFoundException {
+        return ServiceDAO.delete(em, JobStepImpl.class, scopeId, jobStepId);
     }
 }

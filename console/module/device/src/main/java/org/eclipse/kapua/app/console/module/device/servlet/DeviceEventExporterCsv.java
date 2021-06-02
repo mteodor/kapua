@@ -1,15 +1,19 @@
 /*******************************************************************************
- * Copyright (c) 2017, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
  *******************************************************************************/
 package org.eclipse.kapua.app.console.module.device.servlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -18,13 +22,8 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.commons.model.id.KapuaEid;
@@ -32,11 +31,12 @@ import org.eclipse.kapua.commons.security.KapuaSecurityUtils;
 import org.eclipse.kapua.locator.KapuaLocator;
 import org.eclipse.kapua.message.KapuaPosition;
 import org.eclipse.kapua.model.query.KapuaListResult;
+import org.eclipse.kapua.service.account.Account;
+import org.eclipse.kapua.service.account.AccountService;
 import org.eclipse.kapua.service.device.registry.event.DeviceEvent;
-import org.eclipse.kapua.service.user.User;
-import org.eclipse.kapua.service.user.UserService;
 
 import com.opencsv.CSVWriter;
+import org.apache.commons.lang3.CharEncoding;
 
 public class DeviceEventExporterCsv extends DeviceEventExporter {
 
@@ -44,8 +44,9 @@ public class DeviceEventExporterCsv extends DeviceEventExporter {
     private String clientId;
     private DateFormat dateFormat;
     private CSVWriter writer;
+    private String accountName;
 
-    private final Map<String, String> namesCache = new HashMap<String, String>();
+    private static final AccountService ACCOUNT_SERVICE = KapuaLocator.getInstance().getService(AccountService.class);
 
     public DeviceEventExporterCsv(HttpServletResponse response) {
         super(response);
@@ -53,32 +54,37 @@ public class DeviceEventExporterCsv extends DeviceEventExporter {
 
     @Override
     public void init(final String scopeId, String clientId)
-            throws ServletException, IOException, KapuaException {
+            throws IOException {
         this.scopeId = scopeId;
         this.clientId = clientId;
         dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS");
 
         response.setContentType("text/csv");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + URLEncoder.encode(clientId, "UTF-8") + "_device_events.csv");
+        response.setCharacterEncoding(CharEncoding.UTF_8);
+        response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + URLEncoder.encode(clientId, CharEncoding.UTF_8) + "_device_events.csv");
         response.setHeader("Cache-Control", "no-transform, max-age=0");
 
-        OutputStreamWriter osw = new OutputStreamWriter(response.getOutputStream(), Charset.forName("UTF-8"));
+        OutputStreamWriter osw = new OutputStreamWriter(response.getOutputStream(), Charset.forName(CharEncoding.UTF_8));
         writer = new CSVWriter(osw);
-
-        List<String> cols = new ArrayList<String>();
-        for (String property : DEVICE_PROPERTIES) {
-            cols.add(property);
-        }
-        writer.writeNext(cols.toArray(new String[] {}));
+        writer.writeNext(DEVICE_PROPERTIES);
     }
 
     @Override
-    public void append(KapuaListResult<DeviceEvent> deviceEvents)
-            throws ServletException, IOException {
+    public void append(KapuaListResult<DeviceEvent> deviceEvents) throws KapuaException {
 
-        KapuaLocator locator = KapuaLocator.getInstance();
-        final UserService userService = locator.getService(UserService.class);
+        Account account;
+        try {
+            account = KapuaSecurityUtils.doPrivileged(new Callable<Account>() {
+
+                @Override
+                public Account call() throws Exception {
+                    return ACCOUNT_SERVICE.find(KapuaEid.parseCompactId(scopeId));
+                }
+            });
+        } catch (KapuaException e) {
+            throw KapuaException.internalError(e);
+        }
+
         for (final DeviceEvent deviceEvent : deviceEvents.getItems()) {
 
             List<String> cols = new ArrayList<String>();
@@ -87,7 +93,7 @@ public class DeviceEventExporterCsv extends DeviceEventExporter {
             cols.add(scopeId);
 
             // Account name
-            cols.add(clientId);
+            cols.add(account != null ? account.getName() : BLANK);
 
             // Event id
             cols.add(deviceEvent.getId().toCompactId());
@@ -95,25 +101,12 @@ public class DeviceEventExporterCsv extends DeviceEventExporter {
             // Created on
             cols.add(deviceEvent.getCreatedOn() != null ? dateFormat.format(deviceEvent.getCreatedOn()) : BLANK);
 
-            // Created by
-            if (deviceEvent.getCreatedBy().toCompactId() != null) {
-                if (!namesCache.containsKey(deviceEvent.getCreatedBy().toCompactId())) {
-                    try {
-                        User user = KapuaSecurityUtils.doPrivileged(new Callable<User>() {
-                            @Override
-                            public User call() throws Exception {
-                                return userService.find(KapuaEid.parseCompactId(scopeId), deviceEvent.getCreatedBy());
-                            }
-                        });
-                        namesCache.put(user.getId().toCompactId(), user.getName());
-                    } catch (KapuaException kaex) {
-                        namesCache.put(deviceEvent.getCreatedBy().toCompactId(), BLANK);
-                    }
-                }
-                cols.add(namesCache.get(deviceEvent.getCreatedBy().toCompactId()));
-            } else {
-                cols.add(BLANK);
-            }
+            // Created By
+            cols.add(deviceEvent.getCreatedBy() != null ? deviceEvent.getCreatedBy().toCompactId() : BLANK);
+
+            // Client id
+            cols.add(clientId);
+
             // Device id
             cols.add(deviceEvent.getDeviceId() != null ? deviceEvent.getDeviceId().toCompactId() : BLANK);
 
@@ -176,7 +169,7 @@ public class DeviceEventExporterCsv extends DeviceEventExporter {
             // Event Message
             cols.add(deviceEvent.getEventMessage() != null ? deviceEvent.getEventMessage() : BLANK);
 
-            writer.writeNext(cols.toArray(new String[] {}));
+            writer.writeNext(cols.toArray(new String[]{ }));
         }
     }
 
@@ -187,4 +180,5 @@ public class DeviceEventExporterCsv extends DeviceEventExporter {
 
         writer.close();
     }
+
 }

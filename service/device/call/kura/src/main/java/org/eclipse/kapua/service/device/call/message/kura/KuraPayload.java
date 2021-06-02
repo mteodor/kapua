@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2018 Eurotech and/or its affiliates and others
+ * Copyright (c) 2016, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -14,7 +15,6 @@ package org.eclipse.kapua.service.device.call.message.kura;
 import com.google.common.primitives.Booleans;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.eclipse.kapua.KapuaException;
 import org.eclipse.kapua.message.internal.MessageErrorCodes;
 import org.eclipse.kapua.message.internal.MessageException;
 import org.eclipse.kapua.service.device.call.message.DevicePayload;
@@ -31,21 +31,48 @@ import java.util.Map;
 
 /**
  * {@link DevicePayload} {@link org.eclipse.kapua.service.device.call.kura.Kura} implementation.
+ *
+ * @since 1.0.0
  */
 public class KuraPayload implements DevicePayload {
 
     private static final Logger LOG = LoggerFactory.getLogger(KuraPayload.class);
 
+    /**
+     * The timestamp.
+     *
+     * @since 1.0.0
+     */
     protected Date timestamp;
+
+    /**
+     * The {@link DevicePosition}.
+     *
+     * @since 1.0.0
+     */
     protected DevicePosition position;
+
+    /**
+     * The metrics.
+     *
+     * @since 1.0.0
+     */
     protected Map<String, Object> metrics;
+
+    /**
+     * The raw body.
+     *
+     * @since 1.0.0
+     */
     protected byte[] body;
 
     /**
-     * Constructor
+     * Constructor.
+     *
+     * @since 1.0.0
      */
     public KuraPayload() {
-        metrics = new HashMap<>();
+        super();
     }
 
     @Override
@@ -70,12 +97,26 @@ public class KuraPayload implements DevicePayload {
 
     @Override
     public Map<String, Object> getMetrics() {
+        if (metrics == null) {
+            metrics = new HashMap<>();
+        }
+
         return metrics;
     }
 
     @Override
     public void setMetrics(Map<String, Object> metrics) {
         this.metrics = metrics;
+    }
+
+    @Override
+    public void addMetric(String name, Object value) {
+        getMetrics().put(name, value);
+    }
+
+    @Override
+    public void removeMetric(String name) {
+        getMetrics().remove(name);
     }
 
     @Override
@@ -115,18 +156,16 @@ public class KuraPayload implements DevicePayload {
                     setProtoKuraMetricValue(metricBuilder, value);
                     metricBuilder.build();
 
-                    // add it to the message
                     protoMsg.addMetric(metricBuilder);
-                } catch (MessageException eihte) {
-                    LOG.error("During serialization, ignoring metric named: {}. Unrecognized value type: {}.", name, value.getClass().getName());
-                    throw new RuntimeException(eihte);
+                } catch (MessageException me) {
+                    LOG.warn("During serialization, ignoring metric named: {}. Unrecognized value type: {}.", name, value.getClass().getName(), me);
                 }
             }
         });
 
         //
         // Set the body
-        if (getBody() != null) {
+        if (hasBody()) {
             protoMsg.setBody(ByteString.copyFrom(getBody()));
         }
 
@@ -134,7 +173,7 @@ public class KuraPayload implements DevicePayload {
     }
 
     @Override
-    public void readFromByteArray(byte[] bytes) throws KapuaException {
+    public void readFromByteArray(byte[] bytes) throws MessageException {
         //
         // Decompress
         if (GZIPUtils.isCompressed(bytes)) {
@@ -171,51 +210,41 @@ public class KuraPayload implements DevicePayload {
         protoMsg.getMetricList().forEach(kuraMetric -> {
             try {
                 Object value = getProtoKuraMetricValue(kuraMetric, kuraMetric.getType());
-                metrics.put(kuraMetric.getName(), value);
-            } catch (MessageException ihte) {
-                LOG.warn("During deserialization, ignoring metric named: " + kuraMetric.getName() + ". Unrecognized value type: " + kuraMetric.getType(), ihte);
+                addMetric(kuraMetric.getName(), value);
+            } catch (MessageException me) {
+                LOG.warn("During deserialization, ignoring metric named: {}. Unrecognized value type: {}", kuraMetric.getName(), kuraMetric.getType(), me);
             }
         });
 
         //
         // Set the body
         if (protoMsg.hasBody()) {
-            body = (protoMsg.getBody().toByteArray());
+            setBody(protoMsg.getBody().toByteArray());
         }
     }
 
     //
     // Private methods
     //
-    private Object getProtoKuraMetricValue(KuraPayloadProto.KuraPayload.KuraMetric metric,
-            KuraPayloadProto.KuraPayload.KuraMetric.ValueType type)
-            throws MessageException {
+    private Object getProtoKuraMetricValue(KuraPayloadProto.KuraPayload.KuraMetric metric, KuraPayloadProto.KuraPayload.KuraMetric.ValueType type) throws MessageException {
         switch (type) {
-
-        case DOUBLE:
-            return metric.getDoubleValue();
-
-        case FLOAT:
-            return metric.getFloatValue();
-
-        case INT64:
-            return metric.getLongValue();
-
-        case INT32:
-            return metric.getIntValue();
-
-        case BOOL:
-            return metric.getBoolValue();
-
-        case STRING:
-            return metric.getStringValue();
-
-        case BYTES:
-            ByteString bs = metric.getBytesValue();
-            return bs.toByteArray();
-
-        default:
-            throw new MessageException(MessageErrorCodes.INVALID_METRIC_TYPE, null, type);
+            case DOUBLE:
+                return metric.getDoubleValue();
+            case FLOAT:
+                return metric.getFloatValue();
+            case INT64:
+                return metric.getLongValue();
+            case INT32:
+                return metric.getIntValue();
+            case BOOL:
+                return metric.getBoolValue();
+            case STRING:
+                return metric.getStringValue();
+            case BYTES:
+                ByteString bs = metric.getBytesValue();
+                return bs.toByteArray();
+            default:
+                throw new MessageException(MessageErrorCodes.INVALID_METRIC_TYPE, null, type);
         }
     }
 

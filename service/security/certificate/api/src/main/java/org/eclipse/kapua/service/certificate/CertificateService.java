@@ -1,10 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2017 Eurotech and/or its affiliates and others
+ * Copyright (c) 2017, 2021 Eurotech and/or its affiliates and others
  *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     Eurotech - initial API and implementation
@@ -21,27 +22,16 @@ import org.eclipse.kapua.service.config.KapuaConfigurableService;
 
 import java.util.List;
 
+/**
+ * @since 1.0.0
+ */
 public interface CertificateService extends KapuaEntityService<Certificate, CertificateCreator>,
         KapuaNamedEntityService<Certificate>,
         KapuaUpdatableEntityService<Certificate>,
         KapuaConfigurableService {
 
-    CertificateDomain CERTIFICATE_DOMAIN = new CertificateDomain();
-
     @Override
-    Certificate create(CertificateCreator var1) throws KapuaException;
-
-    @Override
-    Certificate update(Certificate var1) throws KapuaException;
-
-    @Override
-    Certificate find(KapuaId var1, KapuaId var2) throws KapuaException;
-
-    @Override
-    Certificate findByName(String var1) throws KapuaException;
-
-    @Override
-    CertificateListResult query(KapuaQuery<Certificate> query) throws KapuaException;
+    CertificateListResult query(KapuaQuery query) throws KapuaException;
 
     Certificate generate(CertificateGenerator generator) throws KapuaException;
 
